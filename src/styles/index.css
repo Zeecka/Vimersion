@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+/* ---- Vimersion retro-terminal design tokens (Tailwind v4 @theme) ----
+   Each token becomes a utility, e.g. --color-term -> bg-term / text-term / border-term. */
+@theme {
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-terminal: 'VT323', 'JetBrains Mono', monospace;
+
+  --color-bg: #0a0e14;
+  --color-panel: #10141c;
+  --color-panel-2: #161b26;
+  --color-border: #232a38;
+
+  --color-term: #3ddc84; /* phosphor green — primary */
+  --color-term-dim: #2a9d63;
+  --color-amber: #ffb454; /* accent — XP / highlights */
+  --color-cyan: #59c2ff; /* accent — info */
+  --color-magenta: #ff6ac1; /* accent — combos */
+  --color-danger: #ff5c7a;
+
+  --color-ink: #c7d0d9; /* main text */
+  --color-ink-dim: #7a8494; /* muted text */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Subtle CRT phosphor glow behind the whole app. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(61, 220, 132, 0.06), transparent 60%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.12) 3px,
+      rgba(0, 0, 0, 0) 4px
+    );
+}
+
+/* Scrollbars in-theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+/* Utility helpers reused across components */
+@layer components {
+  .glow-term {
+    text-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
+  }
+  .glow-amber {
+    text-shadow: 0 0 8px rgba(255, 180, 84, 0.6);
+  }
+  .panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+  }
+  .keycap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.6em;
+    padding: 0.05em 0.4em;
+    border-radius: 0.3rem;
+    border: 1px solid var(--color-border);
+    border-bottom-width: 3px;
+    background: var(--color-panel-2);
+    color: var(--color-term);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.85em;
+    line-height: 1.4;
+  }
+}
