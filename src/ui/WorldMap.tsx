@@ -1,4 +1,4 @@
-import { WORLDS, challengesForTier } from '../content/tiers'
+import { WORLDS, challengesForTier, tierUnlocked } from '../content/tiers'
 import { useGame } from '../game/store'
 import { StarRow } from './atoms'
 import { Emoji } from './Emoji'
@@ -10,29 +10,43 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h2 className="font-terminal text-4xl text-term glow-term">Campaign</h2>
-      <p className="mt-1 text-ink-dim">Clear each challenge to unlock the next. Fewer keystrokes = more stars.</p>
+      <p className="mt-1 text-ink-dim">Clear a world to unlock the next. Fewer keystrokes = more stars.</p>
 
       <div className="mt-8 space-y-6">
         {WORLDS.map((w) => {
           const chs = challengesForTier(w.tier)
-          const available = chs.length > 0
+          const hasContent = chs.length > 0
+          const worldUnlocked = tierUnlocked(w.tier, completed)
+          const cleared = hasContent && chs.every((c) => completed[c.id])
+          const playable = hasContent && worldUnlocked
           return (
             <section key={w.tier} className="panel overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4">
                 <div>
-                  <h3 className="font-terminal text-2xl" style={{ color: w.accent }}>
+                  <h3
+                    className="font-terminal text-2xl"
+                    style={{ color: playable ? w.accent : 'var(--color-ink-dim)' }}
+                  >
                     World {w.tier} · {w.name}
                   </h3>
                   <p className="text-sm text-ink-dim">{w.subtitle}</p>
                 </div>
-                {!available && (
+                {!hasContent ? (
                   <span className="rounded border border-border px-2 py-1 text-[10px] uppercase tracking-widest text-ink-dim">
                     Coming soon
                   </span>
-                )}
+                ) : cleared ? (
+                  <span className="rounded border border-term px-2 py-1 text-[10px] uppercase tracking-widest text-term">
+                    ✓ Cleared
+                  </span>
+                ) : !worldUnlocked ? (
+                  <span className="flex items-center gap-1.5 rounded border border-border px-2 py-1 text-[10px] uppercase tracking-widest text-ink-dim">
+                    <Emoji name="lock" size={11} /> Locked
+                  </span>
+                ) : null}
               </div>
 
-              {available ? (
+              {playable ? (
                 <div className="grid grid-cols-2 gap-3 border-t border-border p-5 sm:grid-cols-4">
                   {chs.map((c, i) => {
                     const prev = i === 0 ? null : chs[i - 1]
@@ -65,7 +79,9 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
                 </div>
               ) : (
                 <p className="border-t border-border px-5 py-5 text-sm text-ink-dim">
-                  Curriculum stub — {w.subtitle.toLowerCase()}. Landing in a future update.
+                  {!hasContent
+                    ? `Curriculum stub — ${w.subtitle.toLowerCase()}. Landing in a future update.`
+                    : `Locked — clear World ${w.tier - 1} to unlock these ${chs.length} challenges.`}
                 </p>
               )}
             </section>
