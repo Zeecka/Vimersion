@@ -10,7 +10,9 @@ Vim keybindings**, so the skills transfer directly to actual Vim/Neovim.
 ## Features (MVP — Tier 1 "Survive")
 
 - **Campaign** — bite-sized, mastery-gated challenges inside a real Vim editor. Teaches
-  modes (`i`/`a`/`o`/`Esc`), motion (`hjkl`), and first edits (`x`, `dd`, `u`).
+  modes (`i`/`a`/`o`/`Esc`), motion (`hjkl`), and first edits (`x`, `dd`, `u`). Every level
+  has its **own illustrated scene** behind the editor (volcano, ocean, neon city, sky
+  temple, …) — all procedural SVG, dimmed so code stays legible.
 - **VimGolf-style scoring** — every keystroke counts; beat *par* for 3 stars.
 - **XP, levels & a streak** — White-Hat gamification (progress & accomplishment), no dark
   patterns.

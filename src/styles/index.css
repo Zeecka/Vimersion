@@ -164,3 +164,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .vm-scroll { animation: none !important; }
 }
+
+/* ---- Per-level scene ambience ---- */
+@keyframes vm-fall {
+  0% { transform: translateY(-12px); opacity: 0; }
+  12% { opacity: 0.9; }
+  100% { transform: translateY(260px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vm-particle { animation: none !important; }
+}

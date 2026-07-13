@@ -4,9 +4,9 @@ import { ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
 import { HeroPanel, type Reaction } from '../ui/HeroPanel'
-import { EditorScene } from '../ui/Background'
+import { LevelScene } from '../ui/LevelScene'
 import { useGame, type CompleteOutcome } from '../game/store'
-import { challengesForTier, worldMeta } from '../content/tiers'
+import { CHALLENGES, challengesForTier, worldMeta } from '../content/tiers'
 import type { Challenge } from '../game/types'
 
 interface Props {
@@ -31,6 +31,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const siblings = challengesForTier(challenge.tier)
   const idx = siblings.findIndex((c) => c.id === challenge.id)
   const next = siblings[idx + 1]
+  const sceneIndex = CHALLENGES.findIndex((c) => c.id === challenge.id)
 
   // A keystroke makes the hero "think"; it relaxes to idle shortly after you stop.
   const onKeystroke = useCallback((n: number) => {
@@ -101,7 +102,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           </div>
 
           <div className="panel relative mt-3 flex-1 overflow-hidden">
-            <EditorScene />
+            <LevelScene index={sceneIndex} />
             <div className="relative z-10 h-full">
               <VimEditor
                 ref={editorRef}
