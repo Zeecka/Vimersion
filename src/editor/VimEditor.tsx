@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView, type ViewUpdate } from '@codemirror/view'
 import { getCM } from '@replit/codemirror-vim'
@@ -13,6 +13,11 @@ interface Props {
   onModeChange?: (mode: string) => void
   /** When true, keystrokes are ignored for scoring (e.g. after completion). */
   frozen?: boolean
+}
+
+/** Imperative handle so parents can restore keyboard focus to the editor. */
+export interface VimEditorHandle {
+  focus: () => void
 }
 
 const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Dead'])
@@ -30,12 +35,18 @@ function goalMet(view: EditorView, ch: Challenge): boolean {
  * instrumented to (a) count keystrokes, (b) detect goal completion, (c) report the vim mode.
  * Remount (via a `key` on the parent) to reset for a new challenge.
  */
-export default function VimEditor({ challenge, onComplete, onKeystroke, onModeChange, frozen }: Props) {
+const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
+  { challenge, onComplete, onKeystroke, onModeChange, frozen },
+  ref,
+) {
   const hostRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorView | null>(null)
   const keystrokes = useRef(0)
   const done = useRef(false)
   const frozenRef = useRef(frozen)
   frozenRef.current = frozen
+
+  useImperativeHandle(ref, () => ({ focus: () => viewRef.current?.focus() }), [])
 
   useEffect(() => {
     const host = hostRef.current
@@ -55,6 +66,7 @@ export default function VimEditor({ challenge, onComplete, onKeystroke, onModeCh
       state: EditorState.create({ doc: challenge.startText, extensions: makeExtensions(onUpdate) }),
       parent: host,
     })
+    viewRef.current = view
 
     // Place the starting cursor if requested.
     if (challenge.startCursor) {
@@ -103,10 +115,13 @@ export default function VimEditor({ challenge, onComplete, onKeystroke, onModeCh
       view.dom.removeEventListener('keydown', onKeyDown, true)
       detachMode?.()
       view.destroy()
+      viewRef.current = null
     }
     // Remount on challenge change via key; deps intentionally exclude callbacks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge])
 
   return <div ref={hostRef} className="h-full w-full" />
-}
+})
+
+export default VimEditor

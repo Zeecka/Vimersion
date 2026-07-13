@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import VimEditor from '../editor/VimEditor'
+import { useCallback, useRef, useState } from 'react'
+import VimEditor, { type VimEditorHandle } from '../editor/VimEditor'
 import { ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
@@ -21,6 +21,14 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const [outcome, setOutcome] = useState<CompleteOutcome | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
+  const editorRef = useRef<VimEditorHandle>(null)
+
+  const revealHint = () => {
+    setShowHint(true)
+    // Clicking the button pulls focus off the editor; hand it straight back so
+    // the next Vim keystroke lands in the editor, not nowhere.
+    editorRef.current?.focus()
+  }
 
   const world = worldMeta(challenge.tier)
   const siblings = challengesForTier(challenge.tier)
@@ -71,6 +79,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
 
       <div className="panel mt-3 flex-1 overflow-hidden">
         <VimEditor
+          ref={editorRef}
           key={`${challenge.id}-${editorKey}`}
           challenge={challenge}
           onComplete={handleComplete}
@@ -87,7 +96,10 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           </p>
         ) : (
           <button
-            onClick={() => setShowHint(true)}
+            // preventDefault on mousedown keeps focus in the editor (a normal click
+            // would move focus to this button and swallow subsequent Vim keys).
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={revealHint}
             className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-term"
           >
             need a hint?

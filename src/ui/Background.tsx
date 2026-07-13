@@ -40,13 +40,43 @@ function blob(color: string, s: CSSProperties): CSSProperties {
   }
 }
 
+/**
+ * Default free background: a parallax "terminal nebula". Theme-tinted so it recolors with
+ * the equipped theme. Everyone sees parallax + depth on first load (no purchase needed).
+ */
 function CrtBg() {
   return (
-    <>
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--color-term) 12%, transparent), transparent 55%), radial-gradient(ellipse at 80% 110%, rgba(89,194,255,0.06), transparent 55%)' }} />
-      <div className="absolute inset-0" style={starLayer('color-mix(in srgb, var(--color-term) 70%, white)', 0.25, 260)} />
+    <ParallaxScene
+      className="absolute inset-0"
+      style={{ background: 'radial-gradient(ellipse at 50% -15%, color-mix(in srgb, var(--color-term) 16%, #0a0e14), #070a11 62%)' }}
+    >
+      {/* far, slow stars */}
+      <ParallaxLayer depth={0.15} style={starLayer('color-mix(in srgb, var(--color-term) 55%, white)', 0.4, 260)} />
+      {/* near, brighter stars */}
+      <ParallaxLayer depth={0.42} style={starLayer('#ffffff', 0.55, 150)} />
+      {/* drifting accent glow orbs */}
+      <ParallaxLayer depth={0.7}>
+        <div style={blob('color-mix(in srgb, var(--color-term) 80%, transparent)', { top: '-14%', left: '-8%' })} />
+        <div style={blob('rgba(89,194,255,0.45)', { bottom: '-18%', right: '-10%', animationDelay: '-8s', width: '44vw', height: '44vw' })} />
+      </ParallaxLayer>
+      {/* subtle theme-tinted perspective grid floor */}
+      <ParallaxLayer depth={0.9}>
+        <div className="absolute inset-x-0 bottom-0 h-[36%] [perspective:320px]">
+          <div
+            className="absolute inset-0 origin-bottom [transform:rotateX(75deg)]"
+            style={{
+              backgroundImage:
+                'linear-gradient(color-mix(in srgb, var(--color-term) 65%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in srgb, var(--color-term) 65%, transparent) 2px, transparent 2px)',
+              backgroundSize: '48px 48px',
+              opacity: 0.16,
+              animation: 'vm-grid-scroll 2.6s linear infinite',
+            }}
+          />
+        </div>
+      </ParallaxLayer>
+      {/* fixed scanlines on top (not a parallax layer, so it stays put) */}
       <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.13) 3px, rgba(0,0,0,0) 4px)' }} />
-    </>
+    </ParallaxScene>
   )
 }
 
