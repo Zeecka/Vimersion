@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Challenge, ChallengeResult, Stars } from './types'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
-import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUND } from './cosmetics'
+import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS } from './cosmetics'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
@@ -156,7 +156,7 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: 'vimersion-save',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<Persisted>
         const merged = {
@@ -165,9 +165,10 @@ export const useGame = create<GameStore>()(
           owned: Array.from(new Set([...(p.owned ?? []), ...initial.owned])),
           equipped: { ...initial.equipped, ...(p.equipped ?? {}) },
         } as Persisted
-        // v3: the default background became a parallax scene. Move anyone still on
-        // the old static-terminal default onto the new one so the feature is visible.
-        if (version < 3 && merged.equipped.background === LEGACY_DEFAULT_BACKGROUND) {
+        // v4: default became the side-scrolling "Pixel Kingdom". Move anyone still on
+        // an older default onto it (their old background stays owned, so they can
+        // re-equip it for free from the Shop if they prefer).
+        if (version < 4 && LEGACY_DEFAULT_BACKGROUNDS.includes(merged.equipped.background)) {
           merged.equipped.background = DEFAULTS.background
         }
         return merged

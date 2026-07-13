@@ -45,6 +45,7 @@ export const THEMES: Cosmetic[] = [
 
 /** Animated, parallax backgrounds (react to the mouse). */
 export const BACKGROUNDS: Cosmetic[] = [
+  { id: 'platform', kind: 'background', name: 'Pixel Kingdom', price: 0, bg: 'platform', blurb: 'Side-scrolling multi-layer parallax.' },
   { id: 'crt', kind: 'background', name: 'CRT Scanlines', price: 0, bg: 'crt', blurb: 'Cozy terminal glow.' },
   { id: 'aurora', kind: 'background', name: 'Aurora', price: 70, bg: 'aurora', blurb: 'Drifting parallax light.' },
   { id: 'synthwave', kind: 'background', name: 'Synthwave', price: 90, bg: 'synthwave', blurb: 'Sun, mountains & neon grid.' },
@@ -57,10 +58,11 @@ export const BACKGROUNDS: Cosmetic[] = [
 export const COSMETICS: Cosmetic[] = [...AVATARS, ...THEMES, ...BACKGROUNDS]
 export const COSMETIC_BY_ID: Record<string, Cosmetic> = Object.fromEntries(COSMETICS.map((c) => [c.id, c]))
 
-export const DEFAULTS = { avatar: 'cursor', theme: 'phosphor', background: 'nebula' } as const
+export const DEFAULTS = { avatar: 'cursor', theme: 'phosphor', background: 'platform' } as const
 
-/** The pre-v3 default background (a static terminal). Used to migrate old saves. */
-export const LEGACY_DEFAULT_BACKGROUND = 'crt'
+/** Backgrounds that were the default in earlier versions. Save migration moves
+ *  anyone still on one of these onto the current DEFAULTS.background. */
+export const LEGACY_DEFAULT_BACKGROUNDS = ['crt', 'nebula']
 
 export function cosmeticsByKind(kind: CosmeticKind): Cosmetic[] {
   return COSMETICS.filter((c) => c.kind === kind)

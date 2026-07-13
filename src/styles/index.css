@@ -149,3 +149,18 @@ body {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-2px) rotate(1.2deg); }
 }
+
+/* ---- Side-scrolling platformer parallax (Pixel Kingdom) ----
+   Each layer tiles horizontally (repeat-x) and animates background-position-x by
+   exactly one tile width (--vm-shift) so the scroll loops seamlessly. Different
+   durations per layer create the multi-layer depth. */
+@keyframes vm-scroll-x {
+  to { background-position-x: var(--vm-shift, -100%); }
+}
+@keyframes vm-bob-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vm-scroll { animation: none !important; }
+}

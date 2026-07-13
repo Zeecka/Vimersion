@@ -13,6 +13,11 @@ const TABS: { key: CosmeticKind; label: string; items: Cosmetic[] }[] = [
 
 function bgPreviewStyle(bg?: string): CSSProperties {
   switch (bg) {
+    case 'platform':
+      return {
+        background:
+          'radial-gradient(circle at 24% 78%, #1f6b3f 0 22px, transparent 22px), radial-gradient(circle at 60% 82%, #1f6b3f 0 28px, transparent 28px), linear-gradient(180deg, #241a4e 0%, #5a2f6e 55%, #ff9e64 100%)',
+      }
     case 'aurora':
       return {
         background:

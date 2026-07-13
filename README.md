@@ -61,7 +61,8 @@ src/
 Earn **coins** by playing, then spend them in the **Shop** on:
 - **Characters** — your avatar across the app and as the arcade cursor.
 - **Themes** — recolor the whole game (UI + editor cursor) live.
-- **Backgrounds** — CRT, Aurora, Synthwave, Starfield, and Digital Rain (animated).
+- **Backgrounds** — a side-scrolling **Pixel Kingdom** (multi-layer parallax, the default),
+  plus CRT, Aurora, Synthwave, Nebula, Cyber City, Starfield, and Digital Rain (all animated).
 
 ## Credits
 
