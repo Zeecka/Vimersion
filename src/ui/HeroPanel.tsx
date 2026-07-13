@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { levelProgress } from '../game/xp'
@@ -6,11 +6,16 @@ import { COMMANDS } from '../game/commands'
 import { COSMETIC_BY_ID, AVATARS } from '../game/cosmetics'
 import { WORLDS, challengesForTier } from '../content/tiers'
 import { sfx } from '../game/sound'
+import { effectiveQuality } from '../game/quality'
+import { useStage, type HeroReaction } from '../three/stageState'
 import { Avatar } from './Avatar'
 import { Emoji } from './Emoji'
 
 /** How the hero should feel right now, driven by the play screen. */
-export type Reaction = 'idle' | 'typing' | 'win'
+export type Reaction = HeroReaction
+
+// Local Suspense boundary — only the portrait ever suspends, never the editor.
+const Hero3D = lazy(() => import('../three/Hero3D'))
 
 const EMOTES = ['cool', 'muscle', 'party', 'starstruck', 'wave', 'fire'] as const
 const EFFECTS = ['sparkles', 'fire', 'bolt'] as const
@@ -26,6 +31,33 @@ const PARTICLES = [
   { left: '42%', delay: '2.2s', dur: '3.3s' },
 ]
 
+/** The classic SVG avatar with spinning aura — lite tier + 3D loading fallback. */
+function ClassicPortrait({ reaction, avatar, bobClass }: { reaction: Reaction; avatar: string; bobClass: string }) {
+  return (
+    <div className="absolute inset-x-0 bottom-2 grid place-items-center">
+      <motion.div
+        animate={reaction === 'win' || reaction === 'levelup' ? { scale: [1, 1.18, 1], rotate: [0, -7, 7, 0] } : { scale: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className={bobClass}>
+          <div className="relative grid place-items-center">
+            <div
+              className="absolute h-[104px] w-[104px] rounded-full opacity-70 blur-[7px]"
+              style={{
+                background: 'conic-gradient(from 0deg, var(--color-term), var(--color-cyan), var(--color-magenta), var(--color-term))',
+                animation: 'vm-spin-slow 6s linear infinite',
+              }}
+            />
+            <span className="relative grid h-[88px] w-[88px] place-items-center rounded-full bg-bg ring-1 ring-border">
+              <Avatar id={avatar} size={62} />
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const xp = useGame((s) => s.xp)
   const coins = useGame((s) => s.coins)
@@ -38,6 +70,10 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const [emote, setEmote] = useState<string | null>(null)
   const [effect, setEffect] = useState<Effect>('sparkles')
   const clearTimer = useRef<number | undefined>(undefined)
+
+  const quality = useGame((s) => s.quality)
+  const contextLost = useStage((s) => s.contextLost)
+  const tier = contextLost ? 'lite' : effectiveQuality(quality)
 
   const name = COSMETIC_BY_ID[avatar]?.name ?? 'Rookie'
   const { level, into, span, pct } = levelProgress(xp)
@@ -59,7 +95,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   // React to gameplay: celebrate wins, focus while typing, relax when idle.
   useEffect(() => {
     window.clearTimeout(clearTimer.current)
-    if (reaction === 'win') pop('party', 2200)
+    if (reaction === 'win' || reaction === 'levelup') pop('party', 2200)
     else if (reaction === 'typing') setEmote('thinking')
     else setEmote(null)
     return () => window.clearTimeout(clearTimer.current)
@@ -119,38 +155,27 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
           )}
         </AnimatePresence>
 
-        {/* character with spinning aura */}
-        <div className="absolute inset-x-0 bottom-2 grid place-items-center">
-          <motion.div
-            animate={reaction === 'win' ? { scale: [1, 1.18, 1], rotate: [0, -7, 7, 0] } : { scale: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className={bobClass}>
-              <div className="relative grid place-items-center">
-                <div
-                  className="absolute h-[104px] w-[104px] rounded-full opacity-70 blur-[7px]"
-                  style={{
-                    background: 'conic-gradient(from 0deg, var(--color-term), #59c2ff, #ff6ac1, var(--color-term))',
-                    animation: 'vm-spin-slow 6s linear infinite',
-                  }}
-                />
-                <span className="relative grid h-[88px] w-[88px] place-items-center rounded-full bg-bg ring-1 ring-border">
-                  <Avatar id={avatar} size={62} />
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        {/* character: 3D hero in the webgl tier, classic avatar bubble in lite
+            (and as the Suspense fallback while the 3D chunk/model loads). */}
+        {tier === 'webgl' ? (
+          <div className="absolute inset-x-0 bottom-0 top-2">
+            <Suspense fallback={<ClassicPortrait reaction={reaction} avatar={avatar} bobClass={bobClass} />}>
+              <Hero3D reaction={reaction} />
+            </Suspense>
+          </div>
+        ) : (
+          <ClassicPortrait reaction={reaction} avatar={avatar} bobClass={bobClass} />
+        )}
       </div>
 
       {/* name + level + xp bar */}
       <div className="text-center">
-        <div className="font-terminal text-2xl text-ink">{name}</div>
+        <div className="font-terminal text-2xl font-semibold text-ink">{name}</div>
         <div className="text-xs text-term">Level {level}</div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className="h-full rounded-full transition-[width] duration-500"
-            style={{ width: `${Math.round(pct * 100)}%`, background: 'linear-gradient(90deg, var(--color-term), #59c2ff)' }}
+            style={{ width: `${Math.round(pct * 100)}%`, background: 'linear-gradient(90deg, var(--color-term), var(--color-cyan))' }}
           />
         </div>
         <div className="mt-1 text-[10px] tabular-nums text-ink-dim">{into} / {span} XP</div>

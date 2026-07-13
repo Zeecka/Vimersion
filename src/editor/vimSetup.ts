@@ -44,8 +44,9 @@ export const vimersionTheme = EditorView.theme(
   { dark: true },
 )
 
-/** Build the extension set for a challenge editor. `vim()` must come first. */
-export function makeExtensions(onUpdate: (v: ViewUpdate) => void): Extension[] {
+/** Build the extension set for a challenge editor. `vim()` must come first.
+ *  `extra` lets a challenge add e.g. a language extension (tag text objects). */
+export function makeExtensions(onUpdate: (v: ViewUpdate) => void, extra: Extension[] = []): Extension[] {
   return [
     vim(),
     lineNumbers(),
@@ -55,7 +56,11 @@ export function makeExtensions(onUpdate: (v: ViewUpdate) => void): Extension[] {
     history(),
     EditorView.lineWrapping,
     vimersionTheme,
-    EditorState.allowMultipleSelections.of(false),
+    // MUST be true: visual-block mode (Ctrl-v, block I/A) dispatches
+    // multi-range selections — with this facet false, CM6 collapses them
+    // to one range and block editing silently breaks.
+    EditorState.allowMultipleSelections.of(true),
     EditorView.updateListener.of(onUpdate),
+    ...extra,
   ]
 }

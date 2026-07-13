@@ -13,13 +13,15 @@ interface Props {
   outcome: CompleteOutcome
   keystrokes: number
   par: number
+  /** Boss levels get a bigger, louder headline. */
+  boss?: boolean
   hasNext: boolean
   onNext: () => void
   onReplay: () => void
   onMap: () => void
 }
 
-export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onReplay, onMap }: Props) {
+export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, onNext, onReplay, onMap }: Props) {
   const xp = useGame((s) => s.xp)
   const completed = useGame((s) => s.completed)
   const mastery = useGame((s) => s.mastery)
@@ -58,8 +60,8 @@ export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onRepl
         animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 220, damping: 20 }}
       >
-        <p className="title-gradient font-terminal text-4xl">
-          {outcome.isPerfect ? 'PERFECT!' : 'SOLVED!'}
+        <p className="title-gradient font-terminal text-4xl font-bold">
+          {boss ? 'BOSS DEFEATED!' : outcome.isPerfect ? 'PERFECT!' : 'SOLVED!'}
         </p>
 
         <div className="mt-4 flex justify-center">

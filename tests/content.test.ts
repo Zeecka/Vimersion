@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest'
+import { CHALLENGES, WORLDS } from '../src/content/tiers'
+import { COMMANDS, COMMANDS_BY_ID } from '../src/game/commands'
+import { stagesOf } from '../src/game/types'
+
+describe('content integrity', () => {
+  it('challenge ids are unique', () => {
+    const ids = CHALLENGES.map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('every taughtCommand resolves to a catalog entry', () => {
+    for (const ch of CHALLENGES) {
+      for (const cmd of ch.taughtCommands) {
+        expect(COMMANDS_BY_ID[cmd], `${ch.id} teaches unknown command '${cmd}'`).toBeDefined()
+      }
+    }
+  })
+
+  it('every challenge has a positive par and at least one goal mechanism per stage', () => {
+    for (const ch of CHALLENGES) {
+      expect(ch.par, ch.id).toBeGreaterThan(0)
+      for (const stage of stagesOf(ch)) {
+        const hasGoal = stage.goal.targetText !== undefined || stage.goal.predicate !== undefined
+        expect(hasGoal, `${ch.id}: stage without targetText or predicate`).toBe(true)
+        expect(stage.goal.describe, `${ch.id}: stage without describe`).toBeTruthy()
+      }
+    }
+  })
+
+  it('startCursor is within startText bounds', () => {
+    for (const ch of CHALLENGES) {
+      if (!ch.startCursor) continue
+      const lines = ch.startText.split('\n')
+      expect(ch.startCursor.line, `${ch.id}: cursor line out of range`).toBeLessThanOrEqual(lines.length)
+      expect(ch.startCursor.ch, `${ch.id}: cursor col out of range`).toBeLessThanOrEqual(
+        lines[ch.startCursor.line - 1].length,
+      )
+    }
+  })
+
+  it('bosses have a keystroke budget past the 1★ threshold', () => {
+    for (const ch of CHALLENGES.filter((c) => c.kind === 'boss')) {
+      expect(ch.keystrokeBudget, ch.id).toBeDefined()
+      expect(ch.keystrokeBudget!, `${ch.id}: budget must exceed 1★ threshold`).toBeGreaterThan(
+        Math.ceil(ch.par * 1.75),
+      )
+    }
+  })
+
+  it('every challenge tier has world metadata', () => {
+    const worldTiers = new Set(WORLDS.map((w) => w.tier))
+    for (const ch of CHALLENGES) {
+      expect(worldTiers.has(ch.tier), `${ch.id}: no world for tier ${ch.tier}`).toBe(true)
+    }
+  })
+
+  it('command ids are unique', () => {
+    const ids = COMMANDS.map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})

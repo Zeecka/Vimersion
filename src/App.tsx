@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { Suspense, lazy, useEffect, useState } from 'react'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Hud } from './ui/Hud'
 import { CommandBelt } from './ui/CommandBelt'
 import { WorldMap } from './ui/WorldMap'
@@ -16,6 +16,12 @@ import { shareScore } from './game/share'
 import { setSoundMuted, sfx } from './game/sound'
 import { COMMANDS } from './game/commands'
 import { COSMETIC_BY_ID } from './game/cosmetics'
+import { effectiveQuality } from './game/quality'
+import { setStage, useStage } from './three/stageState'
+
+// The entire 3D graph (three, r3f, drei, models) lives behind this one lazy
+// boundary — the sync bundle stays 3D-free and the editor stays instant.
+const Stage3D = lazy(() => import('./three/Stage3D'))
 
 type Screen =
   | { name: 'home' }
@@ -32,11 +38,17 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   const soundOn = useGame((s) => s.soundOn)
   const equipped = useGame((s) => s.equipped)
+  const quality = useGame((s) => s.quality)
+  const contextLost = useStage((s) => s.contextLost)
+  const stageReady = useStage((s) => s.ready)
 
   const theme = COSMETIC_BY_ID[equipped.theme]
-  const accent = theme?.accent ?? '#3ddc84'
-  const accentDim = theme?.accentDim ?? '#2a9d63'
+  const accent = theme?.accent ?? '#7c6bff'
+  const accentDim = theme?.accentDim ?? '#5a4cd6'
   const bgId = COSMETIC_BY_ID[equipped.background]?.bg ?? 'crt'
+
+  // A lost WebGL context downgrades to lite for the rest of the session.
+  const tier = contextLost ? 'lite' : effectiveQuality(quality)
 
   useEffect(() => {
     setSoundMuted(!soundOn)
@@ -48,14 +60,36 @@ export default function App() {
     root.style.setProperty('--color-term-dim', accentDim)
   }, [accent, accentDim])
 
+  // Mirror UI state into the 3D bridge store (safe before the chunk loads).
+  useEffect(() => {
+    setStage({ screen: screen.name, accent, bgId })
+  }, [screen.name, accent, bgId])
+
+  // Warm the 3D chunk on idle so route transitions never await it.
+  useEffect(() => {
+    if (tier !== 'webgl') return
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number }
+    const idle = (cb: () => void) => (w.requestIdleCallback ? w.requestIdleCallback(cb) : window.setTimeout(cb, 1500))
+    idle(() => {
+      void import('./three/Stage3D')
+    })
+  }, [tier])
+
   const go = (s: Screen) => setScreen(s)
   const play = (id: string) => go({ name: 'play', id })
 
   const challenge = screen.name === 'play' ? CHALLENGES.find((c) => c.id === screen.id) : undefined
 
   return (
-    <>
-      <Background bg={bgId} accent={accent} />
+    <MotionConfig reducedMotion="user">
+      {/* Lite background stays mounted until the 3D stage has painted a frame
+          (and forever in the lite tier) — never a blank flash. */}
+      {(tier === 'lite' || !stageReady) && <Background bg={bgId} accent={accent} />}
+      {tier === 'webgl' && (
+        <Suspense fallback={null}>
+          <Stage3D />
+        </Suspense>
+      )}
       <div className="relative z-10 min-h-screen">
         {screen.name !== 'home' && (
           <Hud onHome={() => go({ name: 'home' })} onShop={() => go({ name: 'shop' })} />
@@ -89,7 +123,7 @@ export default function App() {
           </motion.main>
         </AnimatePresence>
       </div>
-    </>
+    </MotionConfig>
   )
 }
 
@@ -136,9 +170,9 @@ function Home({
 
   const stats = [
     { label: 'LEVEL', value: level, color: 'text-term', bar: 'var(--color-term)' },
-    { label: 'COINS', value: coins, color: 'text-amber', bar: '#ffb454' },
-    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: '#59c2ff' },
-    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: '#ff6ac1' },
+    { label: 'COINS', value: coins, color: 'text-amber', bar: 'var(--color-amber)' },
+    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: 'var(--color-cyan)' },
+    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: 'var(--color-magenta)' },
     { label: 'ARCADE', value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
   ]
 
@@ -152,14 +186,14 @@ function Home({
           }}
           title="Customize your character"
           className="mx-auto mb-4 block rounded-full p-[2.5px] transition-transform hover:scale-105"
-          style={{ background: 'linear-gradient(135deg, var(--color-term), #59c2ff, #ff6ac1)' }}
+          style={{ background: 'linear-gradient(135deg, var(--color-term), var(--color-cyan), var(--color-magenta))' }}
         >
           <span className="grid h-20 w-20 place-items-center rounded-full bg-bg">
             <Avatar id={avatar} size={46} />
           </span>
         </button>
         <motion.h1
-          className="title-gradient font-terminal text-7xl sm:text-8xl"
+          className="title-gradient font-terminal text-6xl font-bold tracking-tight sm:text-7xl"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -177,7 +211,7 @@ function Home({
             className="panel py-3"
             style={{ borderTop: `2.5px solid ${s.bar}`, boxShadow: `0 -1px 16px -7px ${s.bar}` }}
           >
-            <div className={`font-terminal text-2xl tabular-nums ${s.color}`}>{s.value}</div>
+            <div className={`font-terminal text-2xl font-semibold tabular-nums ${s.color}`}>{s.value}</div>
             <div className="text-[10px] uppercase tracking-widest text-ink-dim">{s.label}</div>
           </div>
         ))}
@@ -186,7 +220,7 @@ function Home({
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button
           onClick={startCampaign}
-          className="btn-primary flex-1 rounded px-6 py-4 text-lg font-bold transition-transform hover:scale-[1.02]"
+          className="btn-primary flex-1 rounded-xl px-6 py-4 text-lg font-bold"
         >
           {hasProgress ? '▶ Continue Campaign' : '▶ Start Campaign'}
         </button>
@@ -195,7 +229,7 @@ function Home({
             sfx.ui()
             onArcade()
           }}
-          className="btn-accent flex-1 rounded px-6 py-4 text-lg font-bold transition-transform hover:scale-[1.02]"
+          className="btn-accent flex-1 rounded-xl px-6 py-4 text-lg font-bold"
         >
           <span className="inline-flex items-center justify-center gap-2">
             <Emoji name="target" size={22} /> Motion Rush

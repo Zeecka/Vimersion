@@ -1,5 +1,10 @@
 import ReactDOM from 'react-dom/client'
 import App from './App'
+// Self-hosted fonts (no Google Fonts request — the app works fully offline).
+import '@fontsource-variable/space-grotesk'
+import '@fontsource/jetbrains-mono/400.css'
+import '@fontsource/jetbrains-mono/500.css'
+import '@fontsource/jetbrains-mono/700.css'
 import './styles/index.css'
 
 // Note: intentionally NOT wrapped in <React.StrictMode>. StrictMode double-invokes

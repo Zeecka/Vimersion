@@ -3,7 +3,8 @@ import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView, type ViewUpdate } from '@codemirror/view'
 import { getCM } from '@replit/codemirror-vim'
 import { makeExtensions } from './vimSetup'
-import type { Challenge } from '../game/types'
+import { stagesOf, type Challenge, type Goal, type VimCtx } from '../game/types'
+import { makeVimCtx } from '../game/verify'
 import { sfx } from '../game/sound'
 
 interface Props {
@@ -11,6 +12,10 @@ interface Props {
   onComplete: (keystrokes: number) => void
   onKeystroke?: (count: number) => void
   onModeChange?: (mode: string) => void
+  /** Boss: a stage was cleared; `stage` is the 0-based index now active. */
+  onStageAdvance?: (stage: number) => void
+  /** Boss: the keystroke budget was exhausted without winning. */
+  onFail?: (keystrokes: number) => void
   /** When true, keystrokes are ignored for scoring (e.g. after completion). */
   frozen?: boolean
 }
@@ -22,11 +27,11 @@ export interface VimEditorHandle {
 
 const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Dead'])
 
-function goalMet(view: EditorView, ch: Challenge): boolean {
-  if (ch.goal.targetText !== undefined) {
-    return view.state.doc.toString() === ch.goal.targetText
+function goalMet(view: EditorView, goal: Goal, vim: VimCtx): boolean {
+  if (goal.targetText !== undefined) {
+    return view.state.doc.toString() === goal.targetText
   }
-  if (ch.goal.predicate) return ch.goal.predicate(view)
+  if (goal.predicate) return goal.predicate(view, vim)
   return false
 }
 
@@ -36,7 +41,7 @@ function goalMet(view: EditorView, ch: Challenge): boolean {
  * Remount (via a `key` on the parent) to reset for a new challenge.
  */
 const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
-  { challenge, onComplete, onKeystroke, onModeChange, frozen },
+  { challenge, onComplete, onKeystroke, onModeChange, onStageAdvance, onFail, frozen },
   ref,
 ) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -52,14 +57,59 @@ const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
     const host = hostRef.current
     if (!host) return
 
-    const onUpdate = (u: ViewUpdate) => {
+    // Multi-stage (boss) support: stage goals are checked as a RATCHET — once
+    // a stage is passed it stays passed, so undo can never rewind the fight.
+    const stages = stagesOf(challenge)
+    const stageIdx = { current: 0 }
+    const budget = challenge.keystrokeBudget
+
+    const fail = () => {
+      done.current = true
+      sfx.error()
+      onFail?.(keystrokes.current)
+    }
+
+    const runGoalCheck = (view: EditorView) => {
       if (done.current) return
-      if (!u.docChanged && !u.selectionSet) return
-      if (goalMet(u.view, challenge)) {
+      const vimCtx = makeVimCtx(view)
+      let advanced = false
+      while (stageIdx.current < stages.length && goalMet(view, stages[stageIdx.current].goal, vimCtx)) {
+        stageIdx.current += 1
+        advanced = true
+      }
+      if (stageIdx.current >= stages.length) {
         done.current = true
         sfx.success()
         onComplete(keystrokes.current)
+        return
       }
+      if (advanced) {
+        sfx.combo(stageIdx.current + 1)
+        onStageAdvance?.(stageIdx.current)
+      }
+      // Budget is checked AFTER goals on the same update, so a winning
+      // keystroke at exactly the limit counts as a win, not a loss.
+      if (budget !== undefined && keystrokes.current > budget) fail()
+    }
+
+    const onUpdate = (u: ViewUpdate) => {
+      if (done.current) return
+      if (!u.docChanged && !u.selectionSet) return
+      runGoalCheck(u.view)
+    }
+
+    // Re-check goals after every completed vim command (microtask-deduped):
+    // register/mark/macro/mode goals can become true with NO doc or selection
+    // change (e.g. `ma`, `"ayy`, `q`) — the updateListener alone misses those.
+    let recheckQueued = false
+    const scheduleRecheck = () => {
+      if (recheckQueued) return
+      recheckQueued = true
+      queueMicrotask(() => {
+        recheckQueued = false
+        const v = viewRef.current
+        if (v && !done.current) runGoalCheck(v)
+      })
     }
 
     const view = new EditorView({
@@ -89,23 +139,41 @@ const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
       keystrokes.current += 1
       onKeystroke?.(keystrokes.current)
       sfx.key()
+      // Budget fallback for keys that produce no doc/selection update (e.g. a
+      // pending `q`). CM dispatches synchronously inside this event, so by the
+      // time the microtask runs, a winning final keystroke has already won.
+      if (budget !== undefined && keystrokes.current > budget) {
+        queueMicrotask(() => {
+          if (!done.current && keystrokes.current > budget) fail()
+        })
+      }
     }
     view.dom.addEventListener('keydown', onKeyDown, true)
 
-    // Report vim mode changes for the HUD (best-effort — API may be absent).
-    let detachMode: (() => void) | undefined
+    // Report vim mode changes for the HUD, and re-run goal checks on mode
+    // changes + completed vim commands (best-effort — API may be absent).
+    let detachVim: (() => void) | undefined
     try {
       const cm = getCM(view) as unknown as {
-        on?: (ev: string, fn: (arg: { mode?: string; subMode?: string }) => void) => void
-        off?: (ev: string, fn: (arg: { mode?: string; subMode?: string }) => void) => void
+        on?: (ev: string, fn: (arg?: unknown) => void) => void
+        off?: (ev: string, fn: (arg?: unknown) => void) => void
       } | null
       if (cm?.on) {
-        const handler = (arg: { mode?: string; subMode?: string }) => onModeChange?.(arg.mode ?? 'normal')
-        cm.on('vim-mode-change', handler)
-        detachMode = () => cm.off?.('vim-mode-change', handler)
+        const modeHandler = (arg?: unknown) => {
+          const { mode } = (arg ?? {}) as { mode?: string }
+          onModeChange?.(mode ?? 'normal')
+          scheduleRecheck()
+        }
+        const doneHandler = () => scheduleRecheck()
+        cm.on('vim-mode-change', modeHandler)
+        cm.on('vim-command-done', doneHandler)
+        detachVim = () => {
+          cm.off?.('vim-mode-change', modeHandler)
+          cm.off?.('vim-command-done', doneHandler)
+        }
       }
     } catch {
-      /* mode reporting unavailable */
+      /* vim event reporting unavailable */
     }
     onModeChange?.('normal')
 
@@ -113,7 +181,7 @@ const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
 
     return () => {
       view.dom.removeEventListener('keydown', onKeyDown, true)
-      detachMode?.()
+      detachVim?.()
       view.destroy()
       viewRef.current = null
     }

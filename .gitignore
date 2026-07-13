@@ -9,3 +9,6 @@ npm-debug.log*
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# QA screenshots (scripts/qa/*.mjs output)
+.qa-shots

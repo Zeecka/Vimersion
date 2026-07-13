@@ -45,13 +45,17 @@ export const COMMANDS: VimCommand[] = [
   { id: 'iw', keys: 'ciw', label: 'inner word', tier: 3, category: 'text-object' },
   { id: 'i(', keys: 'ci(', label: 'inner parens', tier: 3, category: 'text-object' },
   { id: 'v', keys: 'v', label: 'visual mode', tier: 3, category: 'modes' },
-  { id: 'search', keys: '/', label: 'search', tier: 3, category: 'motion' },
 
-  // Tier 4 — Superpowers
-  { id: 'macro', keys: 'q{r}', label: 'record macro', tier: 4, category: 'power' },
-  { id: 'dot', keys: '.', label: 'repeat', tier: 4, category: 'power' },
-  { id: 'marks', keys: "m{r}", label: 'set mark', tier: 4, category: 'power' },
-  { id: 'registers', keys: '"{r}', label: 'registers', tier: 4, category: 'power' },
+  // Tier 4 — Seeker
+  // (re-tiered from 3: search belongs with n/N/*/:s in the search world.
+  //  Re-tiering is save-safe — mastery is keyed by id, never by tier.)
+  { id: 'search', keys: '/', label: 'search', tier: 4, category: 'motion' },
+  { id: 'marks', keys: 'm{r}', label: 'set mark', tier: 4, category: 'power' },
+
+  // Tier 5 — Superpowers (re-tiered from 4)
+  { id: 'macro', keys: 'q{r}', label: 'record macro', tier: 5, category: 'power' },
+  { id: 'dot', keys: '.', label: 'repeat', tier: 5, category: 'power' },
+  { id: 'registers', keys: '"{r}', label: 'registers', tier: 5, category: 'power' },
 ]
 
 export const COMMANDS_BY_ID: Record<string, VimCommand> = Object.fromEntries(

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import VimEditor, { type VimEditorHandle } from '../editor/VimEditor'
 import { ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
@@ -7,7 +7,10 @@ import { HeroPanel, type Reaction } from '../ui/HeroPanel'
 import { LevelScene } from '../ui/LevelScene'
 import { useGame, type CompleteOutcome } from '../game/store'
 import { CHALLENGES, challengesForTier, worldMeta } from '../content/tiers'
-import type { Challenge } from '../game/types'
+import { effectiveQuality } from '../game/quality'
+import { setStage, useStage } from '../three/stageState'
+import { HAS_3D_SCENE } from '../three/sceneRegistry.meta'
+import { stagesOf, type Challenge } from '../game/types'
 
 interface Props {
   challenge: Challenge
@@ -24,14 +27,31 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const [showHint, setShowHint] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
   const [reaction, setReaction] = useState<Reaction>('idle')
+  const [stageIdx, setStageIdx] = useState(0)
+  const [failed, setFailed] = useState(false)
   const editorRef = useRef<VimEditorHandle>(null)
   const idleTimer = useRef<number | undefined>(undefined)
+
+  const stages = stagesOf(challenge)
+  const isBoss = challenge.kind === 'boss'
+  const activeStage = stages[Math.min(stageIdx, stages.length - 1)]
 
   const world = worldMeta(challenge.tier)
   const siblings = challengesForTier(challenge.tier)
   const idx = siblings.findIndex((c) => c.id === challenge.id)
   const next = siblings[idx + 1]
   const sceneIndex = CHALLENGES.findIndex((c) => c.id === challenge.id)
+
+  // In the webgl tier, levels with a dedicated 3D scene swap the SVG backdrop
+  // for the Stage3D underlay showing through a darker glass editor panel.
+  const quality = useGame((s) => s.quality)
+  const contextLost = useStage((s) => s.contextLost)
+  const has3dScene = !contextLost && effectiveQuality(quality) === 'webgl' && HAS_3D_SCENE.has(sceneIndex)
+
+  useEffect(() => {
+    setStage({ sceneIndex })
+    return () => setStage({ sceneIndex: null })
+  }, [sceneIndex])
 
   // A keystroke makes the hero "think"; it relaxes to idle shortly after you stop.
   const onKeystroke = useCallback((n: number) => {
@@ -46,11 +66,23 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
       window.clearTimeout(idleTimer.current)
       setFinalKs(ks)
       setKeystrokes(ks)
-      setReaction('win')
-      setOutcome(complete(challenge, ks))
+      const out = complete(challenge, ks)
+      setReaction(out.leveledUp ? 'levelup' : 'win')
+      setOutcome(out)
     },
     [challenge, complete],
   )
+
+  const handleStageAdvance = useCallback((stage: number) => {
+    setStageIdx(stage)
+  }, [])
+
+  const handleFail = useCallback((ks: number) => {
+    window.clearTimeout(idleTimer.current)
+    setFinalKs(ks)
+    setFailed(true)
+    setReaction('fail')
+  }, [])
 
   const replay = () => {
     setOutcome(null)
@@ -59,6 +91,8 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
     setMode('normal')
     setShowHint(false)
     setReaction('idle')
+    setStageIdx(0)
+    setFailed(false)
     setEditorKey((k) => k + 1)
   }
 
@@ -86,9 +120,23 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
               <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
                 World {challenge.tier} · {challenge.title}
               </p>
-              <h2 className="mt-1 text-lg text-ink">{challenge.brief}</h2>
+              <h2 className="mt-1 text-lg text-ink">{activeStage.brief ?? challenge.brief}</h2>
             </div>
-            <ModeBadge mode={mode} />
+            <div className="flex items-center gap-2">
+              {stages.length > 1 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-magenta/40 bg-magenta/10 px-3 py-1 text-xs font-bold tabular-nums text-magenta">
+                  {stages.map((_, i) => (
+                    <span key={i} className={i < stageIdx ? 'opacity-100' : i === stageIdx ? 'animate-pulse' : 'opacity-30'}>
+                      ◆
+                    </span>
+                  ))}
+                  <span className="ml-0.5">
+                    {Math.min(stageIdx + 1, stages.length)}/{stages.length}
+                  </span>
+                </span>
+              )}
+              <ModeBadge mode={mode} />
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -97,12 +145,17 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             </span>
             <span className="text-ink-dim">par {challenge.par}</span>
             <span className="inline-flex items-center gap-1.5 rounded border border-border bg-panel-2/60 px-2 py-0.5 text-ink-dim sm:ml-auto">
-              <Emoji name="target" size={15} /> {challenge.goal.describe}
+              <Emoji name="target" size={15} /> {activeStage.goal.describe}
             </span>
           </div>
 
-          <div className="panel relative mt-3 flex-1 overflow-hidden">
-            <LevelScene index={sceneIndex} />
+          {/* Boss HP bar — the keystroke budget depleting in real time. */}
+          {isBoss && challenge.keystrokeBudget !== undefined && (
+            <BossBar spent={keystrokes} budget={challenge.keystrokeBudget} />
+          )}
+
+          <div className={`${has3dScene ? 'panel-glass' : 'panel'} relative mt-3 flex-1 overflow-hidden`}>
+            {!has3dScene && <LevelScene index={sceneIndex} />}
             <div className="relative z-10 h-full">
               <VimEditor
                 ref={editorRef}
@@ -111,7 +164,9 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                 onComplete={handleComplete}
                 onKeystroke={onKeystroke}
                 onModeChange={setMode}
-                frozen={!!outcome}
+                onStageAdvance={handleStageAdvance}
+                onFail={handleFail}
+                frozen={!!outcome || failed}
               />
             </div>
           </div>
@@ -141,12 +196,58 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           outcome={outcome}
           keystrokes={finalKs}
           par={challenge.par}
+          boss={isBoss}
           hasNext={!!next}
           onNext={() => next && onPlay(next.id)}
           onReplay={replay}
           onMap={onMap}
         />
       )}
+
+      {/* Boss fail overlay — free retry, zero penalty, no guilt. */}
+      {failed && !outcome && (
+        <div className="absolute inset-0 z-30 grid place-items-center rounded-xl bg-bg/70 backdrop-blur-sm">
+          <div className="panel w-full max-w-md p-6 text-center">
+            <p className="font-terminal text-3xl font-bold text-danger">REPELLED!</p>
+            <p className="mt-2 text-sm text-ink-dim">
+              {challenge.title} shrugged off your {finalKs} keystrokes — the budget was{' '}
+              {challenge.keystrokeBudget}. Every attempt teaches the pattern.
+            </p>
+            <div className="mt-5 flex justify-center gap-3">
+              <button onClick={replay} className="btn-primary rounded-xl px-5 py-2.5 font-bold">
+                ⟳ Retry
+              </button>
+              <button
+                onClick={onMap}
+                className="rounded-xl border border-border px-5 py-2.5 text-ink-dim transition-colors hover:border-term hover:text-term"
+              >
+                Back to map
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Depleting keystroke-budget bar (boss levels). */
+function BossBar({ spent, budget }: { spent: number; budget: number }) {
+  const remaining = Math.max(0, budget - spent)
+  const pct = (remaining / budget) * 100
+  const color = pct > 50 ? 'var(--color-term)' : pct > 25 ? 'var(--color-amber)' : 'var(--color-danger)'
+  return (
+    <div className="mt-2">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-ink-dim">
+        <span>Boss integrity</span>
+        <span className="tabular-nums">{remaining} keystrokes left</span>
+      </div>
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-panel-2">
+        <div
+          className="h-full rounded-full transition-[width,background-color] duration-200"
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
     </div>
   )
 }

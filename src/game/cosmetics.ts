@@ -34,6 +34,7 @@ export const AVATARS: Cosmetic[] = [
 
 /** Color themes — override the primary accent app-wide (UI + editor cursor). */
 export const THEMES: Cosmetic[] = [
+  { id: 'nightglass', kind: 'theme', name: 'Nightglass', price: 0, accent: '#7c6bff', accentDim: '#5a4cd6' },
   { id: 'phosphor', kind: 'theme', name: 'Phosphor Green', price: 0, accent: '#3ddc84', accentDim: '#2a9d63' },
   { id: 'amber', kind: 'theme', name: 'Amber CRT', price: 60, accent: '#ffb454', accentDim: '#c98a3c' },
   { id: 'cyan', kind: 'theme', name: 'Ice Cyan', price: 60, accent: '#59c2ff', accentDim: '#3d87b3' },
@@ -58,11 +59,14 @@ export const BACKGROUNDS: Cosmetic[] = [
 export const COSMETICS: Cosmetic[] = [...AVATARS, ...THEMES, ...BACKGROUNDS]
 export const COSMETIC_BY_ID: Record<string, Cosmetic> = Object.fromEntries(COSMETICS.map((c) => [c.id, c]))
 
-export const DEFAULTS = { avatar: 'cursor', theme: 'phosphor', background: 'platform' } as const
+export const DEFAULTS = { avatar: 'cursor', theme: 'nightglass', background: 'platform' } as const
 
 /** Backgrounds that were the default in earlier versions. Save migration moves
  *  anyone still on one of these onto the current DEFAULTS.background. */
 export const LEGACY_DEFAULT_BACKGROUNDS = ['crt', 'nebula']
+
+/** Themes that were the default in earlier versions (same migration pattern). */
+export const LEGACY_DEFAULT_THEMES = ['phosphor']
 
 export function cosmeticsByKind(kind: CosmeticKind): Cosmetic[] {
   return COSMETICS.filter((c) => c.kind === kind)

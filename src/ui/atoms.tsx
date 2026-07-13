@@ -18,20 +18,20 @@ export function StarRow({ value, size = 20 }: { value: number; size?: number }) 
 }
 
 const MODE_STYLES: Record<string, { label: string; cls: string }> = {
-  normal: { label: 'NORMAL', cls: 'text-term border-term' },
-  insert: { label: 'INSERT', cls: 'text-amber border-amber' },
-  visual: { label: 'VISUAL', cls: 'text-cyan border-cyan' },
-  'visual-block': { label: 'V·BLOCK', cls: 'text-cyan border-cyan' },
-  'visual-line': { label: 'V·LINE', cls: 'text-cyan border-cyan' },
-  replace: { label: 'REPLACE', cls: 'text-magenta border-magenta' },
+  normal: { label: 'NORMAL', cls: 'text-term border-term/40 bg-term/10' },
+  insert: { label: 'INSERT', cls: 'text-amber border-amber/40 bg-amber/10' },
+  visual: { label: 'VISUAL', cls: 'text-cyan border-cyan/40 bg-cyan/10' },
+  'visual-block': { label: 'V·BLOCK', cls: 'text-cyan border-cyan/40 bg-cyan/10' },
+  'visual-line': { label: 'V·LINE', cls: 'text-cyan border-cyan/40 bg-cyan/10' },
+  replace: { label: 'REPLACE', cls: 'text-magenta border-magenta/40 bg-magenta/10' },
 }
 
-/** The current Vim mode indicator. */
+/** The current Vim mode indicator — a filled pill per mode. */
 export function ModeBadge({ mode }: { mode: string }) {
   const m = MODE_STYLES[mode] ?? MODE_STYLES.normal
   return (
     <span
-      className={`rounded border px-2.5 py-1 text-xs font-bold tracking-[0.2em] tabular-nums ${m.cls}`}
+      className={`rounded-full border px-3 py-1 text-xs font-bold tracking-[0.2em] tabular-nums ${m.cls}`}
     >
       {m.label}
     </span>

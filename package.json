@@ -8,18 +8,27 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "qa": "node scripts/qa/smoke.mjs && node scripts/qa/boss.mjs && node scripts/qa/qa.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.4",
     "@codemirror/state": "^6.7.1",
     "@codemirror/view": "^6.43.6",
+    "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@react-three/postprocessing": "^2.19.1",
     "@replit/codemirror-vim": "^6.3.0",
+    "@types/three": "^0.170.0",
     "codemirror": "^6.0.2",
     "framer-motion": "^12.42.2",
     "howler": "^2.2.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "three": "0.170.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -30,8 +39,11 @@
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3",
-    "vite": "^8.1.4"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
   }
 }

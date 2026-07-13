@@ -7,4 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: './',
+  // No manualChunks: Stage3D/Hero3D are the only entries into the 3D module
+  // graph and both are dynamic imports, so rolldown's default chunking already
+  // isolates three/r3f/drei into async chunks the lite tier never fetches.
+  // (Hand-grouping a 'vendor-3d' chunk backfired: rolldown merged the shared
+  // `scheduler` helper into it, statically chaining index → vendor-3d.)
 })

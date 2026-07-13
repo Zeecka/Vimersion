@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Challenge, ChallengeResult, Stars } from './types'
+import type { QualitySetting } from './quality'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
-import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS } from './cosmetics'
+import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS, LEGACY_DEFAULT_THEMES } from './cosmetics'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
@@ -33,6 +34,8 @@ interface Persisted {
   arcadeBest: number
   owned: string[]
   equipped: Equipped
+  /** Graphics quality: 'auto' resolves per-device via detectQuality(). */
+  quality: QualitySetting
 }
 
 interface GameStore extends Persisted {
@@ -42,6 +45,7 @@ interface GameStore extends Persisted {
   equipItem: (id: string) => void
   bumpStreak: () => void
   toggleSound: () => void
+  setQuality: (q: QualitySetting) => void
   resetProgress: () => void
 }
 
@@ -66,6 +70,7 @@ const initial: Persisted = {
   arcadeBest: 0,
   owned: [DEFAULTS.avatar, DEFAULTS.theme, DEFAULTS.background],
   equipped: { ...DEFAULTS },
+  quality: 'auto',
 }
 
 export const useGame = create<GameStore>()(
@@ -152,11 +157,13 @@ export const useGame = create<GameStore>()(
 
       toggleSound: () => set((s) => ({ soundOn: !s.soundOn })),
 
+      setQuality: (q) => set({ quality: q }),
+
       resetProgress: () => set({ ...initial, owned: [...initial.owned], equipped: { ...initial.equipped } }),
     }),
     {
       name: 'vimersion-save',
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<Persisted>
         const merged = {
@@ -171,6 +178,13 @@ export const useGame = create<GameStore>()(
         if (version < 4 && LEGACY_DEFAULT_BACKGROUNDS.includes(merged.equipped.background)) {
           merged.equipped.background = DEFAULTS.background
         }
+        // v5: added `quality` ('auto' | 'webgl' | 'lite') — the `...initial` spread
+        // above already backfills it to 'auto' for older saves. The default theme
+        // also became 'nightglass'; move anyone still on an old default theme onto
+        // it (old themes are free in the Shop, so nothing is lost).
+        if (version < 5 && LEGACY_DEFAULT_THEMES.includes(merged.equipped.theme)) {
+          merged.equipped.theme = DEFAULTS.theme
+        }
         return merged
       },
       partialize: (s): Persisted => ({
@@ -183,6 +197,7 @@ export const useGame = create<GameStore>()(
         arcadeBest: s.arcadeBest,
         owned: s.owned,
         equipped: s.equipped,
+        quality: s.quality,
       }),
     },
   ),

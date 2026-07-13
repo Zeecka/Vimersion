@@ -1,25 +1,30 @@
 @import 'tailwindcss';
 
-/* ---- Vimersion retro-terminal design tokens (Tailwind v4 @theme) ----
-   Each token becomes a utility, e.g. --color-term -> bg-term / text-term / border-term. */
+/* ---- Vimersion "Nightglass" design tokens (Tailwind v4 @theme) ----
+   Dark smoked-glass chrome over a colorful world. Each token becomes a
+   utility, e.g. --color-term -> bg-term / text-term / border-term.
+   --color-term is the PRIMARY accent and is overridden at runtime by the
+   equipped theme cosmetic (see App.tsx). */
 @theme {
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-terminal: 'VT323', 'JetBrains Mono', monospace;
+  --font-terminal: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
 
-  --color-bg: #0a0e14;
-  --color-panel: #10141c;
-  --color-panel-2: #161b26;
-  --color-border: #232a38;
+  --color-bg: #0b0d14; /* indigo-black */
+  --color-panel: #121620;
+  --color-panel-2: #1a2030;
+  --color-border: #2a3044;
 
-  --color-term: #3ddc84; /* phosphor green — primary */
-  --color-term-dim: #2a9d63;
-  --color-amber: #ffb454; /* accent — XP / highlights */
-  --color-cyan: #59c2ff; /* accent — info */
+  --color-term: #7c6bff; /* electric violet — primary */
+  --color-term-dim: #5a4cd6;
+  --color-amber: #ffc24b; /* accent — XP / highlights */
+  --color-cyan: #4cc9f0; /* accent — info */
   --color-magenta: #ff6ac1; /* accent — combos */
   --color-danger: #ff5c7a;
 
-  --color-ink: #c7d0d9; /* main text */
-  --color-ink-dim: #7a8494; /* muted text */
+  --color-ink: #e2e6f0; /* main text */
+  --color-ink-dim: #8b93a7; /* muted text */
+
+  --radius-panel: 0.75rem;
 }
 
 html,
@@ -53,11 +58,12 @@ body {
 
 /* Utility helpers reused across components */
 @layer components {
+  /* Soft ambient accent glow (Nightglass: no phosphor bloom). */
   .glow-term {
-    text-shadow: 0 0 8px color-mix(in srgb, var(--color-term) 60%, transparent);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-term) 35%, transparent);
   }
   .glow-amber {
-    text-shadow: 0 0 8px rgba(255, 180, 84, 0.6);
+    text-shadow: 0 0 14px rgba(255, 194, 75, 0.45);
   }
   .coin {
     display: inline-block;
@@ -68,41 +74,73 @@ body {
     box-shadow: 0 0 6px rgba(240, 180, 41, 0.55);
     vertical-align: -0.06em;
   }
+  /* Smoked-glass surface: translucent, blurred, hairline top highlight. */
   .panel {
-    background: linear-gradient(160deg, color-mix(in srgb, var(--color-panel) 88%, #1b2a48), var(--color-panel));
+    background: rgba(18, 22, 32, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-panel);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 8px 24px -12px rgba(0, 0, 0, 0.5);
   }
-  /* Animated multi-hue gradient text — vivid regardless of theme */
+  /* Clean gradient display text (static — no shimmer). */
   .title-gradient {
-    background: linear-gradient(100deg, var(--color-term), #59c2ff 34%, #ff6ac1 68%, var(--color-term));
-    background-size: 220% auto;
+    background: linear-gradient(115deg, var(--color-ink) 5%, var(--color-term) 55%, var(--color-cyan));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: vm-shimmer 7s linear infinite;
-    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--color-term) 40%, transparent));
+    filter: drop-shadow(0 2px 18px color-mix(in srgb, var(--color-term) 30%, transparent));
   }
   .btn-primary {
-    background: linear-gradient(120deg, var(--color-term), #59c2ff);
-    color: #04120a;
-    box-shadow: 0 0 22px color-mix(in srgb, var(--color-term) 30%, transparent);
+    background: var(--color-term);
+    color: #0b0d14;
+    box-shadow: 0 4px 24px -6px color-mix(in srgb, var(--color-term) 55%, transparent);
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
   }
   .btn-accent {
-    background: linear-gradient(120deg, #ffb454, #ff6ac1);
-    color: #1a0a14;
-    box-shadow: 0 0 22px rgba(255, 106, 193, 0.28);
+    background: var(--color-amber);
+    color: #14100b;
+    box-shadow: 0 4px 24px -6px rgba(255, 194, 75, 0.5);
+    transition: filter 0.15s ease, transform 0.1s ease;
   }
+  .btn-accent:hover {
+    filter: brightness(1.08);
+  }
+  .btn-accent:active {
+    transform: scale(0.98);
+  }
+  /* Darker, less blurred glass for the editor panel when a 3D scene runs
+     behind it — keeps code contrast comfortably above WCAG AA. */
+  .panel-glass {
+    background: rgba(11, 13, 20, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  }
+  /* Soft-3D keycap: top highlight, weighted bottom edge. */
   .keycap {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 1.6em;
     padding: 0.05em 0.4em;
-    border-radius: 0.3rem;
+    border-radius: 0.375rem;
     border: 1px solid var(--color-border);
     border-bottom-width: 3px;
-    background: var(--color-panel-2);
+    background: linear-gradient(180deg, var(--color-panel-2), color-mix(in srgb, var(--color-panel-2) 80%, #000));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
     color: var(--color-term);
     font-family: var(--font-mono);
     font-weight: 700;
@@ -125,11 +163,6 @@ body {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 1; }
 }
-@keyframes vm-shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 220% 50%; }
-}
-
 /* ---- Hero companion ---- */
 @keyframes vm-spin-slow {
   0% { transform: rotate(0deg); }
