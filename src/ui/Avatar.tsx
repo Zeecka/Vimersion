@@ -1,4 +1,4 @@
-import { Emoji } from './Emoji'
+import { CHARACTER_SVG } from '../game/characters'
 
 /** Renders the player's character. The default 'cursor' shows a themed block. */
 export function Avatar({ id, size = 24, className = '' }: { id: string; size?: number; className?: string }) {
@@ -18,5 +18,18 @@ export function Avatar({ id, size = 24, className = '' }: { id: string; size?: n
       </span>
     )
   }
-  return <Emoji name={id} size={size} className={className} />
+  const src = CHARACTER_SVG[id]
+  if (!src) return null
+  return (
+    <img
+      src={src}
+      width={size}
+      height={size}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      className={className}
+      style={{ display: 'inline-block', borderRadius: Math.round(size * 0.18), verticalAlign: '-0.15em' }}
+    />
+  )
 }

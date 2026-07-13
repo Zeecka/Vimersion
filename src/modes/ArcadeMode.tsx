@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
 import { sfx } from '../game/sound'
 import { KeyCap } from '../ui/atoms'
-import { Emoji } from '../ui/Emoji'
+import { Avatar } from '../ui/Avatar'
 
 const ROWS = 5
 const COLS = 9
@@ -195,7 +195,7 @@ export function ArcadeMode() {
                     @
                   </motion.span>
                 ) : isCursor ? (
-                  isBlockAvatar ? <span>▉</span> : <Emoji name={avatarId} size={22} />
+                  isBlockAvatar ? <span>▉</span> : <Avatar id={avatarId} size={26} />
                 ) : (
                   '·'
                 )}

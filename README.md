@@ -65,8 +65,14 @@ Earn **coins** by playing, then spend them in the **Shop** on:
 
 ## Credits
 
-Character/UI glyphs use [Twemoji](https://github.com/jdecked/twemoji) by Twitter/jdecked,
-licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/), bundled locally so
-they render on every system. Game concept & code are free & open source.
+- **Characters** are generated with [DiceBear](https://www.dicebear.com/) (styles: bottts,
+  pixel-art, adventurer, fun-emoji, thumbs) at build time via `scripts/gen-characters.mjs`
+  and bundled as static SVGs (offline, no runtime dependency).
+- **UI glyphs** use [Twemoji](https://github.com/jdecked/twemoji) by Twitter/jdecked
+  ([CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)), bundled locally so they render
+  on every system.
+- **Backgrounds** are original CSS/SVG/canvas parallax scenes.
+
+Game concept & code are free & open source.
 
 Built with real Vim keybindings.

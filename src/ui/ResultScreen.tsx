@@ -34,7 +34,7 @@ export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onRepl
         animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 220, damping: 20 }}
       >
-        <p className="font-terminal text-4xl text-term glow-term">
+        <p className="title-gradient font-terminal text-4xl">
           {outcome.isPerfect ? 'PERFECT!' : 'SOLVED!'}
         </p>
 

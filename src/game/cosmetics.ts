@@ -17,15 +17,19 @@ export interface Cosmetic {
 
 /** Player characters. 'cursor' is the free default (a Vim block cursor). */
 export const AVATARS: Cosmetic[] = [
-  { id: 'cursor', kind: 'avatar', name: 'Block Cursor', price: 0, glyph: '▉', blurb: 'The classic. You are the cursor.' },
-  { id: 'ninja', kind: 'avatar', name: 'Vim Ninja', price: 40, glyph: '🥷', blurb: 'Silent, deadly, motion-efficient.' },
-  { id: 'robot', kind: 'avatar', name: 'Macro Bot', price: 50, glyph: '🤖', blurb: 'Never mistypes a keystroke.' },
-  { id: 'cat', kind: 'avatar', name: 'Copy Cat', price: 50, glyph: '🐱', blurb: 'yy, then curls up.' },
-  { id: 'alien', kind: 'avatar', name: 'Buffer Alien', price: 60, glyph: '👾', blurb: 'From the register dimension.' },
-  { id: 'ghost', kind: 'avatar', name: 'Esc Ghost', price: 60, glyph: '👻', blurb: 'Slips out of insert mode.' },
-  { id: 'fox', kind: 'avatar', name: 'Quick Fox', price: 70, glyph: '🦊', blurb: 'Jumps over the lazy dot.' },
-  { id: 'wizard', kind: 'avatar', name: 'Regex Wizard', price: 90, glyph: '🧙', blurb: 'Substitutes with a wave.' },
-  { id: 'dragon', kind: 'avatar', name: 'Motion Dragon', price: 130, glyph: '🐉', blurb: 'Hoards keystrokes.' },
+  { id: 'cursor', kind: 'avatar', name: 'Block Cursor', price: 0, blurb: 'The classic. You are the cursor.' },
+  { id: 'ninja', kind: 'avatar', name: 'Vim Ninja', price: 40, blurb: 'Silent, deadly, motion-efficient.' },
+  { id: 'robot', kind: 'avatar', name: 'Macro Bot', price: 50, blurb: 'Never mistypes a keystroke.' },
+  { id: 'cat', kind: 'avatar', name: 'Copy Cat', price: 50, blurb: 'yy, then curls up.' },
+  { id: 'sprite', kind: 'avatar', name: 'Sprite Runner', price: 70, blurb: 'Small, fast, always moving.' },
+  { id: 'alien', kind: 'avatar', name: 'Buffer Alien', price: 60, blurb: 'From the register dimension.' },
+  { id: 'ghost', kind: 'avatar', name: 'Esc Ghost', price: 60, blurb: 'Slips out of insert mode.' },
+  { id: 'fox', kind: 'avatar', name: 'Quick Fox', price: 70, blurb: 'Jumps over the lazy dot.' },
+  { id: 'pixelpal', kind: 'avatar', name: 'Pixel Pal', price: 80, blurb: '8-bit and proud of it.' },
+  { id: 'wizard', kind: 'avatar', name: 'Regex Wizard', price: 90, blurb: 'Substitutes with a wave.' },
+  { id: 'knight', kind: 'avatar', name: 'Neon Knight', price: 100, blurb: 'Guards the home row.' },
+  { id: 'glitch', kind: 'avatar', name: 'Glitch Byte', price: 110, blurb: '0x1337 and unstable.' },
+  { id: 'dragon', kind: 'avatar', name: 'Motion Dragon', price: 130, blurb: 'Hoards keystrokes.' },
 ]
 
 /** Color themes — override the primary accent app-wide (UI + editor cursor). */
@@ -39,13 +43,15 @@ export const THEMES: Cosmetic[] = [
   { id: 'violet', kind: 'theme', name: 'Ultraviolet', price: 100, accent: '#b78cff', accentDim: '#7d5fb3' },
 ]
 
-/** Animated backgrounds. */
+/** Animated, parallax backgrounds (react to the mouse). */
 export const BACKGROUNDS: Cosmetic[] = [
   { id: 'crt', kind: 'background', name: 'CRT Scanlines', price: 0, bg: 'crt', blurb: 'Cozy terminal glow.' },
-  { id: 'aurora', kind: 'background', name: 'Aurora', price: 70, bg: 'aurora', blurb: 'Slow-drifting light.' },
-  { id: 'synthwave', kind: 'background', name: 'Synthwave', price: 90, bg: 'synthwave', blurb: 'Endless neon grid.' },
+  { id: 'aurora', kind: 'background', name: 'Aurora', price: 70, bg: 'aurora', blurb: 'Drifting parallax light.' },
+  { id: 'synthwave', kind: 'background', name: 'Synthwave', price: 90, bg: 'synthwave', blurb: 'Sun, mountains & neon grid.' },
   { id: 'starfield', kind: 'background', name: 'Starfield', price: 110, bg: 'starfield', blurb: 'Warp through space.' },
-  { id: 'matrix', kind: 'background', name: 'Digital Rain', price: 130, bg: 'matrix', blurb: 'Follow the white rabbit.' },
+  { id: 'nebula', kind: 'background', name: 'Nebula', price: 120, bg: 'nebula', blurb: 'Deep-space color clouds.' },
+  { id: 'cyber', kind: 'background', name: 'Cyber City', price: 140, bg: 'cyber', blurb: 'Neon skyline, parallax depth.' },
+  { id: 'matrix', kind: 'background', name: 'Digital Rain', price: 150, bg: 'matrix', blurb: 'Follow the white rabbit.' },
 ]
 
 export const COSMETICS: Cosmetic[] = [...AVATARS, ...THEMES, ...BACKGROUNDS]

@@ -1,91 +1,176 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
+import { ParallaxScene, ParallaxLayer } from './Parallax'
 
 /** Full-screen animated background layer, selected by the equipped cosmetic. */
 export function Background({ bg, accent }: { bg: string; accent: string }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {bg === 'crt' && <CrtBg />}
-      {bg === 'aurora' && <AuroraBg accent={accent} />}
-      {bg === 'synthwave' && <SynthwaveBg accent={accent} />}
+      {bg === 'aurora' && <AuroraBg />}
+      {bg === 'synthwave' && <SynthwaveBg />}
+      {bg === 'nebula' && <NebulaBg />}
+      {bg === 'cyber' && <CyberBg />}
       {bg === 'starfield' && <StarfieldBg accent={accent} />}
       {bg === 'matrix' && <MatrixBg accent={accent} />}
     </div>
   )
 }
 
+/** Tiled star field via layered radial-gradients (cheap, no canvas). */
+function starLayer(color = '#ffffff', opacity = 0.9, tile = 200): CSSProperties {
+  const spots = ['20px 30px', '60px 80px', '120px 40px', '170px 120px', '44px 160px', '100px 190px', '190px 70px', '140px 22px', '80px 130px', '12px 100px']
+  return {
+    backgroundImage: spots.map((p) => `radial-gradient(1.5px 1.5px at ${p}, ${color}, transparent)`).join(','),
+    backgroundRepeat: 'repeat',
+    backgroundSize: `${tile}px ${tile}px`,
+    opacity,
+  }
+}
+
+function blob(color: string, s: CSSProperties): CSSProperties {
+  return {
+    position: 'absolute',
+    width: '52vw',
+    height: '52vw',
+    borderRadius: '9999px',
+    filter: 'blur(90px)',
+    background: `radial-gradient(circle, ${color}, transparent 70%)`,
+    animation: 'vm-aurora-drift 20s ease-in-out infinite',
+    ...s,
+  }
+}
+
 function CrtBg() {
   return (
     <>
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-term) 9%, transparent), transparent 60%)',
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.13) 3px, rgba(0,0,0,0) 4px)',
-        }}
-      />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--color-term) 12%, transparent), transparent 55%), radial-gradient(ellipse at 80% 110%, rgba(89,194,255,0.06), transparent 55%)' }} />
+      <div className="absolute inset-0" style={starLayer('color-mix(in srgb, var(--color-term) 70%, white)', 0.25, 260)} />
+      <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.13) 3px, rgba(0,0,0,0) 4px)' }} />
     </>
   )
 }
 
-function AuroraBg({ accent }: { accent: string }) {
-  const blob = (color: string, style: React.CSSProperties): React.CSSProperties => ({
-    position: 'absolute',
-    width: '55vw',
-    height: '55vw',
-    borderRadius: '9999px',
-    filter: 'blur(90px)',
-    opacity: 0.28,
-    background: `radial-gradient(circle, ${color}, transparent 70%)`,
-    animation: 'vm-aurora-drift 18s ease-in-out infinite',
-    ...style,
-  })
+function AuroraBg() {
   return (
-    <>
-      <div style={blob(accent, { top: '-15%', left: '-10%' })} />
-      <div style={blob('#59c2ff', { top: '10%', right: '-15%', animationDelay: '-6s' })} />
-      <div style={blob('#b78cff', { bottom: '-20%', left: '20%', animationDelay: '-12s' })} />
-    </>
+    <ParallaxScene className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #060a16 0%, #0a0e14 100%)' }}>
+      <ParallaxLayer depth={0.15} style={starLayer('#cbd5e1', 0.5, 220)} />
+      <ParallaxLayer depth={0.45}>
+        <div style={blob('#3ddc84', { top: '-12%', left: '-8%' })} />
+      </ParallaxLayer>
+      <ParallaxLayer depth={0.7}>
+        <div style={blob('#59c2ff', { top: '8%', right: '-14%', animationDelay: '-6s' })} />
+      </ParallaxLayer>
+      <ParallaxLayer depth={1}>
+        <div style={blob('#b78cff', { bottom: '-18%', left: '18%', animationDelay: '-12s' })} />
+        <div style={blob('#ff6ac1', { bottom: '-24%', right: '10%', animationDelay: '-9s', width: '38vw', height: '38vw' })} />
+      </ParallaxLayer>
+    </ParallaxScene>
   )
 }
 
-function SynthwaveBg({ accent }: { accent: string }) {
+function SynthwaveBg() {
   return (
-    <>
-      <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg, #0a0e14 0%, #1a1030 45%, #3a1547 100%)' }}
-      />
+    <ParallaxScene
+      className="absolute inset-0"
+      style={{ background: 'linear-gradient(180deg, #180b2e 0%, #2d1b4e 34%, #6b2d5c 60%, #c94b7b 80%, #ff9e64 100%)' }}
+    >
+      <ParallaxLayer depth={0.1} style={starLayer('#ffd9f0', 0.7, 190)} />
       {/* sun */}
-      <div
-        className="absolute left-1/2 top-[22%] h-40 w-40 -translate-x-1/2 rounded-full"
-        style={{
-          background: `radial-gradient(circle, ${accent}, #ff6ac1 60%, transparent 72%)`,
-          opacity: 0.5,
-          filter: 'blur(2px)',
-        }}
-      />
-      {/* receding grid */}
-      <div className="absolute inset-x-0 bottom-0 h-[45%] [perspective:280px]">
+      <ParallaxLayer depth={0.28}>
         <div
-          className="absolute inset-0 origin-bottom [transform:rotateX(70deg)]"
-          style={{
-            backgroundImage: `linear-gradient(${accent} 1px, transparent 1px), linear-gradient(90deg, ${accent} 1px, transparent 1px)`,
-            backgroundSize: '40px 40px',
-            opacity: 0.35,
-            animation: 'vm-grid-scroll 1.6s linear infinite',
-          }}
+          className="absolute left-1/2 top-[26%] h-56 w-56 -translate-x-1/2 rounded-full"
+          style={{ background: 'linear-gradient(180deg, #ffe66d, #ff6ac1 55%, #a83279 100%)', filter: 'blur(0.5px)', boxShadow: '0 0 90px rgba(255,120,180,0.55)' }}
         />
-      </div>
-    </>
+        <div
+          className="absolute left-1/2 top-[26%] h-56 w-56 -translate-x-1/2 rounded-full"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 12px, #2d1b4e 12px 16px)', maskImage: 'linear-gradient(180deg, transparent 55%, #000 55%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 55%, #000 55%)' }}
+        />
+      </ParallaxLayer>
+      {/* mountains */}
+      <ParallaxLayer depth={0.5}>
+        <svg viewBox="0 0 1200 300" preserveAspectRatio="none" className="absolute inset-x-0 bottom-[38%] h-[26%] w-full">
+          <polygon points="0,300 150,120 300,210 470,70 640,200 820,100 1010,230 1200,130 1200,300" fill="#3a1150" />
+        </svg>
+      </ParallaxLayer>
+      {/* neon grid floor */}
+      <ParallaxLayer depth={0.85}>
+        <div className="absolute inset-x-0 bottom-0 h-[42%] [perspective:300px]">
+          <div
+            className="absolute inset-0 origin-bottom [transform:rotateX(74deg)]"
+            style={{
+              backgroundImage: 'linear-gradient(#ff6ac1 2px, transparent 2px), linear-gradient(90deg, #59c2ff 2px, transparent 2px)',
+              backgroundSize: '46px 46px',
+              opacity: 0.45,
+              animation: 'vm-grid-scroll 1.5s linear infinite',
+            }}
+          />
+        </div>
+      </ParallaxLayer>
+    </ParallaxScene>
   )
 }
+
+function NebulaBg() {
+  return (
+    <ParallaxScene className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 28% 18%, #1e1b4b 0%, #0a0e14 68%)' }}>
+      <ParallaxLayer depth={0.18} style={starLayer('#c7d0d9', 0.55, 240)} />
+      <ParallaxLayer depth={0.5}>
+        <div style={blob('#7c3aed', { top: '-6%', left: '6%' })} />
+        <div style={blob('#0ea5e9', { top: '24%', right: '-8%', animationDelay: '-7s' })} />
+        <div style={blob('#db2777', { bottom: '-14%', left: '28%', animationDelay: '-13s', width: '44vw', height: '44vw' })} />
+      </ParallaxLayer>
+      <ParallaxLayer depth={0.95} style={{ ...starLayer('#ffffff', 0.9, 150), animation: 'vm-flicker 4s ease-in-out infinite' }} />
+    </ParallaxScene>
+  )
+}
+
+function CyberBg() {
+  const windows = (cols: number, color: string) =>
+    Array.from({ length: cols }, (_, i) => (
+      <rect key={i} x={8 + (i % 6) * 5} y={20 + (i % 4) * 14} width="3" height="3" fill={color} opacity={0.8} />
+    ))
+  return (
+    <ParallaxScene className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0a0e14 0%, #101a2e 52%, #2a0e3a 100%)' }}>
+      <ParallaxLayer depth={0.12} style={starLayer('#9fb3c8', 0.5, 210)} />
+      {/* moon glow */}
+      <ParallaxLayer depth={0.25}>
+        <div className="absolute right-[18%] top-[14%] h-40 w-40 rounded-full" style={{ background: 'radial-gradient(circle, rgba(89,194,255,0.5), transparent 65%)' }} />
+      </ParallaxLayer>
+      {/* far skyline */}
+      <ParallaxLayer depth={0.45}>
+        <svg viewBox="0 0 400 200" preserveAspectRatio="none" className="absolute inset-x-0 bottom-[30%] h-[36%] w-full opacity-70">
+          <g fill="#241640">
+            <rect x="10" y="70" width="34" height="130" />
+            <rect x="60" y="40" width="28" height="160" />
+            <rect x="110" y="90" width="40" height="110" />
+            <rect x="170" y="55" width="26" height="145" />
+            <rect x="215" y="80" width="36" height="120" />
+            <rect x="270" y="35" width="30" height="165" />
+            <rect x="320" y="75" width="38" height="125" />
+          </g>
+        </svg>
+      </ParallaxLayer>
+      {/* near skyline with neon windows */}
+      <ParallaxLayer depth={0.85}>
+        <svg viewBox="0 0 400 200" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-[46%] w-full">
+          <g fill="#120a24">
+            <rect x="0" y="60" width="60" height="140" />
+            <rect x="72" y="30" width="46" height="170" />
+            <rect x="130" y="80" width="58" height="120" />
+            <rect x="200" y="45" width="44" height="155" />
+            <rect x="258" y="70" width="60" height="130" />
+            <rect x="330" y="40" width="52" height="160" />
+          </g>
+          <g>{windows(24, '#ff6ac1')}</g>
+          <g transform="translate(200,0)">{windows(24, '#59c2ff')}</g>
+        </svg>
+      </ParallaxLayer>
+      <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 3px, rgba(0,0,0,0.10) 4px)' }} />
+    </ParallaxScene>
+  )
+}
+
+/* ---- Canvas scenes ---- */
 
 function useCanvasScene(draw: (ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => void) {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -135,9 +220,7 @@ function MatrixBg({ accent }: { accent: string }) {
     if (t - lastRef.current < 55) return
     lastRef.current = t
     const cols = Math.ceil(w / FS)
-    if (dropsRef.current.length !== cols) {
-      dropsRef.current = Array.from({ length: cols }, () => Math.floor((Math.random() * h) / FS))
-    }
+    if (dropsRef.current.length !== cols) dropsRef.current = Array.from({ length: cols }, () => Math.floor((Math.random() * h) / FS))
     ctx.fillStyle = 'rgba(10,14,20,0.16)'
     ctx.fillRect(0, 0, w, h)
     ctx.fillStyle = accentRef.current
@@ -161,13 +244,7 @@ function StarfieldBg({ accent }: { accent: string }) {
   const ref = useCanvasScene((ctx, w, h) => {
     const cx = w / 2
     const cy = h / 2
-    if (starsRef.current.length === 0) {
-      starsRef.current = Array.from({ length: 240 }, () => ({
-        x: (Math.random() - 0.5) * w,
-        y: (Math.random() - 0.5) * h,
-        z: Math.random() * w,
-      }))
-    }
+    if (starsRef.current.length === 0) starsRef.current = Array.from({ length: 260 }, () => ({ x: (Math.random() - 0.5) * w, y: (Math.random() - 0.5) * h, z: Math.random() * w }))
     ctx.fillStyle = 'rgba(10,14,20,0.35)'
     ctx.fillRect(0, 0, w, h)
     const stars = starsRef.current
@@ -183,8 +260,8 @@ function StarfieldBg({ accent }: { accent: string }) {
       const sx = cx + s.x * k
       const sy = cy + s.y * k
       if (sx < 0 || sx >= w || sy < 0 || sy >= h) continue
-      const size = (1 - s.z / w) * 2.4
-      ctx.fillStyle = i % 7 === 0 ? accentRef.current : 'rgba(199,208,217,0.9)'
+      const size = (1 - s.z / w) * 2.6
+      ctx.fillStyle = i % 6 === 0 ? accentRef.current : 'rgba(199,208,217,0.9)'
       ctx.fillRect(sx, sy, size, size)
     }
   })

@@ -125,11 +125,11 @@ function Home({
   }
 
   const stats = [
-    { label: 'LEVEL', value: level, color: 'text-term' },
-    { label: 'COINS', value: coins, color: 'text-amber' },
-    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan' },
-    { label: 'MASTERED', value: mastered, color: 'text-magenta' },
-    { label: 'ARCADE', value: arcadeBest, color: 'text-term' },
+    { label: 'LEVEL', value: level, color: 'text-term', bar: 'var(--color-term)' },
+    { label: 'COINS', value: coins, color: 'text-amber', bar: '#ffb454' },
+    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: '#59c2ff' },
+    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: '#ff6ac1' },
+    { label: 'ARCADE', value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
   ]
 
   return (
@@ -141,12 +141,15 @@ function Home({
             onShop()
           }}
           title="Customize your character"
-          className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full border border-border bg-panel-2 transition-colors hover:border-term"
+          className="mx-auto mb-4 block rounded-full p-[2.5px] transition-transform hover:scale-105"
+          style={{ background: 'linear-gradient(135deg, var(--color-term), #59c2ff, #ff6ac1)' }}
         >
-          <Avatar id={avatar} size={44} />
+          <span className="grid h-20 w-20 place-items-center rounded-full bg-bg">
+            <Avatar id={avatar} size={46} />
+          </span>
         </button>
         <motion.h1
-          className="font-terminal text-7xl text-term glow-term sm:text-8xl"
+          className="title-gradient font-terminal text-7xl sm:text-8xl"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -159,7 +162,11 @@ function Home({
 
       <div className="mt-10 grid grid-cols-3 gap-3 text-center sm:grid-cols-5">
         {stats.map((s) => (
-          <div key={s.label} className="panel py-3">
+          <div
+            key={s.label}
+            className="panel py-3"
+            style={{ borderTop: `2.5px solid ${s.bar}`, boxShadow: `0 -1px 16px -7px ${s.bar}` }}
+          >
             <div className={`font-terminal text-2xl tabular-nums ${s.color}`}>{s.value}</div>
             <div className="text-[10px] uppercase tracking-widest text-ink-dim">{s.label}</div>
           </div>
@@ -169,7 +176,7 @@ function Home({
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button
           onClick={startCampaign}
-          className="flex-1 rounded bg-term px-6 py-4 text-lg font-bold text-bg transition-transform hover:scale-[1.02]"
+          className="btn-primary flex-1 rounded px-6 py-4 text-lg font-bold transition-transform hover:scale-[1.02]"
         >
           {hasProgress ? '▶ Continue Campaign' : '▶ Start Campaign'}
         </button>
@@ -178,7 +185,7 @@ function Home({
             sfx.ui()
             onArcade()
           }}
-          className="flex-1 rounded border border-amber/60 px-6 py-4 text-lg font-bold text-amber transition-colors hover:bg-amber/10"
+          className="btn-accent flex-1 rounded px-6 py-4 text-lg font-bold transition-transform hover:scale-[1.02]"
         >
           <span className="inline-flex items-center justify-center gap-2">
             <Emoji name="target" size={22} /> Motion Rush

@@ -69,9 +69,29 @@ body {
     vertical-align: -0.06em;
   }
   .panel {
-    background: var(--color-panel);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--color-panel) 88%, #1b2a48), var(--color-panel));
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
+  }
+  /* Animated multi-hue gradient text — vivid regardless of theme */
+  .title-gradient {
+    background: linear-gradient(100deg, var(--color-term), #59c2ff 34%, #ff6ac1 68%, var(--color-term));
+    background-size: 220% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: vm-shimmer 7s linear infinite;
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--color-term) 40%, transparent));
+  }
+  .btn-primary {
+    background: linear-gradient(120deg, var(--color-term), #59c2ff);
+    color: #04120a;
+    box-shadow: 0 0 22px color-mix(in srgb, var(--color-term) 30%, transparent);
+  }
+  .btn-accent {
+    background: linear-gradient(120deg, #ffb454, #ff6ac1);
+    color: #1a0a14;
+    box-shadow: 0 0 22px rgba(255, 106, 193, 0.28);
   }
   .keycap {
     display: inline-flex;
@@ -104,4 +124,8 @@ body {
 @keyframes vm-flicker {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 1; }
+}
+@keyframes vm-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
 }

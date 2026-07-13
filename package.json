@@ -23,6 +23,8 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3",
     "@tailwindcss/vite": "^4.3.2",
     "@types/howler": "^2.2.13",
     "@types/react": "^18.3.31",

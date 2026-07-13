@@ -25,6 +25,13 @@ function bgPreviewStyle(bg?: string): CSSProperties {
         background:
           'radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 62% 68%, #fff, transparent), radial-gradient(1px 1px at 82% 22%, #fff, transparent), #0a0e14',
       }
+    case 'nebula':
+      return {
+        background:
+          'radial-gradient(circle at 30% 28%, #7c3aed, transparent 55%), radial-gradient(circle at 72% 70%, #db2777, transparent 55%), radial-gradient(circle at 55% 45%, #0ea5e9, transparent 60%), #0a0e14',
+      }
+    case 'cyber':
+      return { background: 'linear-gradient(180deg, #101a2e 40%, #2a0e3a 100%)' }
     case 'matrix':
       return { background: 'linear-gradient(180deg, #0a0e14, #04140a)' }
     default:
@@ -127,7 +134,7 @@ export function Shop() {
                     disabled={!canAfford}
                     onClick={() => onBuy(c)}
                     className={`flex w-full items-center justify-center gap-1.5 rounded py-1.5 text-xs font-bold transition-transform ${
-                      canAfford ? 'bg-amber text-bg hover:scale-[1.03]' : 'cursor-not-allowed bg-panel-2 text-ink-dim'
+                      canAfford ? 'btn-accent hover:scale-[1.03]' : 'cursor-not-allowed bg-panel-2 text-ink-dim'
                     }`}
                   >
                     <span className="coin" /> {c.price}
