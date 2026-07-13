@@ -1,0 +1,8 @@
+services:
+  vimersion:
+    build: .
+    image: vimersion:latest
+    container_name: vimersion
+    ports:
+      - "8971:80"
+    restart: unless-stopped
