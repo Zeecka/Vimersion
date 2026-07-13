@@ -12,6 +12,7 @@ import { ArcadeMode } from './modes/ArcadeMode'
 import { CHALLENGES } from './content/tiers'
 import { useGame, MASTERY_THRESHOLD } from './game/store'
 import { levelFromXp } from './game/xp'
+import { shareScore } from './game/share'
 import { setSoundMuted, sfx } from './game/sound'
 import { COMMANDS } from './game/commands'
 import { COSMETIC_BY_ID } from './game/cosmetics'
@@ -112,11 +113,20 @@ function Home({
   const avatar = useGame((s) => s.equipped.avatar)
   const reset = useGame((s) => s.resetProgress)
 
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
+
   const level = levelFromXp(xp)
   const solved = Object.keys(completed).length
   const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
   const hasProgress = solved > 0 || xp > 0 || coins > 0
   const nextId = firstUnsolvedId(completed)
+
+  const onShare = async () => {
+    sfx.ui()
+    const res = await shareScore({ level, solved, total: CHALLENGES.length, mastered, coins })
+    setShareMsg(res === 'shared' ? 'Shared! 🎉' : res === 'copied' ? 'Score copied to clipboard!' : 'Could not share — try again')
+    window.setTimeout(() => setShareMsg(null), 2600)
+  }
 
   const startCampaign = () => {
     sfx.ui()
@@ -193,14 +203,20 @@ function Home({
         </button>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-5 text-sm">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
         <button onClick={() => { sfx.ui(); onShop() }} className="inline-flex items-center gap-1.5 text-amber underline decoration-dotted underline-offset-4 hover:opacity-80">
           <Emoji name="palette" size={16} /> customize your character
+        </button>
+        <button onClick={onShare} className="inline-flex items-center gap-1.5 text-cyan underline decoration-dotted underline-offset-4 hover:opacity-80">
+          <Emoji name="rocket" size={16} /> share my score
         </button>
         <button onClick={() => { sfx.ui(); onMap() }} className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-term">
           world map
         </button>
       </div>
+      {shareMsg && (
+        <p className="mt-2 text-center text-xs text-term">{shareMsg}</p>
+      )}
 
       <div className="mt-10">
         <CommandBelt />

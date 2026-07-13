@@ -1,9 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { StarRow, KeyCap } from './atoms'
+import { Emoji } from './Emoji'
 import { sfx } from '../game/sound'
-import { COMMANDS_BY_ID } from '../game/commands'
-import type { CompleteOutcome } from '../game/store'
+import { COMMANDS, COMMANDS_BY_ID } from '../game/commands'
+import { useGame, MASTERY_THRESHOLD, type CompleteOutcome } from '../game/store'
+import { levelFromXp } from '../game/xp'
+import { shareScore } from '../game/share'
+import { CHALLENGES } from '../content/tiers'
 
 interface Props {
   outcome: CompleteOutcome
@@ -16,11 +20,31 @@ interface Props {
 }
 
 export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onReplay, onMap }: Props) {
+  const xp = useGame((s) => s.xp)
+  const completed = useGame((s) => s.completed)
+  const mastery = useGame((s) => s.mastery)
+  const coins = useGame((s) => s.coins)
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
+
   useEffect(() => {
     for (let i = 0; i < outcome.stars; i++) sfx.star(i)
     if (outcome.leveledUp) window.setTimeout(() => sfx.levelUp(), 520)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const onShare = async () => {
+    sfx.ui()
+    const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
+    const res = await shareScore({
+      level: levelFromXp(xp),
+      solved: Object.keys(completed).length,
+      total: CHALLENGES.length,
+      mastered,
+      coins,
+    })
+    setShareMsg(res === 'shared' ? 'Shared! 🎉' : res === 'copied' ? 'Copied to clipboard!' : 'Could not share')
+    window.setTimeout(() => setShareMsg(null), 2500)
+  }
 
   return (
     <motion.div
@@ -122,6 +146,14 @@ export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onRepl
             </button>
           )}
         </div>
+
+        <button
+          onClick={onShare}
+          className="mx-auto mt-4 inline-flex items-center gap-1.5 text-xs text-cyan underline decoration-dotted underline-offset-4 hover:opacity-80"
+        >
+          <Emoji name="rocket" size={14} /> share my score
+        </button>
+        {shareMsg && <p className="mt-1.5 text-xs text-term">{shareMsg}</p>}
       </motion.div>
     </motion.div>
   )

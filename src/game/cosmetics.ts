@@ -57,7 +57,10 @@ export const BACKGROUNDS: Cosmetic[] = [
 export const COSMETICS: Cosmetic[] = [...AVATARS, ...THEMES, ...BACKGROUNDS]
 export const COSMETIC_BY_ID: Record<string, Cosmetic> = Object.fromEntries(COSMETICS.map((c) => [c.id, c]))
 
-export const DEFAULTS = { avatar: 'cursor', theme: 'phosphor', background: 'crt' } as const
+export const DEFAULTS = { avatar: 'cursor', theme: 'phosphor', background: 'nebula' } as const
+
+/** The pre-v3 default background (a static terminal). Used to migrate old saves. */
+export const LEGACY_DEFAULT_BACKGROUND = 'crt'
 
 export function cosmeticsByKind(kind: CosmeticKind): Cosmetic[] {
   return COSMETICS.filter((c) => c.kind === kind)

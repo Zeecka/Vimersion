@@ -200,6 +200,48 @@ function CyberBg() {
   )
 }
 
+/**
+ * A dim, themed "console" scene meant to sit *behind* the code editor. Deliberately
+ * low-contrast with a dark scrim so the code stays perfectly legible while the panel
+ * reads as a game screen rather than a plain text box.
+ */
+export function EditorScene() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* base */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--color-term) 10%, #0b1018), #080b11 70%)' }} />
+      {/* faint dot grid */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'radial-gradient(color-mix(in srgb, var(--color-term) 22%, transparent) 1px, transparent 1px)',
+          backgroundSize: '26px 26px',
+          opacity: 0.16,
+        }}
+      />
+      {/* corner glow orbs */}
+      <div className="absolute -left-16 -top-16 h-56 w-56 rounded-full" style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--color-term) 45%, transparent), transparent 70%)', filter: 'blur(30px)', opacity: 0.5 }} />
+      <div className="absolute -bottom-20 -right-16 h-64 w-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(89,194,255,0.4), transparent 70%)', filter: 'blur(34px)', opacity: 0.45 }} />
+      {/* horizon grid at the bottom for depth */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 [perspective:260px]">
+        <div
+          className="absolute inset-0 origin-bottom [transform:rotateX(76deg)]"
+          style={{
+            backgroundImage:
+              'linear-gradient(color-mix(in srgb, var(--color-term) 60%, transparent) 1.5px, transparent 1.5px), linear-gradient(90deg, color-mix(in srgb, var(--color-term) 60%, transparent) 1.5px, transparent 1.5px)',
+            backgroundSize: '40px 40px',
+            opacity: 0.1,
+            animation: 'vm-grid-scroll 3s linear infinite',
+          }}
+        />
+      </div>
+      {/* scanlines + dark scrim to protect legibility */}
+      <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0) 4px)' }} />
+      <div className="absolute inset-0" style={{ background: 'rgba(8,11,17,0.55)' }} />
+    </div>
+  )
+}
+
 /* ---- Canvas scenes ---- */
 
 function useCanvasScene(draw: (ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => void) {
