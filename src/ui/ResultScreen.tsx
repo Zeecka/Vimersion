@@ -51,17 +51,30 @@ export function ResultScreen({ outcome, keystrokes, par, hasNext, onNext, onRepl
           </span>
         </div>
 
-        {outcome.xpGained > 0 && (
-          <motion.p
-            className="mt-4 font-terminal text-2xl text-amber glow-amber"
-            initial={{ scale: 0.6 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
-          >
-            +{outcome.xpGained} XP
-          </motion.p>
-        )}
-        {outcome.xpGained === 0 && (
+        <div className="mt-4 flex items-center justify-center gap-6">
+          {outcome.xpGained > 0 && (
+            <motion.p
+              className="font-terminal text-2xl text-amber glow-amber"
+              initial={{ scale: 0.6 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
+            >
+              +{outcome.xpGained} XP
+            </motion.p>
+          )}
+          {outcome.coinsGained > 0 && (
+            <motion.p
+              className="flex items-center gap-1.5 font-terminal text-2xl text-amber"
+              initial={{ scale: 0.6 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.32, type: 'spring', stiffness: 300 }}
+            >
+              +{outcome.coinsGained}
+              <span className="coin" />
+            </motion.p>
+          )}
+        </div>
+        {outcome.xpGained === 0 && outcome.coinsGained === 0 && (
           <p className="mt-4 text-xs text-ink-dim">already mastered — replaying for practice</p>
         )}
 

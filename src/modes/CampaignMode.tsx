@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import VimEditor from '../editor/VimEditor'
 import { ModeBadge } from '../ui/atoms'
+import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
 import { useGame, type CompleteOutcome } from '../game/store'
 import { challengesForTier, worldMeta } from '../content/tiers'
@@ -59,9 +60,13 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-        <span className={`tabular-nums ${overPar ? 'text-amber' : 'text-term'}`}>⌨ {keystrokes}</span>
+        <span className={`inline-flex items-center gap-1.5 tabular-nums ${overPar ? 'text-amber' : 'text-term'}`}>
+          <Emoji name="keyboard" size={15} /> {keystrokes}
+        </span>
         <span className="text-ink-dim">par {challenge.par}</span>
-        <span className="text-ink-dim sm:ml-auto">🎯 {challenge.goal.describe}</span>
+        <span className="inline-flex items-center gap-1.5 text-ink-dim sm:ml-auto">
+          <Emoji name="target" size={15} /> {challenge.goal.describe}
+        </span>
       </div>
 
       <div className="panel mt-3 flex-1 overflow-hidden">
@@ -77,7 +82,9 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
 
       <div className="mt-3 min-h-[1.75rem] text-sm">
         {showHint ? (
-          <p className="text-ink-dim">💡 {challenge.hint}</p>
+          <p className="inline-flex items-center gap-1.5 text-ink-dim">
+            <Emoji name="bulb" size={15} /> {challenge.hint}
+          </p>
         ) : (
           <button
             onClick={() => setShowHint(true)}

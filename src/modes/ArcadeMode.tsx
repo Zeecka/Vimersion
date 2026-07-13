@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
 import { sfx } from '../game/sound'
 import { KeyCap } from '../ui/atoms'
+import { Emoji } from '../ui/Emoji'
 
 const ROWS = 5
 const COLS = 9
@@ -45,11 +46,14 @@ type Phase = 'ready' | 'playing' | 'over'
 export function ArcadeMode() {
   const recordArcade = useGame((s) => s.recordArcade)
   const best = useGame((s) => s.arcadeBest)
+  const avatarId = useGame((s) => s.equipped.avatar)
+  const isBlockAvatar = avatarId === 'cursor'
 
   const [phase, setPhase] = useState<Phase>('ready')
   const [timeLeft, setTimeLeft] = useState(GAME_SECONDS)
   const [st, setSt] = useState<State>(freshState)
   const [isNewBest, setIsNewBest] = useState(false)
+  const [coinsEarned, setCoinsEarned] = useState(0)
 
   const stRef = useRef(st)
   stRef.current = st
@@ -82,8 +86,9 @@ export function ArcadeMode() {
   // Game over: record score once
   useEffect(() => {
     if (phase !== 'over') return
-    const nb = recordArcade(stRef.current.score, ['h', 'j', 'k', 'l'])
+    const { isNewBest: nb, coinsGained } = recordArcade(stRef.current.score, ['h', 'j', 'k', 'l'])
     setIsNewBest(nb)
+    setCoinsEarned(coinsGained)
     sfx.success()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
@@ -167,14 +172,17 @@ export function ArcadeMode() {
             const c = i % COLS
             const isCursor = st.cursor.r === r && st.cursor.c === c
             const isMole = st.mole.r === r && st.mole.c === c && phase === 'playing'
+            const cursorBg = isBlockAvatar
+              ? 'var(--color-term)'
+              : 'color-mix(in srgb, var(--color-term) 20%, transparent)'
             return (
               <div
                 key={i}
                 className="grid h-9 w-9 place-items-center rounded font-mono text-lg"
                 style={{
-                  background: isCursor ? '#3ddc84' : 'rgba(255,255,255,0.02)',
-                  color: isCursor ? '#0a0e14' : '#3a4454',
-                  boxShadow: isCursor ? '0 0 12px rgba(61,220,132,0.5)' : undefined,
+                  background: isCursor ? cursorBg : 'rgba(255,255,255,0.02)',
+                  color: isCursor && isBlockAvatar ? 'var(--color-bg)' : '#3a4454',
+                  boxShadow: isCursor ? '0 0 12px color-mix(in srgb, var(--color-term) 50%, transparent)' : undefined,
                 }}
               >
                 {isMole ? (
@@ -187,7 +195,7 @@ export function ArcadeMode() {
                     @
                   </motion.span>
                 ) : isCursor ? (
-                  '▉'
+                  isBlockAvatar ? <span>▉</span> : <Emoji name={avatarId} size={22} />
                 ) : (
                   '·'
                 )}
@@ -206,6 +214,11 @@ export function ArcadeMode() {
                     Score <b className="text-ink">{st.score}</b>
                     {isNewBest && <span className="ml-2 text-amber">★ new best!</span>}
                   </p>
+                  {coinsEarned > 0 && (
+                    <p className="mt-1 flex items-center justify-center gap-1.5 text-amber">
+                      +{coinsEarned} <span className="coin" />
+                    </p>
+                  )}
                 </>
               )}
               {phase === 'ready' && (

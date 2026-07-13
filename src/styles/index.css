@@ -37,24 +37,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle CRT phosphor glow behind the whole app. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(61, 220, 132, 0.06), transparent 60%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0) 0px,
-      rgba(0, 0, 0, 0) 2px,
-      rgba(0, 0, 0, 0.12) 3px,
-      rgba(0, 0, 0, 0) 4px
-    );
-}
-
 /* Scrollbars in-theme */
 * {
   scrollbar-width: thin;
@@ -72,10 +54,19 @@ body::before {
 /* Utility helpers reused across components */
 @layer components {
   .glow-term {
-    text-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-term) 60%, transparent);
   }
   .glow-amber {
     text-shadow: 0 0 8px rgba(255, 180, 84, 0.6);
+  }
+  .coin {
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 35% 30%, #ffe89a, #f0b429 62%, #a9760a);
+    box-shadow: 0 0 6px rgba(240, 180, 41, 0.55);
+    vertical-align: -0.06em;
   }
   .panel {
     background: var(--color-panel);
@@ -98,4 +89,19 @@ body::before {
     font-size: 0.85em;
     line-height: 1.4;
   }
+}
+
+/* ---- Background animations ---- */
+@keyframes vm-aurora-drift {
+  0% { transform: translate3d(-10%, -5%, 0) scale(1); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.25); }
+  100% { transform: translate3d(-10%, -5%, 0) scale(1); }
+}
+@keyframes vm-grid-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 40px; }
+}
+@keyframes vm-flicker {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
 }

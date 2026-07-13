@@ -2,13 +2,21 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Challenge, ChallengeResult, Stars } from './types'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
+import { COSMETIC_BY_ID, DEFAULTS } from './cosmetics'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
 
+export interface Equipped {
+  avatar: string
+  theme: string
+  background: string
+}
+
 export interface CompleteOutcome {
   stars: Stars
   xpGained: number
+  coinsGained: number
   leveledUp: boolean
   newLevel: number
   newlyMastered: string[]
@@ -17,16 +25,21 @@ export interface CompleteOutcome {
 
 interface Persisted {
   xp: number
+  coins: number
   completed: Record<string, ChallengeResult>
   mastery: Record<string, number>
   streak: { count: number; lastPlayed: string | null }
   soundOn: boolean
   arcadeBest: number
+  owned: string[]
+  equipped: Equipped
 }
 
 interface GameStore extends Persisted {
   completeChallenge: (ch: Challenge, keystrokes: number) => CompleteOutcome
-  recordArcade: (score: number, commands: string[]) => boolean
+  recordArcade: (score: number, commands: string[]) => { isNewBest: boolean; coinsGained: number }
+  buyItem: (id: string) => boolean
+  equipItem: (id: string) => void
   bumpStreak: () => void
   toggleSound: () => void
   resetProgress: () => void
@@ -40,18 +53,19 @@ function todayKey(): string {
 function daysBetween(a: string, b: string): number {
   const [ay, am, ad] = a.split('-').map(Number)
   const [by, bm, bd] = b.split('-').map(Number)
-  const da = Date.UTC(ay, am - 1, ad)
-  const db = Date.UTC(by, bm - 1, bd)
-  return Math.round((db - da) / 86_400_000)
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86_400_000)
 }
 
 const initial: Persisted = {
   xp: 0,
+  coins: 0,
   completed: {},
   mastery: {},
   streak: { count: 0, lastPlayed: null },
   soundOn: true,
   arcadeBest: 0,
+  owned: [DEFAULTS.avatar, DEFAULTS.theme, DEFAULTS.background],
+  equipped: { ...DEFAULTS },
 }
 
 export const useGame = create<GameStore>()(
@@ -63,12 +77,19 @@ export const useGame = create<GameStore>()(
         const s = get()
         const stars = starsFor(keystrokes, ch.par)
         const prev = s.completed[ch.id]
-        const prevStars = prev?.stars ?? 0
+        const prevStars: number = prev?.stars ?? 0
         const xpGained = xpForChallenge(stars, prevStars)
 
         const beforeLevel = levelFromXp(s.xp)
         const newXp = s.xp + xpGained
         const afterLevel = levelFromXp(newXp)
+        const leveledUp = afterLevel > beforeLevel
+
+        // Coins: reward first solves and improvements, plus a level-up bonus.
+        let coinsGained = 0
+        if (prevStars === 0) coinsGained = 5 + stars * 3
+        else if (stars > prevStars) coinsGained = (stars - prevStars) * 3
+        if (leveledUp) coinsGained += 25
 
         const mastery = { ...s.mastery }
         const newlyMastered: string[] = []
@@ -87,17 +108,10 @@ export const useGame = create<GameStore>()(
           xp: (prev?.xp ?? 0) + xpGained,
         }
 
-        set({ xp: newXp, completed: { ...s.completed, [ch.id]: result }, mastery })
+        set({ xp: newXp, coins: s.coins + coinsGained, completed: { ...s.completed, [ch.id]: result }, mastery })
         get().bumpStreak()
 
-        return {
-          stars,
-          xpGained,
-          leveledUp: afterLevel > beforeLevel,
-          newLevel: afterLevel,
-          newlyMastered,
-          isPerfect: keystrokes <= ch.par,
-        }
+        return { stars, xpGained, coinsGained, leveledUp, newLevel: afterLevel, newlyMastered, isPerfect: keystrokes <= ch.par }
       },
 
       recordArcade: (score, commands) => {
@@ -105,9 +119,25 @@ export const useGame = create<GameStore>()(
         const mastery = { ...s.mastery }
         for (const id of commands) mastery[id] = (mastery[id] ?? 0) + 1
         const isNewBest = score > s.arcadeBest
-        set({ mastery, arcadeBest: Math.max(score, s.arcadeBest) })
+        const coinsGained = Math.floor(score / 5)
+        set({ mastery, arcadeBest: Math.max(score, s.arcadeBest), coins: s.coins + coinsGained })
         get().bumpStreak()
-        return isNewBest
+        return { isNewBest, coinsGained }
+      },
+
+      buyItem: (id) => {
+        const item = COSMETIC_BY_ID[id]
+        const s = get()
+        if (!item || s.owned.includes(id) || s.coins < item.price) return false
+        set({ coins: s.coins - item.price, owned: [...s.owned, id] })
+        return true
+      },
+
+      equipItem: (id) => {
+        const item = COSMETIC_BY_ID[id]
+        const s = get()
+        if (!item || !s.owned.includes(id)) return
+        set({ equipped: { ...s.equipped, [item.kind]: id } })
       },
 
       bumpStreak: () => {
@@ -122,18 +152,30 @@ export const useGame = create<GameStore>()(
 
       toggleSound: () => set((s) => ({ soundOn: !s.soundOn })),
 
-      resetProgress: () => set({ ...initial }),
+      resetProgress: () => set({ ...initial, owned: [...initial.owned], equipped: { ...initial.equipped } }),
     }),
     {
       name: 'vimersion-save',
-      version: 1,
+      version: 2,
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as Partial<Persisted>
+        return {
+          ...initial,
+          ...p,
+          owned: Array.from(new Set([...(p.owned ?? []), ...initial.owned])),
+          equipped: { ...initial.equipped, ...(p.equipped ?? {}) },
+        } as Persisted
+      },
       partialize: (s): Persisted => ({
         xp: s.xp,
+        coins: s.coins,
         completed: s.completed,
         mastery: s.mastery,
         streak: s.streak,
         soundOn: s.soundOn,
         arcadeBest: s.arcadeBest,
+        owned: s.owned,
+        equipped: s.equipped,
       }),
     },
   ),

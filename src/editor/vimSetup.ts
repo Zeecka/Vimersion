@@ -20,17 +20,21 @@ export const vimersionTheme = EditorView.theme(
       lineHeight: '1.65',
       overflow: 'auto',
     },
-    '.cm-content': { caretColor: '#3ddc84', padding: '14px 0' },
+    '.cm-content': { caretColor: 'var(--color-term)', padding: '14px 0' },
     '.cm-line': { padding: '0 14px' },
     '.cm-gutters': { backgroundColor: 'transparent', color: '#3a4454', border: 'none' },
     '.cm-lineNumbers .cm-gutterElement': { padding: '0 10px 0 14px' },
-    '.cm-activeLine': { backgroundColor: 'rgba(61,220,132,0.06)' },
+    '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--color-term) 7%, transparent)' },
     '.cm-activeLineGutter': { backgroundColor: 'transparent', color: '#7a8494' },
-    '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#3ddc84', borderLeftWidth: '2px' },
-    // Vim block cursor (normal mode)
-    '.cm-fat-cursor': { background: '#3ddc84 !important', color: '#0a0e14 !important', outline: 'none' },
+    '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--color-term)', borderLeftWidth: '2px' },
+    // Vim block cursor (normal mode) — colors follow the equipped theme
+    '.cm-fat-cursor': {
+      background: 'var(--color-term) !important',
+      color: 'var(--color-bg) !important',
+      outline: 'none',
+    },
     '&:not(.cm-focused) .cm-fat-cursor': {
-      background: 'rgba(61,220,132,0.45) !important',
+      background: 'color-mix(in srgb, var(--color-term) 45%, transparent) !important',
       outline: 'none',
     },
     '.cm-selectionBackground, &.cm-focused .cm-selectionBackground, .cm-content ::selection': {

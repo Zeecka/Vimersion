@@ -56,4 +56,17 @@ src/
   ui/          Hud, XPBar, WorldMap, ResultScreen, CommandBelt, atoms
 ```
 
-Free & open source. Built with real Vim keybindings.
+## Customization
+
+Earn **coins** by playing, then spend them in the **Shop** on:
+- **Characters** — your avatar across the app and as the arcade cursor.
+- **Themes** — recolor the whole game (UI + editor cursor) live.
+- **Backgrounds** — CRT, Aurora, Synthwave, Starfield, and Digital Rain (animated).
+
+## Credits
+
+Character/UI glyphs use [Twemoji](https://github.com/jdecked/twemoji) by Twitter/jdecked,
+licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/), bundled locally so
+they render on every system. Game concept & code are free & open source.
+
+Built with real Vim keybindings.

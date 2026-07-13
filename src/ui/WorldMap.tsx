@@ -1,6 +1,7 @@
 import { WORLDS, challengesForTier } from '../content/tiers'
 import { useGame } from '../game/store'
 import { StarRow } from './atoms'
+import { Emoji } from './Emoji'
 import { sfx } from '../game/sound'
 
 export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
@@ -55,7 +56,7 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
                           <span className="text-xs tabular-nums text-ink-dim">
                             {String(i + 1).padStart(2, '0')}
                           </span>
-                          {unlocked ? <StarRow value={res?.stars ?? 0} size={12} /> : <span>🔒</span>}
+                          {unlocked ? <StarRow value={res?.stars ?? 0} size={12} /> : <Emoji name="lock" size={13} />}
                         </div>
                         <p className="mt-1.5 text-sm font-medium text-ink">{c.title}</p>
                       </button>
