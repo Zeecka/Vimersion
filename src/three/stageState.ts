@@ -29,7 +29,7 @@ export const useStage = create<StageState>()(() => ({
   screen: 'home',
   sceneIndex: null,
   accent: '#7c6bff',
-  bgId: 'platform',
+  bgId: 'crt',
   heroReaction: 'idle',
   ready: false,
   contextLost: false,

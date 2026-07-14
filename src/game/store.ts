@@ -177,7 +177,7 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: 'vimersion-save',
-      version: 6,
+      version: 9,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<Persisted>
         const merged = {
@@ -200,6 +200,20 @@ export const useGame = create<GameStore>()(
         // it (old themes are free in the Shop, so nothing is lost).
         if (version < 5 && LEGACY_DEFAULT_THEMES.includes(merged.equipped.theme)) {
           merged.equipped.theme = DEFAULTS.theme
+        }
+        // v7: the "Pixel Kingdom" (platform) background was removed. Move anyone
+        // on it — or on any now-unknown background — to the default, and drop it
+        // from owned so it can't be re-equipped.
+        merged.owned = merged.owned.filter((id) => id !== 'platform')
+        if (!COSMETIC_BY_ID[merged.equipped.background]) {
+          merged.equipped.background = DEFAULTS.background
+        }
+        // v9: default background reverted to 'crt' (CRT Scanlines). Move anyone
+        // still on the previous default ('synthwave', the v8 default) onto it —
+        // same pattern as past default changes. 'synthwave' stays free in the
+        // Shop to re-equip.
+        if (version < 9 && merged.equipped.background === 'synthwave') {
+          merged.equipped.background = DEFAULTS.background
         }
         return merged
       },

@@ -5,7 +5,6 @@ import { ParallaxScene, ParallaxLayer } from './Parallax'
 export function Background({ bg, accent }: { bg: string; accent: string }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {bg === 'platform' && <PlatformerBg />}
       {bg === 'crt' && <CrtBg />}
       {bg === 'aurora' && <AuroraBg />}
       {bg === 'synthwave' && <SynthwaveBg />}
@@ -198,86 +197,6 @@ function CyberBg() {
       </ParallaxLayer>
       <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 3px, rgba(0,0,0,0.10) 4px)' }} />
     </ParallaxScene>
-  )
-}
-
-/* ---- Side-scrolling platformer (Pixel Kingdom) ---- */
-
-/** Encode an inline SVG string as a CSS url() data URI (offline, no assets). */
-function svgUrl(s: string): string {
-  return `url("data:image/svg+xml,${encodeURIComponent(s)}")`
-}
-
-const TILE = {
-  clouds: `<svg xmlns='http://www.w3.org/2000/svg' width='340' height='130'><g fill='#e9f2ff' opacity='0.92'><ellipse cx='78' cy='86' rx='50' ry='24'/><ellipse cx='118' cy='66' rx='40' ry='30'/><ellipse cx='160' cy='84' rx='48' ry='24'/><rect x='34' y='80' width='150' height='28' rx='14'/></g></svg>`,
-  mountains: `<svg xmlns='http://www.w3.org/2000/svg' width='520' height='210'><polygon fill='#2a1f4e' points='0,210 90,70 175,140 255,52 350,132 440,70 520,140 520,210'/><polygon fill='#372a63' opacity='0.7' points='0,210 70,150 150,185 240,120 330,180 420,128 520,182 520,210'/></svg>`,
-  hills: `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='170'><g fill='#1f6b3f'><ellipse cx='105' cy='215' rx='135' ry='100'/><ellipse cx='300' cy='225' rx='150' ry='110'/></g><g fill='#2c8a54'><ellipse cx='176' cy='154' rx='26' ry='18'/><ellipse cx='205' cy='150' rx='36' ry='24'/><ellipse cx='238' cy='152' rx='30' ry='20'/></g></svg>`,
-  props: `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='120'><g><rect x='44' y='40' width='46' height='46' rx='5' fill='#f0b429' stroke='#7a4a12' stroke-width='4'/><text x='67' y='74' font-family='monospace' font-size='34' font-weight='bold' text-anchor='middle' fill='#7a4a12'>?</text></g><g><ellipse cx='232' cy='48' rx='15' ry='18' fill='#ffd23f' stroke='#b8860b' stroke-width='3'/><rect x='229' y='40' width='6' height='16' fill='#b8860b'/></g></svg>`,
-  ground: `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='60'><rect width='64' height='60' fill='#6b431f'/><rect width='64' height='16' fill='#2f8a4f'/><rect y='16' width='64' height='3' fill='#256b41'/><path d='M32 19 V60 M0 40 H64' stroke='#4a2e14' stroke-width='2'/><rect x='1' y='1' width='62' height='58' fill='none' stroke='#3a2512' stroke-width='2'/></svg>`,
-}
-
-/** One horizontally-scrolling parallax band. `shift` must equal the tile width. */
-function ScrollBand({
-  tile,
-  sizeW,
-  height,
-  bottom,
-  top,
-  dur,
-  extraAnim = '',
-}: {
-  tile: string
-  sizeW: number
-  height: number
-  bottom?: number | string
-  top?: number | string
-  dur: number
-  extraAnim?: string
-}) {
-  return (
-    <div
-      className="vm-scroll absolute inset-x-0"
-      style={{
-        top,
-        bottom,
-        height,
-        backgroundImage: svgUrl(tile),
-        backgroundRepeat: 'repeat-x',
-        backgroundSize: `${sizeW}px ${height}px`,
-        backgroundPositionY: 'bottom',
-        animation: `vm-scroll-x ${dur}s linear infinite${extraAnim ? `, ${extraAnim}` : ''}`,
-        ['--vm-shift' as string]: `-${sizeW}px`,
-      }}
-    />
-  )
-}
-
-/**
- * Super-Mario-style side-scroller: several layers tiled across the screen, each
- * scrolling at its own speed (far = slow, near = fast) to fake depth. Pure CSS,
- * seamless loop, respects prefers-reduced-motion.
- */
-function PlatformerBg() {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* dusk sky */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0b1026 0%, #241a4e 42%, #5a2f6e 62%, #c05a7d 80%, #ff9e64 100%)' }} />
-      {/* distant stars in the dark upper sky */}
-      <div className="absolute inset-x-0 top-0 h-[46%]" style={starLayer('#ffffff', 0.5, 200)} />
-      {/* sun near the horizon, behind everything */}
-      <div
-        className="absolute left-[18%] top-[40%] h-32 w-32 rounded-full"
-        style={{ background: 'radial-gradient(circle, #ffe66d, #ff9e64 62%, rgba(255,158,100,0) 72%)', filter: 'blur(0.5px)', boxShadow: '0 0 80px rgba(255,190,120,0.5)' }}
-      />
-      {/* parallax bands: far → near, slow → fast */}
-      <ScrollBand tile={TILE.clouds} sizeW={340} height={130} top="12%" dur={80} />
-      <ScrollBand tile={TILE.mountains} sizeW={520} height={210} bottom={44} dur={58} />
-      <ScrollBand tile={TILE.hills} sizeW={400} height={170} bottom={40} dur={40} />
-      <ScrollBand tile={TILE.props} sizeW={320} height={120} bottom={150} dur={24} extraAnim="vm-bob-y 3.2s ease-in-out infinite" />
-      <ScrollBand tile={TILE.ground} sizeW={64} height={60} bottom={0} dur={4} />
-      {/* top-down scrim keeps overlaid UI text readable */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(8,10,22,0.55) 0%, rgba(8,10,22,0.16) 26%, rgba(8,10,22,0) 46%)' }} />
-    </div>
   )
 }
 

@@ -49,12 +49,12 @@ export const THEMES: Cosmetic[] = [
   { id: 'violet', kind: 'theme', name: 'Ultraviolet', price: 100, accent: '#b78cff', accentDim: '#7d5fb3' },
 ]
 
-/** Animated, parallax backgrounds (react to the mouse). */
+/** Animated, parallax backgrounds (react to the mouse). CRT Scanlines is the
+ *  free default; Synthwave is the other free option. The rest are unlockable. */
 export const BACKGROUNDS: Cosmetic[] = [
-  { id: 'platform', kind: 'background', name: 'Pixel Kingdom', price: 0, bg: 'platform', blurb: 'Side-scrolling multi-layer parallax.' },
   { id: 'crt', kind: 'background', name: 'CRT Scanlines', price: 0, bg: 'crt', blurb: 'Cozy terminal glow.' },
+  { id: 'synthwave', kind: 'background', name: 'Synthwave', price: 0, bg: 'synthwave', blurb: 'Sun, mountains & neon grid.' },
   { id: 'aurora', kind: 'background', name: 'Aurora', price: 70, bg: 'aurora', blurb: 'Drifting parallax light.' },
-  { id: 'synthwave', kind: 'background', name: 'Synthwave', price: 90, bg: 'synthwave', blurb: 'Sun, mountains & neon grid.' },
   { id: 'starfield', kind: 'background', name: 'Starfield', price: 110, bg: 'starfield', blurb: 'Warp through space.' },
   { id: 'nebula', kind: 'background', name: 'Nebula', price: 120, bg: 'nebula', blurb: 'Deep-space color clouds.' },
   { id: 'cyber', kind: 'background', name: 'Cyber City', price: 140, bg: 'cyber', blurb: 'Neon skyline, parallax depth.' },
@@ -64,11 +64,14 @@ export const BACKGROUNDS: Cosmetic[] = [
 export const COSMETICS: Cosmetic[] = [...AVATARS, ...THEMES, ...BACKGROUNDS]
 export const COSMETIC_BY_ID: Record<string, Cosmetic> = Object.fromEntries(COSMETICS.map((c) => [c.id, c]))
 
-export const DEFAULTS = { avatar: 'cursor', theme: 'nightglass', background: 'platform' } as const
+export const DEFAULTS = { avatar: 'cursor', theme: 'nightglass', background: 'crt' } as const
 
 /** Backgrounds that were the default in earlier versions. Save migration moves
- *  anyone still on one of these onto the current DEFAULTS.background. */
-export const LEGACY_DEFAULT_BACKGROUNDS = ['crt', 'nebula']
+ *  anyone still on one of these onto the current DEFAULTS.background.
+ *  'platform' (Pixel Kingdom) was removed in v7; 'synthwave' was the v8 default
+ *  before CRT Scanlines returned as the default in v9. Both remain free to
+ *  re-equip from the Shop. */
+export const LEGACY_DEFAULT_BACKGROUNDS = ['platform', 'synthwave', 'nebula']
 
 /** Themes that were the default in earlier versions (same migration pattern). */
 export const LEGACY_DEFAULT_THEMES = ['phosphor']

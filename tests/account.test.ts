@@ -10,8 +10,8 @@ function snap(over: Partial<Snapshot> = {}): Snapshot {
     mastery: {},
     streak: { count: 0, lastPlayed: null },
     arcadeBest: 0,
-    owned: ['cursor', 'nightglass', 'platform'],
-    equipped: { avatar: 'cursor', theme: 'nightglass', background: 'platform' },
+    owned: ['cursor', 'nightglass', 'crt'],
+    equipped: { avatar: 'cursor', theme: 'nightglass', background: 'crt' },
     hero: { primary: null, secondary: null, effect: 'sparkles' },
     ...over,
   }

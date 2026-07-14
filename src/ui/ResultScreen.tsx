@@ -16,12 +16,14 @@ interface Props {
   /** Boss levels get a bigger, louder headline. */
   boss?: boolean
   hasNext: boolean
+  /** Label for the advance button — "Next →" for a level, "Next world →" after a boss. */
+  nextLabel?: string
   onNext: () => void
   onReplay: () => void
   onMap: () => void
 }
 
-export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, onNext, onReplay, onMap }: Props) {
+export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, nextLabel = 'Next →', onNext, onReplay, onMap }: Props) {
   const xp = useGame((s) => s.xp)
   const completed = useGame((s) => s.completed)
   const mastery = useGame((s) => s.mastery)
@@ -33,6 +35,22 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, onNext, 
     if (outcome.leveledUp) window.setTimeout(() => sfx.levelUp(), 520)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Enter advances to the next level (or next world) — no reach for the mouse.
+  // Capture phase: the (still-focused, only-frozen) editor's vim keymap consumes
+  // Enter and stops propagation, so a bubble-phase listener would never see it.
+  useEffect(() => {
+    if (!hasNext) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        e.stopPropagation()
+        onNext()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [hasNext, onNext])
 
   const onShare = async () => {
     sfx.ui()
@@ -144,10 +162,15 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, onNext, 
               onClick={onNext}
               className="rounded bg-term px-5 py-2 text-sm font-bold text-bg transition-transform hover:scale-105"
             >
-              Next →
+              {nextLabel}
             </button>
           )}
         </div>
+        {hasNext && (
+          <p className="mt-3 text-[11px] text-ink-dim">
+            press <KeyCap>Enter</KeyCap> to continue
+          </p>
+        )}
 
         <button
           onClick={onShare}

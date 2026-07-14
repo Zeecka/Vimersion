@@ -11,27 +11,18 @@ import { shareScore } from '../game/share'
 import { COMMANDS } from '../game/commands'
 import { CHALLENGES } from '../content/tiers'
 import { sfx } from '../game/sound'
-import { effectiveQuality, type QualitySetting } from '../game/quality'
-
-const QUALITY_CYCLE: Record<QualitySetting, QualitySetting> = {
-  auto: 'webgl',
-  webgl: 'lite',
-  lite: 'auto',
-}
-const QUALITY_LABEL: Record<QualitySetting, string> = { auto: 'Auto', webgl: '3D', lite: 'Lite' }
 
 /**
  * The persistent top bar — on every screen, home included. Carries the main
- * shortcuts (customize / maps / share / day streak) plus coins, XP, graphics,
- * sound and the optional account control.
+ * shortcuts (customize / maps / share / day streak) plus coins, XP, sound and
+ * the optional account control. (Graphics quality is auto-detected per device;
+ * there is no manual toggle.)
  */
 export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () => void; onMap: () => void }) {
   const streak = useGame((s) => s.streak.count)
   const soundOn = useGame((s) => s.soundOn)
   const toggleSound = useGame((s) => s.toggleSound)
   const coins = useGame((s) => s.coins)
-  const quality = useGame((s) => s.quality)
-  const setQuality = useGame((s) => s.setQuality)
   const accountStatus = useAccount((s) => s.status)
 
   const [shareMsg, setShareMsg] = useState<string | null>(null)
@@ -134,19 +125,6 @@ export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () 
           className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-amber transition-colors hover:border-amber"
         >
           <span className="coin" /> <span className="tabular-nums">{coins}</span>
-        </button>
-        <button
-          // Never steal focus from the editor when toggling mid-level.
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            sfx.ui()
-            setQuality(QUALITY_CYCLE[quality])
-          }}
-          className="rounded-full border border-border px-2.5 py-1 text-xs text-ink-dim transition-colors hover:border-term hover:text-term"
-          title={`Graphics: ${QUALITY_LABEL[quality]}${quality === 'auto' ? ` (${effectiveQuality(quality) === 'webgl' ? '3D' : 'Lite'})` : ''} — click to change`}
-          aria-label="Cycle graphics quality"
-        >
-          FX·{QUALITY_LABEL[quality]}
         </button>
         <button
           onMouseDown={(e) => e.preventDefault()}

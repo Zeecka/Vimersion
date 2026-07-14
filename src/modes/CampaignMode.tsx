@@ -4,13 +4,10 @@ import { ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
 import { HeroPanel, type Reaction } from '../ui/HeroPanel'
-import { LevelScene } from '../ui/LevelScene'
 import { useGame, type CompleteOutcome } from '../game/store'
 import { CHALLENGES, challengesForTier, worldMeta } from '../content/tiers'
-import { effectiveQuality } from '../game/quality'
-import { setStage, useStage } from '../three/stageState'
-import { HAS_3D_SCENE } from '../three/sceneRegistry.meta'
-import { stagesOf, type Challenge } from '../game/types'
+import { setStage } from '../three/stageState'
+import { stagesOf, type Challenge, type Tier } from '../game/types'
 
 interface Props {
   challenge: Challenge
@@ -42,11 +39,13 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const next = siblings[idx + 1]
   const sceneIndex = CHALLENGES.findIndex((c) => c.id === challenge.id)
 
-  // In the webgl tier, levels with a dedicated 3D scene swap the SVG backdrop
-  // for the Stage3D underlay showing through a darker glass editor panel.
-  const quality = useGame((s) => s.quality)
-  const contextLost = useStage((s) => s.contextLost)
-  const has3dScene = !contextLost && effectiveQuality(quality) === 'webgl' && HAS_3D_SCENE.has(sceneIndex)
+  // A boss caps its world; beating it leaps to the first level of the next world
+  // (undefined when the next world isn't built yet). Standard levels just step to
+  // the next sibling. Either way the ResultScreen's "next" button (and Enter) fires.
+  const nextWorldFirst = isBoss
+    ? challengesForTier((challenge.tier + 1) as Tier).find((c) => (c.kind ?? 'standard') !== 'boss')
+    : undefined
+  const nextTarget = isBoss ? nextWorldFirst : next
 
   useEffect(() => {
     setStage({ sceneIndex })
@@ -154,8 +153,11 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             <BossBar spent={keystrokes} budget={challenge.keystrokeBudget} />
           )}
 
-          <div className={`${has3dScene ? 'panel-glass' : 'panel'} relative mt-3 flex-1 overflow-hidden`}>
-            {!has3dScene && <LevelScene index={sceneIndex} />}
+          {/* The editor sits on a dark glass panel so the one equipped background
+              (CRT by default, or a level's 3D scene) shows through behind the
+              code — a single coherent backdrop, not a separate per-level scene
+              clashing with it. The 78%-opaque tint keeps the code legible. */}
+          <div className="panel-glass relative mt-3 flex-1 overflow-hidden">
             <div className="relative z-10 h-full">
               <VimEditor
                 ref={editorRef}
@@ -197,8 +199,9 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           keystrokes={finalKs}
           par={challenge.par}
           boss={isBoss}
-          hasNext={!!next}
-          onNext={() => next && onPlay(next.id)}
+          hasNext={!!nextTarget}
+          nextLabel={isBoss ? 'Next world →' : 'Next →'}
+          onNext={() => nextTarget && onPlay(nextTarget.id)}
           onReplay={replay}
           onMap={onMap}
         />

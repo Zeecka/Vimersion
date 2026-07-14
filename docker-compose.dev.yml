@@ -1,0 +1,58 @@
+# Hot-reload development stack (no image build — source is bind-mounted).
+#
+#   docker compose -f docker-compose.dev.yml up          # start (foreground)
+#   docker compose -f docker-compose.dev.yml up -d       # start (background)
+#   docker compose -f docker-compose.dev.yml down        # stop
+#
+# The Vite dev server (HMR) serves the app on http://localhost:8971 with the
+# repo bind-mounted, so editing any file under src/ reloads the browser
+# automatically — no rebuild, no restart. The API runs with `node --watch`, so
+# server/ edits restart it too. The production stack is the separate
+# docker-compose.yml (nginx + static build); run only one at a time (both use
+# port 8971).
+services:
+  vimersion:
+    image: node:22-alpine
+    container_name: vimersion-dev
+    working_dir: /app
+    # Install into the container-only node_modules volume (musl binaries), then
+    # start Vite bound to all interfaces on the published port.
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 8971"
+    ports:
+      - "8971:8971"
+    environment:
+      VITE_API_TARGET: http://api:3001
+      VITE_USE_POLLING: "true"
+    volumes:
+      - .:/app
+      - vimersion-node-modules:/app/node_modules
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    image: node:24-alpine
+    container_name: vimersion-api-dev
+    working_dir: /app
+    # node --watch restarts the server on any change under server/.
+    command: node --experimental-sqlite --watch index.mjs
+    volumes:
+      - ./server:/app
+      - vimersion-data:/data
+    environment:
+      PORT: "3001"
+      DB_PATH: /data/vimersion.db
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8971}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    restart: unless-stopped
+
+volumes:
+  # Keeps the container's node_modules off the host bind-mount (avoids glibc vs
+  # musl native-binary clashes) and persists it between runs.
+  vimersion-node-modules:
+  # Shared with the production stack so the accounts DB survives either way.
+  vimersion-data:

@@ -44,8 +44,8 @@ export default function Stage3D() {
 
   // A level with a dedicated 3D scene replaces the ambient backdrop.
   const LevelScene3D = screen === 'play' && sceneIndex !== null ? SCENES_3D[sceneIndex] : undefined
-  // The equipped background cosmetic picks the WebGL backdrop shader;
-  // 'platform' (Pixel Kingdom) keeps the floating-islands AmbientScene.
+  // The equipped background cosmetic picks the WebGL backdrop shader; an
+  // unknown id falls back to the floating-islands AmbientScene.
   const Backdrop = BACKDROPS[bgId]
 
   // Stop the render loop entirely while the tab is hidden.

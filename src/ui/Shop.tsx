@@ -13,38 +13,56 @@ const TABS: { key: CosmeticKind; label: string; items: Cosmetic[] }[] = [
   { key: 'background', label: 'Backgrounds', items: BACKGROUNDS },
 ]
 
+/**
+ * Static thumbnail for each background — a faithful, cheap snapshot of what the
+ * live <Background/> scene renders (no canvas/parallax in the grid). CRT & Matrix
+ * are theme-tinted with var(--color-term) so their swatches recolor exactly like
+ * the real scenes do. Keep these in sync when a scene's look changes.
+ */
 function bgPreviewStyle(bg?: string): CSSProperties {
   switch (bg) {
-    case 'platform':
+    case 'synthwave':
+      // sunset gradient + glowing striped sun
       return {
         background:
-          'radial-gradient(circle at 24% 78%, #1f6b3f 0 22px, transparent 22px), radial-gradient(circle at 60% 82%, #1f6b3f 0 28px, transparent 28px), linear-gradient(180deg, #241a4e 0%, #5a2f6e 55%, #ff9e64 100%)',
+          'radial-gradient(circle at 50% 46%, #ffe66d, rgba(255,106,193,0.9) 24%, transparent 46%), linear-gradient(180deg, #180b2e 0%, #2d1b4e 34%, #6b2d5c 60%, #c94b7b 80%, #ff9e64 100%)',
       }
     case 'aurora':
+      // drifting green/blue/violet light over deep navy
       return {
         background:
-          'radial-gradient(circle at 30% 30%, #3ddc84, transparent 55%), radial-gradient(circle at 72% 65%, #59c2ff, transparent 55%), #0a0e14',
+          'radial-gradient(circle at 24% 26%, #3ddc84, transparent 52%), radial-gradient(circle at 76% 36%, #59c2ff, transparent 52%), radial-gradient(circle at 52% 96%, #b78cff, transparent 56%), linear-gradient(180deg, #060a16, #0a0e14)',
       }
-    case 'synthwave':
-      return { background: 'linear-gradient(180deg, #1a1030, #3a1547)' }
     case 'starfield':
+      // warp: faint center glow with stars streaming outward
       return {
         background:
-          'radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 62% 68%, #fff, transparent), radial-gradient(1px 1px at 82% 22%, #fff, transparent), #0a0e14',
+          'radial-gradient(circle at 50% 50%, rgba(89,194,255,0.16), transparent 42%), radial-gradient(1.4px 1.4px at 30% 42%, #fff, transparent), radial-gradient(1.4px 1.4px at 68% 58%, #59c2ff, transparent), radial-gradient(1px 1px at 44% 30%, #fff, transparent), radial-gradient(1px 1px at 60% 74%, #fff, transparent), radial-gradient(1px 1px at 82% 40%, #fff, transparent), #06080d',
       }
     case 'nebula':
+      // deep-space color clouds + a bright core
       return {
         background:
-          'radial-gradient(circle at 30% 28%, #7c3aed, transparent 55%), radial-gradient(circle at 72% 70%, #db2777, transparent 55%), radial-gradient(circle at 55% 45%, #0ea5e9, transparent 60%), #0a0e14',
+          'radial-gradient(circle at 30% 26%, #7c3aed, transparent 55%), radial-gradient(circle at 74% 68%, #db2777, transparent 55%), radial-gradient(circle at 56% 48%, #0ea5e9, transparent 60%), radial-gradient(ellipse at 28% 18%, #1e1b4b, #0a0e14 70%)',
       }
     case 'cyber':
-      return { background: 'linear-gradient(180deg, #101a2e 40%, #2a0e3a 100%)' }
-    case 'matrix':
-      return { background: 'linear-gradient(180deg, #0a0e14, #04140a)' }
-    default:
+      // moon glow + dark skyline band over a violet city gradient
       return {
         background:
-          'radial-gradient(ellipse at 50% 0%, rgba(61,220,132,0.16), transparent 60%), repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.35) 3px, transparent 4px), #0a0e14',
+          'radial-gradient(circle at 78% 22%, rgba(89,194,255,0.5), transparent 40%), linear-gradient(180deg, transparent 62%, #0e0722 62%), linear-gradient(180deg, #0a0e14 0%, #101a2e 52%, #2a0e3a 100%)',
+      }
+    case 'matrix':
+      // digital rain: theme-tinted glyph columns falling from the top
+      return {
+        background:
+          'repeating-linear-gradient(90deg, transparent 0 6px, color-mix(in srgb, var(--color-term) 24%, transparent) 6px 7px, transparent 7px 13px), linear-gradient(180deg, color-mix(in srgb, var(--color-term) 16%, transparent), transparent 58%), #04120a',
+      }
+    case 'crt':
+    default:
+      // terminal glow at the top + scanlines, theme-tinted like the live scene
+      return {
+        background:
+          'radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--color-term) 30%, transparent), transparent 62%), repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.28) 3px, transparent 4px), radial-gradient(ellipse at 50% -15%, #10161f, #070a11 72%)',
       }
   }
 }

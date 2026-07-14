@@ -2,22 +2,26 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// base: './' keeps asset URLs relative so the static build works when served
-// from a subpath (e.g. GitHub Pages) or the local `vite preview`.
-export default defineConfig({
+// Optional accounts/score backend (server/). Outside Docker it's on localhost;
+// inside the dev container the API is another service reachable as `api`
+// (set VITE_API_TARGET=http://api:3001). When it isn't running the proxy 502s,
+// /api/config fails, and the app degrades to offline mode.
+const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:3001'
+
+// Bind-mounted source in a container may not deliver inotify events reliably;
+// VITE_USE_POLLING=true switches the watcher to polling so HMR still fires.
+const usePolling = process.env.VITE_USE_POLLING === 'true'
+
+export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss()],
-  base: './',
+  // Relative base only helps the static build (subpath / file:// hosting).
+  // The dev server serves from '/', where a relative base breaks HMR client URLs.
+  base: command === 'build' ? './' : '/',
   server: {
-    // Optional accounts/score backend (server/). When it isn't running the
-    // proxy 502s, /api/config fails, and the app degrades to offline mode.
-    proxy: { '/api': 'http://localhost:3001' },
+    proxy: { '/api': apiTarget },
+    ...(usePolling ? { watch: { usePolling: true } } : {}),
   },
   preview: {
-    proxy: { '/api': 'http://localhost:3001' },
+    proxy: { '/api': apiTarget },
   },
-  // No manualChunks: Stage3D/Hero3D are the only entries into the 3D module
-  // graph and both are dynamic imports, so rolldown's default chunking already
-  // isolates three/r3f/drei into async chunks the lite tier never fetches.
-  // (Hand-grouping a 'vendor-3d' chunk backfired: rolldown merged the shared
-  // `scheduler` helper into it, statically chaining index → vendor-3d.)
-})
+}))
