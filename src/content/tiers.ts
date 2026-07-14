@@ -2,7 +2,7 @@ import type { Challenge, Tier, WorldMeta } from '../game/types'
 import { tier1 } from './tier1'
 import { tier2 } from './tier2'
 import { tier3 } from './tier3'
-import { gatekeeper } from './bosses'
+import { gatekeeper, gauntlet } from './bosses'
 
 /**
  * Authoring notes (keystroke pars):
@@ -23,7 +23,7 @@ export const WORLDS: WorldMeta[] = [
 ]
 
 /** All authored challenges, in play order. Tiers 4–6 are coming next. */
-export const CHALLENGES: Challenge[] = [...tier1, gatekeeper, ...tier2, ...tier3]
+export const CHALLENGES: Challenge[] = [...tier1, gatekeeper, ...tier2, ...tier3, gauntlet]
 
 export function challengesForTier(tier: Tier): Challenge[] {
   return CHALLENGES.filter((c) => c.tier === tier)

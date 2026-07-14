@@ -22,6 +22,7 @@ const SEED = {
 async function openBoss(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   const errors = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   page.on('pageerror', (e) => errors.push(String(e)))

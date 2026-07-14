@@ -1,6 +1,7 @@
 import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { Vim, getCM } from '@replit/codemirror-vim'
+import { html } from '@codemirror/lang-html'
 import { makeExtensions } from '../src/editor/vimSetup'
 import { makeVimCtx } from '../src/game/verify'
 import { stagesOf, type Challenge, type Goal } from '../src/game/types'
@@ -30,7 +31,12 @@ export function tokenize(solution: string): string[] {
 
 export function createEditor(ch: Challenge): EditorView {
   const view = new EditorView({
-    state: EditorState.create({ doc: ch.startText, extensions: makeExtensions(() => {}) }),
+    state: EditorState.create({
+      doc: ch.startText,
+      // Mirror VimEditor: challenges with a lang get their syntax tree (it/at).
+      // (Imported statically here — tests aren't bundle-size constrained.)
+      extensions: makeExtensions(() => {}, ch.lang === 'html' ? [html()] : []),
+    }),
     parent: document.body,
   })
 

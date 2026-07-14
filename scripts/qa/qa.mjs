@@ -5,6 +5,17 @@ const BASE = process.env.BASE_URL ?? 'http://localhost:4173'
 const SHOT = process.env.SHOT_DIR ?? '.qa-shots'
 const T1 = ['t1-first-blood', 't1-navigate', 't1-insert', 't1-append', 't1-delete-line', 't1-undo', 't1-open-line', 't1-capstone']
 const T2 = ['t2-word-leap', 't2-end-word', 't2-back-word', 't2-line-ends', 't2-find-char', 't2-change-word', 't2-file-ends', 't2-capstone']
+const T3 = ['t3-cut-word', 't3-shear', 't3-ciw', 't3-ci-paren', 't3-ci-quote', 't3-daw', 't3-counts', 't3-dupe-line', 't3-transplant', 't3-visual-snip', 't3-visual-line', 't3-visual-block']
+
+const seededSave = (ids, extra = {}) => ({
+  state: {
+    completed: Object.fromEntries(ids.map((id) => [id, { keystrokes: 4, par: 4, stars: 3, xp: 75 }])),
+    xp: 1400,
+    quality: 'webgl',
+    ...extra,
+  },
+  version: 5,
+})
 
 const results = []
 const report = (name, ok, detail = '') => {
@@ -18,6 +29,7 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   const V4_SAVE = {
     state: {
       xp: 480,
@@ -57,24 +69,19 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  const seed = {
-    state: {
-      completed: Object.fromEntries(
-        [...T1, ...T2, 'boss-gatekeeper'].map((id) => [id, { keystrokes: 4, par: 4, stars: 3, xp: 75 }]),
-      ),
-      xp: 1400,
-      quality: 'webgl',
-    },
-    version: 5,
-  }
+  // Inside Job is 3rd in World 3 — the two challenges before it must be done.
+  const seed = seededSave([...T1, ...T2, 'boss-gatekeeper', 't3-cut-word', 't3-shear'])
   await page.goto(BASE)
   await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), seed)
   await page.reload()
   await page.click('text=world map')
-  await page.waitForTimeout(400)
-  await page.click('text=Inside Job')
+  // Under SwiftShader the 3D compile can stall the main thread, freezing the
+  // screen-slide animation — give it time, then click with a long timeout.
+  await page.waitForTimeout(1500)
+  await page.locator('text=Inside Job').click({ timeout: 60000 })
   await page.waitForSelector('.cm-content')
   await page.waitForTimeout(2500) // let the 3D chunk/model settle (SwiftShader stalls)
   await page.keyboard.type('ciwcount')
@@ -86,10 +93,34 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
   await ctx.close()
 }
 
+// ---------- 2b. t3-tag-change: lazy lang-html chunk + cit in a real browser ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto(BASE)
+  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), seededSave([...T1, ...T2, ...T3]))
+  await page.reload()
+  await page.click('text=world map')
+  await page.waitForTimeout(1500)
+  await page.locator('text=Tag Team').click({ timeout: 60000 })
+  await page.waitForSelector('.cm-content')
+  await page.waitForTimeout(2500) // lazy lang chunk + 3D settle
+  await page.keyboard.type('citWelcome')
+  await page.waitForTimeout(600)
+  report('t3-tag-change: cit solves at 10 ≤ par 12 → PERFECT', await page.locator('text=PERFECT!').isVisible().catch(() => false))
+  report('t3-tag-change: no page errors', errors.length === 0, errors.slice(0, 2).join('|'))
+  await page.screenshot({ path: `${SHOT}/t3-tag-change.png` })
+  await ctx.close()
+}
+
 // ---------- 3. Offline reload (self-hosted fonts, no external deps) ----------
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   await page.goto(BASE, { waitUntil: 'networkidle' })
   const external = []
   page.on('request', (r) => {

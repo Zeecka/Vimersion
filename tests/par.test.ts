@@ -14,8 +14,22 @@ const SOLUTIONS: Record<string, string> = {
   't1-navigate': 'jllll',
   't1-insert': 'i <Esc>',
   't1-append': 'a!<Esc>',
-  't3-ciw': 'ciwcount<Esc>',
   'boss-gatekeeper': 'dddd$ie<Esc>jxoonward!<Esc>',
+  // Tier 3 — Faster
+  't3-cut-word': 'dw',
+  't3-shear': 'f;lD',
+  't3-ciw': 'ciwcount<Esc>',
+  't3-ci-paren': 'f(ci(250<Esc>',
+  't3-ci-quote': 'ci"hello<Esc>',
+  't3-daw': 'daw',
+  't3-counts': 'd3w',
+  't3-dupe-line': 'yyp',
+  't3-transplant': 'yiwj$viwp',
+  't3-visual-snip': 'vf]lx',
+  't3-visual-line': 'Vjjd',
+  't3-visual-block': '<C-v>jjjlx',
+  't3-tag-change': 'citWelcome<Esc>',
+  'boss-gauntlet': 'ciwcount<Esc>jwwwwdawjdd',
 }
 
 function byId(id: string): Challenge {

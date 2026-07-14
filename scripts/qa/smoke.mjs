@@ -19,6 +19,7 @@ const browser = await chromium.launch({
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   const errors = []
   const requests = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
@@ -38,7 +39,13 @@ const browser = await chromium.launch({
   await page.screenshot({ path: `${SHOT_DIR}/home-lite.png` })
 
   // Play the first level quickly in lite tier: click Start, type solution.
-  await page.click('text=Start Campaign').catch(() => page.click('text=Continue Campaign'))
+  // SwiftShader shader-compile stalls can freeze mount animations for a while —
+  // match either CTA and click with a generous timeout.
+  await page
+    .locator('text=Start Campaign')
+    .or(page.locator('text=Continue Campaign'))
+    .first()
+    .click({ timeout: 60000 })
   await page.waitForTimeout(900)
   const editor = page.locator('.cm-content')
   report('lite: editor mounted', (await editor.count()) === 1)
@@ -56,6 +63,7 @@ const browser = await chromium.launch({
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
   const errors = []
   const requests = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
@@ -78,16 +86,21 @@ const browser = await chromium.launch({
   const canvasCount = await page.locator('canvas').count()
   report('webgl: canvas mounted', canvasCount >= 1, `${canvasCount} canvas`)
   const wrapperPE = await page
-    .locator('div[aria-hidden].pointer-events-none.fixed')
-    .first()
-    .evaluate((el) => getComputedStyle(el).pointerEvents)
+    .waitForSelector('div[aria-hidden].pointer-events-none.fixed', { state: 'attached' })
+    .then((h) => h.evaluate((el) => getComputedStyle(el).pointerEvents))
     .catch(() => 'missing')
   report('webgl: stage wrapper pointer-events none', wrapperPE === 'none', wrapperPE)
   report('webgl: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '))
   await page.screenshot({ path: `${SHOT_DIR}/home-webgl.png` })
 
   // Editor focus survives with 3D running; keystrokes count exactly.
-  await page.click('text=Start Campaign').catch(() => page.click('text=Continue Campaign'))
+  // SwiftShader shader-compile stalls can freeze mount animations for a while —
+  // match either CTA and click with a generous timeout.
+  await page
+    .locator('text=Start Campaign')
+    .or(page.locator('text=Continue Campaign'))
+    .first()
+    .click({ timeout: 60000 })
   await page.waitForTimeout(1200)
   const editor = page.locator('.cm-content')
   if ((await editor.count()) === 1) {

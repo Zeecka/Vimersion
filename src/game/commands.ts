@@ -44,6 +44,14 @@ export const COMMANDS: VimCommand[] = [
   { id: 'y-motion', keys: 'y{m}', label: 'yank + motion', tier: 3, category: 'operator' },
   { id: 'iw', keys: 'ciw', label: 'inner word', tier: 3, category: 'text-object' },
   { id: 'i(', keys: 'ci(', label: 'inner parens', tier: 3, category: 'text-object' },
+  { id: 'i"', keys: 'ci"', label: 'inner quotes', tier: 3, category: 'text-object' },
+  { id: 'aw', keys: 'daw', label: 'a word + space', tier: 3, category: 'text-object' },
+  { id: 'it', keys: 'cit', label: 'inner tag', tier: 3, category: 'text-object' },
+  { id: 'D', keys: 'D', label: 'delete to line end', tier: 3, category: 'operator' },
+  { id: 'count', keys: '{n}{cmd}', label: 'count prefix', tier: 3, category: 'motion' },
+  { id: 'p', keys: 'p', label: 'paste', tier: 3, category: 'edit' },
+  { id: 'V', keys: 'V', label: 'visual line', tier: 3, category: 'modes' },
+  { id: 'ctrl-v', keys: 'Ctrl-v', label: 'visual block', tier: 3, category: 'modes' },
   { id: 'v', keys: 'v', label: 'visual mode', tier: 3, category: 'modes' },
 
   // Tier 4 — Seeker

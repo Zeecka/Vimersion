@@ -51,4 +51,55 @@ export const gatekeeper: Challenge = {
   hint: 'dd deletes a line. $ jumps to line end, i inserts before the cursor, x deletes under it. o opens a line below — Esc when done.',
 }
 
-export const BOSSES: Challenge[] = [gatekeeper]
+/** World 3 boss — chains the tier's grammar: ciw rename, daw dedupe, dd cleanup.
+ *  Optimal: ciwcount (8) · <Esc> j wwww daw (9) · j dd (3) = 20 keys. */
+export const gauntlet: Challenge = {
+  id: 'boss-gauntlet',
+  tier: 3,
+  kind: 'boss',
+  title: 'The Refactor Gauntlet',
+  brief: 'BOSS: This function fights back. Stage 1 — rename cnt to count with ciw.',
+  taughtCommands: ['iw', 'aw', 'c-motion', 'dd'],
+  startText: [
+    'let cnt = fetchItems()',
+    'let msg = "Ready to to launch"',
+    '// legacy init, delete me',
+    'print(msg)',
+  ].join('\n'),
+  startCursor: { line: 1, ch: 5 }, // inside "cnt"
+  goal: {
+    targetText: [
+      'let count = fetchItems()',
+      'let msg = "Ready to to launch"',
+      '// legacy init, delete me',
+      'print(msg)',
+    ].join('\n'),
+    describe: 'Stage 1: the variable is named count',
+  },
+  stages: [
+    {
+      brief: 'Stage 2 — the message stutters. Delete the duplicated to with daw.',
+      goal: {
+        targetText: [
+          'let count = fetchItems()',
+          'let msg = "Ready to launch"',
+          '// legacy init, delete me',
+          'print(msg)',
+        ].join('\n'),
+        describe: 'Stage 2: "Ready to launch" — no stutter',
+      },
+    },
+    {
+      brief: 'Stage 3 — finish it: kill the legacy comment line with dd.',
+      goal: {
+        targetText: ['let count = fetchItems()', 'let msg = "Ready to launch"', 'print(msg)'].join('\n'),
+        describe: 'Stage 3: the legacy comment is gone',
+      },
+    },
+  ],
+  par: 22,
+  keystrokeBudget: 49,
+  hint: 'ciw changes the word under the cursor. daw deletes a word plus its space (w hops words to reach it). dd kills a whole line.',
+}
+
+export const BOSSES: Challenge[] = [gatekeeper, gauntlet]
