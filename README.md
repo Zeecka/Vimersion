@@ -1,135 +1,179 @@
+<div align="center">
+
+<img src="public/vim-logo.svg" width="72" alt="Vimersion logo">
+
 # :Vimersion
 
-**Learn Vim by playing.** A free, open-source browser game that teaches the Vim editor and
-its motions/commands through real, gamified practice — real editor, real keystrokes, real
-muscle memory.
+**Learn Vim by playing.** Real editor · real keystrokes · real muscle memory.
 
-Unlike maze-style games, every challenge runs inside a **real CodeMirror editor with genuine
-Vim keybindings**, so the skills transfer directly to actual Vim/Neovim.
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](tsconfig.json)
+[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=black)](package.json)
+[![CodeMirror](https://img.shields.io/badge/CodeMirror-6%20%2B%20real%20vim-d30707?logo=codemirror&logoColor=white)](src/editor)
+[![three.js](https://img.shields.io/badge/three.js-r170-000000?logo=threedotjs&logoColor=white)](src/three)
+[![Tests](https://img.shields.io/badge/tests-84%20passing-3ddc84)](tests)
+[![Offline](https://img.shields.io/badge/works-100%25%20offline-ffc24b)](#-quick-start)
 
-## Features
+<img src="docs/media/home.png" width="85%" alt="Vimersion home — Nightglass UI over a cel-shaded 3D world">
 
-- **Campaign** — bite-sized, mastery-gated challenges inside a real Vim editor, organized
-  into six worlds: *Survive* (modes, motion, first edits), *Comfortable* (words, lines,
-  jumps), *Faster* (operators, text objects, visual), *Seeker* (search, `:s`, marks),
-  *Superpowers* (registers, macros, the dot) and *Legend* (`:g`, `:sort`, power idioms).
-  Worlds 1–4 are fully built (44 challenges); 5–6 are landing next.
-- **Boss levels** — multi-stage fights in a single buffer with a **keystroke budget** as the
-  boss HP bar. Stages ratchet (undo can't rewind a cleared stage); failing costs nothing but
-  a retry. Every world ends in one — The Gatekeeper, The Refactor Gauntlet, Grep & Gut.
-- **"Nightglass" 3D look** — a real-time WebGL world (react-three-fiber, cel-shaded low-poly,
-  selective bloom) behind smoked-glass UI panels, with an **animated 3D hero** that idles,
-  fights while you type, and celebrates your wins. Heavy assets are lazy-loaded: first paint
-  and editor latency are untouched, and the whole 3D stack is skipped in the lite tier.
-- **Quality tiers** — `Auto / 3D / Lite` (FX toggle in the HUD). Auto detection prefers lite
-  on reduced-motion, low-memory, or software-GL devices; lite mode is the original
-  procedural SVG/CSS art, fully featured. `prefers-reduced-motion` is respected everywhere.
-- **VimGolf-style scoring** — every keystroke counts; beat *par* for 3 stars.
-- **XP, levels & a streak** — White-Hat gamification (progress & accomplishment), no dark
-  patterns.
-- **Command Belt** — your growing collection of mastered commands.
-- **Motion Rush** — an arcade Whack-a-Mole that drills `hjkl` navigation speed with combos.
-- **Progress saved locally** — no account, no backend, **works fully offline** (fonts and
-  models are self-hosted; saves migrate across versions automatically).
+</div>
 
-## Tech stack
+Unlike maze-style Vim games, **every challenge runs inside a real CodeMirror editor with
+genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 
-React + TypeScript + Vite · CodeMirror 6 + `@replit/codemirror-vim` · three.js +
-`@react-three/fiber` v8 + drei (lazy-loaded) · Zustand (+ localStorage) · Tailwind CSS v4 ·
-Framer Motion · Web Audio (synth SFX) · Vitest.
+> [!TIP]
+> **Try it in 30 seconds:** `npm install && npm run dev` → press <kbd>x</kbd> once and
+> you've beaten level 1 at par. It escalates from there. 😄
 
-## Run it
+---
+
+## ✨ What's inside
+
+| | |
+|---|---|
+| 🎯 **VimGolf scoring** | every keystroke counts — beat *par* for ⭐⭐⭐ |
+| 👾 **Boss fights** | multi-stage battles with a **keystroke-budget HP bar**; undo can't rewind a cleared stage, and losing costs nothing but a retry |
+| 🤖 **3D hero** | a cel-shaded robot that idles, *punches while you type*, and celebrates your wins |
+| 🌋 **Living worlds** | WebGL scenes behind smoked-glass panels (react-three-fiber, selective bloom) — with a full **SVG lite mode** for low-power devices |
+| 🧠 **Vim-state goals** | challenges can verify *registers, marks, modes and macros* — not just buffer text |
+| ⌨️ **Command Belt** | your growing, category-grouped collection of mastered commands |
+| 🕹️ **Motion Rush** | whack-a-mole arcade drilling `hjkl` speed with combos |
+| 💾 **Zero backend** | progress in localStorage with versioned migrations; fonts & models self-hosted — **fully offline** |
+
+## 🗺️ The worlds
+
+| | World | You learn | Boss | Status |
+|--|-------|-----------|------|:------:|
+| 🟢 | **1 · Survive** | modes `i a o Esc` · motion `hjkl` · first edits `x dd u` | 🚪 The Gatekeeper | ✅ |
+| 🔵 | **2 · Comfortable** | words `w b e` · line ends `0 $` · jumps `gg G` · `f` · `cw` | — | ✅ |
+| 🟠 | **3 · Faster** | operators × motions × **text objects** (`ciw ci( ci" daw cit`) · visual `v V Ctrl-v` | ⚔️ The Refactor Gauntlet | ✅ |
+| 🟣 | **4 · Seeker** | search `/ ? n *` · find `f t ;` · `%` · substitute `:s :%s//g :s///gc` · marks | 🔎 Grep & Gut | ✅ |
+| 🩷 | **5 · Superpowers** | registers · macros `q @` · the dot `.` · `gn` · `Ctrl-a` | 🏭 *coming* | 🚧 |
+| 🟡 | **6 · Legend** | `:g :v` · `:sort` · `:normal` · case ops · block-insert · insert-mode power | 🐉 *coming* | 🚧 |
+
+**43 levels** shipped so far (40 challenges + 3 bosses) — every par machine-proven solvable.
+
+<div align="center">
+<table><tr>
+<td><img src="docs/media/level.png" alt="A level — real Vim editor over a 3D volcano scene"></td>
+<td><img src="docs/media/worldmap.png" alt="World map with stars and unlocks"></td>
+</tr><tr>
+<td align="center"><em>The real editor, a volcano, and your robot</em></td>
+<td align="center"><em>Star-rated progression across worlds</em></td>
+</tr></table>
+</div>
+
+## 🚀 Quick start
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # production build to dist/
-npm run preview    # serve the built app
-npm run test       # vitest: content integrity + par validation with real vim keys
+npm run dev        # play at http://localhost:5173
+npm run build      # production build → dist/
+npm run preview    # serve the build (port 4173)
+```
+
+Deploy `dist/` anywhere static (Netlify / Vercel / GitHub Pages). No special headers —
+it's CodeMirror's vim keymap, not WASM, so no cross-origin isolation needed.
+
+> [!NOTE]
+> **Graphics tiers:** the `FX` pill in the HUD cycles **Auto / 3D / Lite**. Auto picks
+> Lite on reduced-motion, low-memory, or software-GL devices — Lite is the original
+> procedural-SVG art and is fully featured, not a downgrade of gameplay.
+
+## 🧪 Testing — pars are proven, not guessed
+
+```bash
+npm run test       # 44 vitest tests
+npm run qa         # 40 browser checks (needs `npm run preview` running)
 npm run typecheck
 ```
 
-Static build — deploy `dist/` to Netlify, Vercel, or GitHub Pages. No special hosting headers
-required (we use CodeMirror's Vim keymap, not WASM Vim, so no cross-origin isolation needed).
+| Layer | What it guarantees |
+|-------|--------------------|
+| `tests/content.test.ts` | ids unique · taught commands resolve · cursors in bounds · boss budgets sane |
+| `tests/par.test.ts` | **every challenge's par is solved by a reference solution driven through the real vim keymap** — including search/ex/confirm *dialogs* |
+| `scripts/qa/` | real-Chromium suites: tier isolation (lite fetches **zero** 3D bytes), boss flow, save migration, offline reload |
 
-## Testing
+> [!IMPORTANT]
+> Adding a challenge? Its reference solution in `tests/par.test.ts` is **mandatory** —
+> see the [authoring guide](docs/AUTHORING.md).
 
-- `tests/content.test.ts` — content integrity: unique ids, taught commands resolve, pars
-  positive, cursors in bounds, boss budgets sane.
-- `tests/par.test.ts` — the **par validator**: reference solutions are driven through a real
-  `EditorView` + vim keymap (`Vim.handleKey`) and must solve each challenge at ≤ par. Also
-  unit-tests the vim-state goal checkers (registers, marks, modes, macro recording) and the
-  visual-block multi-selection fix. **Every new challenge must add its reference solution.**
-- `scripts/qa/` — **browser QA suites** (Playwright, real Chromium): quality-tier isolation,
-  boss flow, save migration, offline-readiness. `npm run build && npm run preview`, then
-  `npm run qa`. See `scripts/qa/README.md`.
-- Bundle discipline: the sync `index` chunk stays 3D-free (≤280 KB gz — grows a little with
-  each content tier); the 3D graph lives in
-  async chunks (~230 KB gz) fetched only in the webgl tier; `hero.glb` is ~180 KB.
+## 🏗️ Architecture in one picture
 
-## Asset pipeline (3D)
+```mermaid
+flowchart LR
+    subgraph SYNC["⚡ sync bundle · ~266 KB gz · 3D-free"]
+        APP[App + Nightglass UI]:::ui
+        ED[VimEditor<br>CM6 + real vim]:::core
+        CT[content/tier1-4<br>challenges as data]:::data
+        VF[verify.ts<br>vim-state checkers]:::data
+        ST[(zustand store<br>saves v5)]:::data
+        CT --> ED
+        VF --> ED
+        APP --> ED
+        APP --> ST
+    end
+    subgraph LAZY["🎨 lazy chunks · fetched on demand"]
+        S3[Stage3D underlay]:::three
+        H3[Hero3D robot]:::three
+        TH[three + r3f + drei<br>~208 KB gz]:::three
+        LH[lang-html<br>~64 KB gz]:::three
+        S3 --> TH
+        H3 --> TH
+    end
+    APP -. "React.lazy (webgl tier only)" .-> S3
+    APP -. "React.lazy" .-> H3
+    ED -. "loadLang (tag levels only)" .-> LH
 
-The hero model is stored raw in `assets-src/` and optimized into `public/models/`:
-
-```bash
-npx @gltf-transform/cli optimize assets-src/RobotExpressive.glb public/models/hero.glb \
-  --compress meshopt --texture-compress webp
+    classDef ui fill:#7c6bff,color:#0b0d14,stroke:none
+    classDef core fill:#ff6ac1,color:#0b0d14,stroke:none
+    classDef data fill:#1a2030,color:#e2e6f0,stroke:#7c6bff
+    classDef three fill:#4cc9f0,color:#0b0d14,stroke:none
 ```
 
-Meshopt-compressed glTF decodes via `three-stdlib` (no COOP/COEP headers, no Draco/KTX2
-decoders needed at this budget). Environments are procedural three.js geometry with a shared
-toon gradient ramp (`src/three/toon.ts`) — no downloads.
+The full story — z-stack contract, quality tiers, save migrations, the goal-check
+pipeline — lives in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-## Roadmap
+## ✍️ Adding content
 
-- **Done:** Worlds 1–4 (44 challenges, 3 bosses), Motion Rush, Nightglass 3D vertical
-  slice (3D stage + hero + Level-1 scene), boss mechanic, vim-state verification layer
-  (search/ex/confirm dialogs test-drivable), quality tiers + save migration.
-- **Next (alternating content/visual/mechanics phases):** 3D rollout to Map/Shop/Results +
-  per-world environments → overworld map, achievements, daily quests, spaced-repetition
-  review, economy re-tune → Worlds 5–6 (*Superpowers*, *Legend*) + plugin "Concepts" cards.
-- **Later:** golf mode + leaderboard, onboarding, remappable keys, optional accounts.
+Challenges are **pure data** — a new level is ~15 lines:
 
-## Project layout
-
-```
-src/
-  editor/      VimEditor (CM6 + vim + instrumentation, stage ratchet), theme/extensions
-  game/        types, command catalog, XP curve, verify.ts (vim-state goal checkers),
-               quality tiers, Zustand store (versioned saves), Web-Audio SFX
-  content/     challenges as declarative data (tier1-3.ts, bosses.ts), world metadata
-  modes/       CampaignMode (incl. boss flow), ArcadeMode
-  three/       Stage3D underlay canvas, Hero3D, toon helpers, scene registry (lazy chunk)
-  ui/          Hud, XPBar, WorldMap, ResultScreen, CommandBelt, HeroPanel, atoms
-tests/         vitest: content integrity, par validator, vim-state checker units
-assets-src/    raw 3D sources (not shipped) — see Asset pipeline
+```ts
+{
+  id: 't3-daw',
+  tier: 3,
+  title: 'Word Surgeon',
+  brief: 'Delete the duplicated the cleanly with daw.',
+  taughtCommands: ['aw'],
+  startText: '… over the the lazy dot',
+  startCursor: { line: 1, ch: 36 },
+  goal: { targetText: '… over the lazy dot', describe: 'Single spaces everywhere' },
+  par: 3,
+  hint: 'daw = delete A word — the word PLUS its trailing space.',
+}
 ```
 
-## Customization
+Step-by-step guide (goals, par math, bosses, the traps): **[docs/AUTHORING.md](docs/AUTHORING.md)**.
 
-Earn **coins** by playing, then spend them in the **Shop** on:
-- **Characters** — your avatar across the app and as the arcade cursor.
-- **Themes** — recolor the whole game (UI + editor cursor + 3D accents) live. *Nightglass*
-  electric-violet is the default; the classic *Phosphor Green* is free to re-equip.
-- **Backgrounds** — lite-tier scenes: side-scrolling **Pixel Kingdom**, CRT, Aurora,
-  Synthwave, Nebula, Cyber City, Starfield, and Digital Rain (all animated).
+## 📍 Roadmap
 
-## Credits
+- [x] Worlds 1–4 · boss mechanic · Nightglass 3D slice · vim-state verification
+- [ ] 🎨 **Visual rollout** — per-world 3D environments, Map/Shop/Results polish
+- [ ] ⚙️ **Mechanics** — overworld map, achievements, daily quests, spaced-repetition review
+- [ ] 🩷 **Worlds 5–6** — registers, macros, `:g`/`:sort` power idioms + plugin "Concepts" cards
+- [ ] 🏌️ Golf mode, onboarding, remappable keys
 
-- **3D hero** is based on **"RobotExpressive"** by Tomás Laulhé (CC0, via the
-  [three.js examples](https://github.com/mrdoob/three.js); modifications by Don McCurdy),
-  meshopt-optimized and re-shaded with the game's toon ramp.
-- **2D characters** are generated with [DiceBear](https://www.dicebear.com/) (styles: bottts,
-  pixel-art, adventurer, fun-emoji, thumbs) at build time via `scripts/gen-characters.mjs`
-  and bundled as static SVGs (offline, no runtime dependency).
-- **UI glyphs** use [Twemoji](https://github.com/jdecked/twemoji) by Twitter/jdecked
-  ([CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)), bundled locally so they render
-  on every system.
-- **Fonts**: [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) and
-  [JetBrains Mono](https://www.jetbrains.com/lp/mono/) (both OFL), self-hosted via Fontsource.
-- **Lite backgrounds** are original CSS/SVG/canvas parallax scenes; 3D environments are
-  original procedural three.js scenes.
+## 🙏 Credits
 
-Game concept & code are free & open source.
+| | |
+|---|---|
+| 🤖 3D hero | [**RobotExpressive**](https://github.com/mrdoob/three.js) by Tomás Laulhé (CC0, mod. Don McCurdy) — meshopt-optimized, re-shaded with the game's toon ramp |
+| 🧑‍🎤 2D avatars | [DiceBear](https://www.dicebear.com/) (generated at build time, bundled as static SVGs) |
+| 😀 UI glyphs | [Twemoji](https://github.com/jdecked/twemoji) (CC-BY 4.0), bundled locally |
+| 🔤 Fonts | [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) + [JetBrains Mono](https://www.jetbrains.com/lp/mono/) (OFL), self-hosted via Fontsource |
+| 🌋 Scenes | original procedural CSS/SVG (lite) and three.js (3D) — no asset downloads |
 
-Built with real Vim keybindings.
+<div align="center">
+
+**Free & open source. Built with real Vim keybindings.** ⌨️💜
+
+</div>
