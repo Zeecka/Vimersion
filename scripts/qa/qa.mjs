@@ -5,7 +5,8 @@ const BASE = process.env.BASE_URL ?? 'http://localhost:4173'
 const SHOT = process.env.SHOT_DIR ?? '.qa-shots'
 const T1 = ['t1-first-blood', 't1-navigate', 't1-insert', 't1-append', 't1-delete-line', 't1-undo', 't1-open-line', 't1-capstone']
 const T2 = ['t2-word-leap', 't2-end-word', 't2-back-word', 't2-line-ends', 't2-find-char', 't2-change-word', 't2-file-ends', 't2-capstone']
-const T3 = ['t3-cut-word', 't3-shear', 't3-ciw', 't3-ci-paren', 't3-ci-quote', 't3-daw', 't3-counts', 't3-dupe-line', 't3-transplant', 't3-visual-snip', 't3-visual-line', 't3-visual-block']
+const T3 = ['t3-cut-word', 't3-shear', 't3-ciw', 't3-ci-paren', 't3-ci-quote', 't3-daw', 't3-counts', 't3-dupe-line', 't3-transplant', 't3-visual-snip', 't3-visual-line', 't3-visual-block', 't3-tag-change']
+const T4_PRE = ['t4-searchlight', 't4-third-strike', 't4-question', 't4-star-player', 't4-slice-args', 't4-repeat-find', 't4-percent', 't4-sub-line', 't4-sub-global']
 
 const seededSave = (ids, extra = {}) => ({
   state: {
@@ -113,6 +114,38 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
   report('t3-tag-change: cit solves at 10 ≤ par 12 → PERFECT', await page.locator('text=PERFECT!').isVisible().catch(() => false))
   report('t3-tag-change: no page errors', errors.length === 0, errors.slice(0, 2).join('|'))
   await page.screenshot({ path: `${SHOT}/t3-tag-change.png` })
+  await ctx.close()
+}
+
+// ---------- 2c. t4-sub-confirm: the real :s///gc dialog + y/n answers ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const page = await ctx.newPage()
+  page.setDefaultTimeout(60000)
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto(BASE)
+  await page.evaluate(
+    (s) => localStorage.setItem('vimersion-save', JSON.stringify(s)),
+    seededSave([...T1, ...T2, ...T3, ...T4_PRE]),
+  )
+  await page.reload()
+  await page.click('text=world map')
+  await page.waitForTimeout(1500)
+  await page.locator('text=Sniper Sub').click({ timeout: 60000 })
+  await page.waitForSelector('.cm-content')
+  await page.waitForTimeout(2500)
+  await page.keyboard.type(':%s/count/total/gc')
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(400)
+  for (const k of 'ynyny') {
+    await page.keyboard.press(k)
+    await page.waitForTimeout(150)
+  }
+  await page.waitForTimeout(600)
+  report('t4-sub-confirm: y/n dialog solves at 24 = par → PERFECT', await page.locator('text=PERFECT!').isVisible().catch(() => false))
+  report('t4-sub-confirm: no page errors', errors.length === 0, errors.slice(0, 2).join('|'))
+  await page.screenshot({ path: `${SHOT}/t4-sub-confirm.png` })
   await ctx.close()
 }
 

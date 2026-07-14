@@ -57,8 +57,17 @@ export const COMMANDS: VimCommand[] = [
   // Tier 4 — Seeker
   // (re-tiered from 3: search belongs with n/N/*/:s in the search world.
   //  Re-tiering is save-safe — mastery is keyed by id, never by tier.)
-  { id: 'search', keys: '/', label: 'search', tier: 4, category: 'motion' },
-  { id: 'marks', keys: 'm{r}', label: 'set mark', tier: 4, category: 'power' },
+  { id: 'search', keys: '/', label: 'search forward', tier: 4, category: 'motion' },
+  { id: 'search-back', keys: '?', label: 'search backward', tier: 4, category: 'motion' },
+  { id: 'n', keys: 'n/N', label: 'next / prev match', tier: 4, category: 'motion' },
+  { id: 'star', keys: '*', label: 'search word under cursor', tier: 4, category: 'motion' },
+  { id: 'till', keys: 't{c}', label: 'till before char', tier: 4, category: 'motion' },
+  { id: 'semicolon', keys: ';', label: 'repeat find', tier: 4, category: 'motion' },
+  { id: 'percent', keys: '%', label: 'matching bracket', tier: 4, category: 'motion' },
+  { id: 'sub', keys: ':s//', label: 'substitute (line)', tier: 4, category: 'ex' },
+  { id: 'sub-all', keys: ':%s//g', label: 'substitute (file)', tier: 4, category: 'ex' },
+  { id: 'sub-confirm', keys: ':s//gc', label: 'confirm each match', tier: 4, category: 'ex' },
+  { id: 'marks', keys: 'm{r}', label: 'set mark / jump back', tier: 4, category: 'power' },
 
   // Tier 5 — Superpowers (re-tiered from 4)
   { id: 'macro', keys: 'q{r}', label: 'record macro', tier: 5, category: 'power' },

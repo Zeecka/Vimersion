@@ -30,6 +30,19 @@ const SOLUTIONS: Record<string, string> = {
   't3-visual-block': '<C-v>jjjlx',
   't3-tag-change': 'citWelcome<Esc>',
   'boss-gauntlet': 'ciwcount<Esc>jwwwwdawjdd',
+  // Tier 4 — Seeker (dialog keystrokes count: the panel lives in the editor)
+  't4-searchlight': '/ERROR<CR>dd',
+  't4-third-strike': '/WARN<CR>nnciwINFO<Esc>',
+  't4-question': '?sec<CR>dd',
+  't4-star-player': '*ciwrows',
+  't4-slice-args': 'df,x',
+  't4-repeat-find': 'f.;;dt"',
+  't4-percent': '%lx',
+  't4-sub-line': ':s/Flase/False<CR>',
+  't4-sub-global': ':%s/colour/color/g<CR>',
+  't4-sub-confirm': ':%s/count/total/gc<CR>ynyny',
+  't4-marks': 'maggdd`a',
+  'boss-grepgut': '/eror<CR>ddndd:%s/warn/WARN/g<CR>jf(d%x',
 }
 
 function byId(id: string): Challenge {

@@ -72,10 +72,39 @@ export function createEditor(ch: Challenge): EditorView {
   return view
 }
 
-/** Feed one token: vim key normally, literal text insertion in insert mode. */
+function dialogKeyName(token: string): { key: string; keyCode: number } {
+  if (token === '<CR>') return { key: 'Enter', keyCode: 13 }
+  if (token === '<Esc>') return { key: 'Escape', keyCode: 27 }
+  return { key: token, keyCode: token.toUpperCase().charCodeAt(0) }
+}
+
+/**
+ * Feed one token. Three routing modes, mirroring real play:
+ * - vim dialog open (`/`, `?`, `:` prompts, :s///c confirm): synthesize a
+ *   keydown on the dialog's <input> — the shim's own listeners consume it
+ *   (confirm y/n swallow keys; Enter fires the callback with input.value);
+ *   unconsumed plain chars get typed into the input like a browser would.
+ * - insert mode: literal text insertion via the editor.
+ * - otherwise: Vim.handleKey.
+ */
 export function press(view: EditorView, token: string): void {
   const cm = getCM(view)
   if (!cm) throw new Error('vim shim missing')
+
+  const dialog = (cm.state as { dialog?: HTMLElement }).dialog
+  const inp = dialog?.querySelector('input')
+  if (dialog && inp) {
+    const { key, keyCode } = dialogKeyName(token)
+    const ev = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+    Object.defineProperty(ev, 'keyCode', { get: () => keyCode })
+    inp.dispatchEvent(ev)
+    if (!ev.defaultPrevented && token.length === 1) {
+      inp.value += token
+      inp.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true }))
+    }
+    return
+  }
+
   const vim = (cm.state as { vim?: { insertMode?: boolean } }).vim
   if (vim?.insertMode && token.length === 1) {
     view.dispatch(view.state.replaceSelection(token))

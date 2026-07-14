@@ -13,10 +13,10 @@ Vim keybindings**, so the skills transfer directly to actual Vim/Neovim.
   into six worlds: *Survive* (modes, motion, first edits), *Comfortable* (words, lines,
   jumps), *Faster* (operators, text objects, visual), *Seeker* (search, `:s`, marks),
   *Superpowers* (registers, macros, the dot) and *Legend* (`:g`, `:sort`, power idioms).
-  Worlds 1–2 are fully built; the rest are landing tier by tier.
+  Worlds 1–4 are fully built (44 challenges); 5–6 are landing next.
 - **Boss levels** — multi-stage fights in a single buffer with a **keystroke budget** as the
   boss HP bar. Stages ratchet (undo can't rewind a cleared stage); failing costs nothing but
-  a retry. World 1 ends at **The Gatekeeper**.
+  a retry. Every world ends in one — The Gatekeeper, The Refactor Gauntlet, Grep & Gut.
 - **"Nightglass" 3D look** — a real-time WebGL world (react-three-fiber, cel-shaded low-poly,
   selective bloom) behind smoked-glass UI panels, with an **animated 3D hero** that idles,
   fights while you type, and celebrates your wins. Heavy assets are lazy-loaded: first paint
@@ -62,8 +62,9 @@ required (we use CodeMirror's Vim keymap, not WASM Vim, so no cross-origin isola
   visual-block multi-selection fix. **Every new challenge must add its reference solution.**
 - `scripts/qa/` — **browser QA suites** (Playwright, real Chromium): quality-tier isolation,
   boss flow, save migration, offline-readiness. `npm run build && npm run preview`, then
-  `npm run qa` (36 checks). See `scripts/qa/README.md`.
-- Bundle discipline: the sync `index` chunk stays 3D-free (~265 KB gz); the 3D graph lives in
+  `npm run qa`. See `scripts/qa/README.md`.
+- Bundle discipline: the sync `index` chunk stays 3D-free (≤280 KB gz — grows a little with
+  each content tier); the 3D graph lives in
   async chunks (~230 KB gz) fetched only in the webgl tier; `hero.glb` is ~180 KB.
 
 ## Asset pipeline (3D)
@@ -81,13 +82,12 @@ toon gradient ramp (`src/three/toon.ts`) — no downloads.
 
 ## Roadmap
 
-- **Done:** Worlds 1–2, Motion Rush, Nightglass 3D vertical slice (3D stage + hero +
-  Level-1 scene), boss mechanic + The Gatekeeper, vim-state verification layer, quality
-  tiers + save migration.
-- **Next (alternating content/visual/mechanics phases):** fill World 3 *Faster* and
-  World 4 *Seeker* → 3D rollout to Map/Shop/Results + per-world environments → overworld
-  map, achievements, daily quests, spaced-repetition review, economy re-tune → Worlds 5–6 +
-  plugin "Concepts" cards.
+- **Done:** Worlds 1–4 (44 challenges, 3 bosses), Motion Rush, Nightglass 3D vertical
+  slice (3D stage + hero + Level-1 scene), boss mechanic, vim-state verification layer
+  (search/ex/confirm dialogs test-drivable), quality tiers + save migration.
+- **Next (alternating content/visual/mechanics phases):** 3D rollout to Map/Shop/Results +
+  per-world environments → overworld map, achievements, daily quests, spaced-repetition
+  review, economy re-tune → Worlds 5–6 (*Superpowers*, *Legend*) + plugin "Concepts" cards.
 - **Later:** golf mode + leaderboard, onboarding, remappable keys, optional accounts.
 
 ## Project layout

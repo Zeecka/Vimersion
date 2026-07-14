@@ -102,4 +102,78 @@ export const gauntlet: Challenge = {
   hint: 'ciw changes the word under the cursor. daw deletes a word plus its space (w hops words to reach it). dd kills a whole line.',
 }
 
-export const BOSSES: Challenge[] = [gatekeeper, gauntlet]
+/** World 4 boss — log-file surgery with the whole Seeker kit: search-and-
+ *  destroy, mass-substitute, precision bracket work.
+ *  Optimal: /eror<CR>dd n dd (11) · :%s/warn/WARN/g<CR> (16) · j f( d% x (6) = 33. */
+export const grepgut: Challenge = {
+  id: 'boss-grepgut',
+  tier: 4,
+  kind: 'boss',
+  title: 'Grep & Gut',
+  brief: 'BOSS: This log lies. Stage 1 — hunt down BOTH [eror] lines with /eror and delete them (n finds the next).',
+  taughtCommands: ['search', 'n', 'sub-all', 'percent', 'dd'],
+  startText: [
+    '[boot] service starting',
+    '[warn] legacy_mode enabled',
+    '[info] user login: admin',
+    '[eror] connection refused',
+    '[info] retry in 5s',
+    '[eror] connection refused',
+    '[info] connected',
+    '[warn] legacy_mode enabled',
+    '[stat] uptime 99.9% (target: 99.5%)',
+    '[done] service ready',
+  ].join('\n'),
+  goal: {
+    targetText: [
+      '[boot] service starting',
+      '[warn] legacy_mode enabled',
+      '[info] user login: admin',
+      '[info] retry in 5s',
+      '[info] connected',
+      '[warn] legacy_mode enabled',
+      '[stat] uptime 99.9% (target: 99.5%)',
+      '[done] service ready',
+    ].join('\n'),
+    describe: 'Stage 1: both [eror] lines are gone',
+  },
+  stages: [
+    {
+      brief: 'Stage 2 — promote every [warn] tag to [WARN] in one blast: :%s/warn/WARN/g.',
+      goal: {
+        targetText: [
+          '[boot] service starting',
+          '[WARN] legacy_mode enabled',
+          '[info] user login: admin',
+          '[info] retry in 5s',
+          '[info] connected',
+          '[WARN] legacy_mode enabled',
+          '[stat] uptime 99.9% (target: 99.5%)',
+          '[done] service ready',
+        ].join('\n'),
+        describe: 'Stage 2: both warn tags read WARN',
+      },
+    },
+    {
+      brief: 'Stage 3 — the stat line leaks internals. Land on the ( with f(, gut it with d%, and x the leftover space.',
+      goal: {
+        targetText: [
+          '[boot] service starting',
+          '[WARN] legacy_mode enabled',
+          '[info] user login: admin',
+          '[info] retry in 5s',
+          '[info] connected',
+          '[WARN] legacy_mode enabled',
+          '[stat] uptime 99.9%',
+          '[done] service ready',
+        ].join('\n'),
+        describe: 'Stage 3: the (target: …) parenthetical is gone',
+      },
+    },
+  ],
+  par: 36,
+  keystrokeBudget: 80,
+  hint: '/pattern then n hops matches; dd per hit. :%s/old/new/g fixes the whole file. d% deletes from a bracket to its partner.',
+}
+
+export const BOSSES: Challenge[] = [gatekeeper, gauntlet, grepgut]

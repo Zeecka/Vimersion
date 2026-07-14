@@ -42,7 +42,7 @@ const browser = await chromium.launch()
 {
   const { ctx, page, errors } = await openBoss(browser)
   const pip = (n) => page.getByText(`${n}/3`, { exact: true })
-  report('boss: opens with stage 1/3', await pip(1).isVisible().catch(() => false))
+  report('boss: opens with stage 1/3', await pip(1).waitFor({ state: 'visible' }).then(() => true).catch(() => false))
   const bar = page.locator('text=Boss integrity')
   report('boss: HP bar visible', await bar.isVisible().catch(() => false))
 
