@@ -1,7 +1,15 @@
+import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { XPBar } from './XPBar'
-import { Avatar } from './Avatar'
+import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
-import { useGame } from '../game/store'
+import { AccountButton, AccountModal } from './Account'
+import { useGame, MASTERY_THRESHOLD } from '../game/store'
+import { useAccount, flushSync, verifiedShareUrl } from '../game/account'
+import { levelFromXp } from '../game/xp'
+import { shareScore } from '../game/share'
+import { COMMANDS } from '../game/commands'
+import { CHALLENGES } from '../content/tiers'
 import { sfx } from '../game/sound'
 import { effectiveQuality, type QualitySetting } from '../game/quality'
 
@@ -12,14 +20,51 @@ const QUALITY_CYCLE: Record<QualitySetting, QualitySetting> = {
 }
 const QUALITY_LABEL: Record<QualitySetting, string> = { auto: 'Auto', webgl: '3D', lite: 'Lite' }
 
-export function Hud({ onHome, onShop }: { onHome: () => void; onShop: () => void }) {
+/**
+ * The persistent top bar — on every screen, home included. Carries the main
+ * shortcuts (customize / maps / share / day streak) plus coins, XP, graphics,
+ * sound and the optional account control.
+ */
+export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () => void; onMap: () => void }) {
   const streak = useGame((s) => s.streak.count)
   const soundOn = useGame((s) => s.soundOn)
   const toggleSound = useGame((s) => s.toggleSound)
   const coins = useGame((s) => s.coins)
-  const avatar = useGame((s) => s.equipped.avatar)
   const quality = useGame((s) => s.quality)
   const setQuality = useGame((s) => s.setQuality)
+  const accountStatus = useAccount((s) => s.status)
+
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
+  const [sharePrompt, setSharePrompt] = useState(false)
+
+  const doShare = async (verified: string | null) => {
+    const s = useGame.getState()
+    const stats = {
+      level: levelFromXp(s.xp),
+      solved: Object.keys(s.completed).length,
+      total: CHALLENGES.length,
+      mastered: COMMANDS.filter((c) => (s.mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length,
+      coins: s.coins,
+    }
+    const res = await shareScore(stats, verified)
+    setShareMsg(
+      res === 'shared' ? 'Shared! 🎉' : res === 'copied' ? 'Score copied to clipboard!' : 'Could not share — try again',
+    )
+    window.setTimeout(() => setShareMsg(null), 2600)
+  }
+
+  const onShare = async () => {
+    sfx.ui()
+    const verified = verifiedShareUrl()
+    if (verified) {
+      await flushSync() // the link must show the numbers being shared
+      await doShare(verified)
+    } else if (accountStatus === 'anon') {
+      setSharePrompt(true) // offer a verified share first
+    } else {
+      await doShare(null)
+    }
+  }
 
   return (
     <header className="relative z-20 flex items-center justify-between gap-3 border-b border-border bg-panel/70 px-4 py-3 backdrop-blur">
@@ -30,13 +75,55 @@ export function Hud({ onHome, onShop }: { onHome: () => void; onShop: () => void
         }}
         className="flex items-center gap-2"
       >
-        <Avatar id={avatar} size={22} />
-        <span className="font-terminal text-xl font-bold tracking-tight text-term glow-term transition-opacity hover:opacity-80">
+        <PlayerAvatar size={22} />
+        <span className="hidden font-terminal text-xl font-bold tracking-tight text-term glow-term transition-opacity hover:opacity-80 sm:inline">
           :Vimersion
         </span>
       </button>
 
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              sfx.ui()
+              onShop()
+            }}
+            title="Customize your character"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-amber hover:text-amber"
+          >
+            <Emoji name="palette" size={14} /> <span className="hidden md:inline">customize</span>
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              sfx.ui()
+              onMap()
+            }}
+            title="World map"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
+          >
+            <Emoji name="target" size={14} /> <span className="hidden md:inline">maps</span>
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => void onShare()}
+            title="Share my score"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
+          >
+            <Emoji name="rocket" size={14} /> <span className="hidden md:inline">share my score</span>
+          </button>
+          <span
+            title={streak > 0 ? `${streak}-day streak — play daily to keep it alive` : 'Play daily to build a streak'}
+            className={`flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm ${
+              streak > 0 ? 'text-amber' : 'text-ink-dim opacity-70'
+            }`}
+          >
+            <Emoji name="fire" size={14} /> <span className="tabular-nums">{streak}</span>
+            <span className="hidden lg:inline">day streak</span>
+          </span>
+        </nav>
+
         <XPBar />
         <button
           onClick={() => {
@@ -48,11 +135,6 @@ export function Hud({ onHome, onShop }: { onHome: () => void; onShop: () => void
         >
           <span className="coin" /> <span className="tabular-nums">{coins}</span>
         </button>
-        {streak > 0 && (
-          <span title={`${streak}-day streak`} className="hidden items-center gap-1.5 text-sm text-amber sm:flex">
-            <Emoji name="fire" size={14} /> <span className="tabular-nums">{streak}</span>
-          </span>
-        )}
         <button
           // Never steal focus from the editor when toggling mid-level.
           onMouseDown={(e) => e.preventDefault()}
@@ -78,7 +160,26 @@ export function Hud({ onHome, onShop }: { onHome: () => void; onShop: () => void
         >
           <Emoji name={soundOn ? 'sound-on' : 'mute'} size={18} />
         </button>
+        <AccountButton />
       </div>
+
+      {shareMsg && (
+        <p className="absolute right-4 top-full mt-2 rounded-lg border border-border bg-panel px-3 py-1.5 text-xs text-term shadow-lg">
+          {shareMsg}
+        </p>
+      )}
+      <AnimatePresence>
+        {sharePrompt && (
+          <AccountModal
+            onClose={() => setSharePrompt(false)}
+            note="Sign in first and your share link shows a verified, server-stored score."
+            onShareAnyway={() => {
+              setSharePrompt(false)
+              void doShare(null)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </header>
   )
 }

@@ -6,3 +6,24 @@ services:
     ports:
       - "8971:80"
     restart: unless-stopped
+    depends_on:
+      - api
+
+  api:
+    build: ./server
+    image: vimersion-api:latest
+    container_name: vimersion-api
+    restart: unless-stopped
+    volumes:
+      - vimersion-data:/data
+    environment:
+      # No host port: nginx in the vimersion service proxies /api/ here.
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8971}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+
+volumes:
+  vimersion-data:

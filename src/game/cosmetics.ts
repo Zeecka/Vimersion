@@ -7,6 +7,9 @@ export interface Cosmetic {
   price: number // 0 = free default
   // avatar payload
   glyph?: string
+  /** Character signature colors (SVG background gradient / 3D hero tint).
+   *  Player customization (store.hero) overrides these when set. */
+  palette?: { primary: string; secondary: string }
   // theme payload
   accent?: string
   accentDim?: string
@@ -15,21 +18,23 @@ export interface Cosmetic {
   blurb?: string
 }
 
-/** Player characters. 'cursor' is the free default (a Vim block cursor). */
+/** Player characters. 'cursor' is the free default (a Vim block cursor).
+ *  Palettes mirror the DiceBear background gradients baked into each SVG
+ *  (scripts/gen-characters.mjs roster) — they double as the 3D hero tint. */
 export const AVATARS: Cosmetic[] = [
   { id: 'cursor', kind: 'avatar', name: 'Block Cursor', price: 0, blurb: 'The classic. You are the cursor.' },
-  { id: 'ninja', kind: 'avatar', name: 'Vim Ninja', price: 40, blurb: 'Silent, deadly, motion-efficient.' },
-  { id: 'robot', kind: 'avatar', name: 'Macro Bot', price: 50, blurb: 'Never mistypes a keystroke.' },
-  { id: 'cat', kind: 'avatar', name: 'Copy Cat', price: 50, blurb: 'yy, then curls up.' },
-  { id: 'sprite', kind: 'avatar', name: 'Sprite Runner', price: 70, blurb: 'Small, fast, always moving.' },
-  { id: 'alien', kind: 'avatar', name: 'Buffer Alien', price: 60, blurb: 'From the register dimension.' },
-  { id: 'ghost', kind: 'avatar', name: 'Esc Ghost', price: 60, blurb: 'Slips out of insert mode.' },
-  { id: 'fox', kind: 'avatar', name: 'Quick Fox', price: 70, blurb: 'Jumps over the lazy dot.' },
-  { id: 'pixelpal', kind: 'avatar', name: 'Pixel Pal', price: 80, blurb: '8-bit and proud of it.' },
-  { id: 'wizard', kind: 'avatar', name: 'Regex Wizard', price: 90, blurb: 'Substitutes with a wave.' },
-  { id: 'knight', kind: 'avatar', name: 'Neon Knight', price: 100, blurb: 'Guards the home row.' },
-  { id: 'glitch', kind: 'avatar', name: 'Glitch Byte', price: 110, blurb: '0x1337 and unstable.' },
-  { id: 'dragon', kind: 'avatar', name: 'Motion Dragon', price: 130, blurb: 'Hoards keystrokes.' },
+  { id: 'ninja', kind: 'avatar', name: 'Vim Ninja', price: 40, blurb: 'Silent, deadly, motion-efficient.', palette: { primary: '#7c3aed', secondary: '#8b5cf6' } },
+  { id: 'robot', kind: 'avatar', name: 'Macro Bot', price: 50, blurb: 'Never mistypes a keystroke.', palette: { primary: '#0ea5e9', secondary: '#2563eb' } },
+  { id: 'cat', kind: 'avatar', name: 'Copy Cat', price: 50, blurb: 'yy, then curls up.', palette: { primary: '#f59e0b', secondary: '#f97316' } },
+  { id: 'sprite', kind: 'avatar', name: 'Sprite Runner', price: 70, blurb: 'Small, fast, always moving.', palette: { primary: '#eab308', secondary: '#f59e0b' } },
+  { id: 'alien', kind: 'avatar', name: 'Buffer Alien', price: 60, blurb: 'From the register dimension.', palette: { primary: '#10b981', secondary: '#059669' } },
+  { id: 'ghost', kind: 'avatar', name: 'Esc Ghost', price: 60, blurb: 'Slips out of insert mode.', palette: { primary: '#22d3ee', secondary: '#3b82f6' } },
+  { id: 'fox', kind: 'avatar', name: 'Quick Fox', price: 70, blurb: 'Jumps over the lazy dot.', palette: { primary: '#fb923c', secondary: '#ea580c' } },
+  { id: 'pixelpal', kind: 'avatar', name: 'Pixel Pal', price: 80, blurb: '8-bit and proud of it.', palette: { primary: '#06b6d4', secondary: '#0891b2' } },
+  { id: 'wizard', kind: 'avatar', name: 'Regex Wizard', price: 90, blurb: 'Substitutes with a wave.', palette: { primary: '#a855f7', secondary: '#6366f1' } },
+  { id: 'knight', kind: 'avatar', name: 'Neon Knight', price: 100, blurb: 'Guards the home row.', palette: { primary: '#e11d48', secondary: '#f43f5e' } },
+  { id: 'glitch', kind: 'avatar', name: 'Glitch Byte', price: 110, blurb: '0x1337 and unstable.', palette: { primary: '#db2777', secondary: '#9333ea' } },
+  { id: 'dragon', kind: 'avatar', name: 'Motion Dragon', price: 130, blurb: 'Hoards keystrokes.', palette: { primary: '#16a34a', secondary: '#65a30d' } },
 ]
 
 /** Color themes — override the primary accent app-wide (UI + editor cursor). */

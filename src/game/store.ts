@@ -14,6 +14,15 @@ export interface Equipped {
   background: string
 }
 
+export type HeroEffect = 'sparkles' | 'fire' | 'bolt'
+
+/** Player-chosen hero personalization. null colors = the character's own palette. */
+export interface HeroCustom {
+  primary: string | null
+  secondary: string | null
+  effect: HeroEffect
+}
+
 export interface CompleteOutcome {
   stars: Stars
   xpGained: number
@@ -34,6 +43,7 @@ interface Persisted {
   arcadeBest: number
   owned: string[]
   equipped: Equipped
+  hero: HeroCustom
   /** Graphics quality: 'auto' resolves per-device via detectQuality(). */
   quality: QualitySetting
 }
@@ -43,6 +53,7 @@ interface GameStore extends Persisted {
   recordArcade: (score: number, commands: string[]) => { isNewBest: boolean; coinsGained: number }
   buyItem: (id: string) => boolean
   equipItem: (id: string) => void
+  setHero: (partial: Partial<HeroCustom>) => void
   bumpStreak: () => void
   toggleSound: () => void
   setQuality: (q: QualitySetting) => void
@@ -70,6 +81,7 @@ const initial: Persisted = {
   arcadeBest: 0,
   owned: [DEFAULTS.avatar, DEFAULTS.theme, DEFAULTS.background],
   equipped: { ...DEFAULTS },
+  hero: { primary: null, secondary: null, effect: 'sparkles' },
   quality: 'auto',
 }
 
@@ -145,6 +157,8 @@ export const useGame = create<GameStore>()(
         set({ equipped: { ...s.equipped, [item.kind]: id } })
       },
 
+      setHero: (partial) => set((s) => ({ hero: { ...s.hero, ...partial } })),
+
       bumpStreak: () => {
         const s = get()
         const today = todayKey()
@@ -163,7 +177,7 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: 'vimersion-save',
-      version: 5,
+      version: 6,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<Persisted>
         const merged = {
@@ -171,6 +185,8 @@ export const useGame = create<GameStore>()(
           ...p,
           owned: Array.from(new Set([...(p.owned ?? []), ...initial.owned])),
           equipped: { ...initial.equipped, ...(p.equipped ?? {}) },
+          // v6: hero personalization (colors + aura effect) — backfill defaults.
+          hero: { ...initial.hero, ...(p.hero ?? {}) },
         } as Persisted
         // v4: default became the side-scrolling "Pixel Kingdom". Move anyone still on
         // an older default onto it (their old background stays owned, so they can
@@ -197,6 +213,7 @@ export const useGame = create<GameStore>()(
         arcadeBest: s.arcadeBest,
         owned: s.owned,
         equipped: s.equipped,
+        hero: s.hero,
         quality: s.quality,
       }),
     },

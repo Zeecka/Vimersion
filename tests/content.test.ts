@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { CHALLENGES, WORLDS } from '../src/content/tiers'
 import { COMMANDS, COMMANDS_BY_ID } from '../src/game/commands'
 import { stagesOf } from '../src/game/types'
+import { createEditor, goalMet } from './driver'
 
 describe('content integrity', () => {
   it('challenge ids are unique', () => {
@@ -58,5 +59,19 @@ describe('content integrity', () => {
   it('command ids are unique', () => {
     const ids = COMMANDS.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  // Regression: W1 "Second Thoughts" once had targetText === startText and won
+  // by itself. No first-stage goal may be satisfied by the untouched buffer.
+  it('no challenge auto-wins on its pristine start state', () => {
+    for (const ch of CHALLENGES) {
+      const view = createEditor(ch)
+      try {
+        const first = stagesOf(ch)[0]
+        expect(goalMet(view, first.goal), `${ch.id}: stage 1 goal met before any keystroke`).toBe(false)
+      } finally {
+        view.destroy()
+      }
+    }
   })
 })

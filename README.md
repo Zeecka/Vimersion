@@ -74,6 +74,16 @@ npm run preview    # serve the build (port 4173)
 Deploy `dist/` anywhere static (Netlify / Vercel / GitHub Pages). No special headers —
 it's CodeMirror's vim keymap, not WASM, so no cross-origin isolation needed.
 
+### 👤 Optional accounts & verified scores
+
+The game is 100% playable anonymously. Running the tiny zero-dependency backend in
+[`server/`](server/README.md) adds **Google / GitHub sign-in**, cross-device progress
+sync (local + server merged on login, nothing lost), and **verified share links**
+(`?u=<id>`) whose numbers come from the database instead of editable text.
+`docker compose up` wires it automatically (`/api` behind nginx); a static deployment
+simply hides all account UI. Set `GOOGLE_CLIENT_ID/SECRET` and/or
+`GITHUB_CLIENT_ID/SECRET` plus `SESSION_SECRET` — see `server/.env.example`.
+
 > [!NOTE]
 > **Graphics tiers:** the `FX` pill in the HUD cycles **Auto / 3D / Lite**. Auto picks
 > Lite on reduced-motion, low-memory, or software-GL devices — Lite is the original
@@ -82,9 +92,10 @@ it's CodeMirror's vim keymap, not WASM, so no cross-origin isolation needed.
 ## 🧪 Testing — pars are proven, not guessed
 
 ```bash
-npm run test       # 44 vitest tests
+npm run test       # 51 vitest tests
 npm run qa         # 40 browser checks (needs `npm run preview` running)
 npm run typecheck
+cd server && npm test   # 52 backend tests (validator + live HTTP round-trips)
 ```
 
 | Layer | What it guarantees |

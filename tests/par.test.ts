@@ -14,6 +14,7 @@ const SOLUTIONS: Record<string, string> = {
   't1-navigate': 'jllll',
   't1-insert': 'i <Esc>',
   't1-append': 'a!<Esc>',
+  't1-undo': 'ddu',
   'boss-gatekeeper': 'dddd$ie<Esc>jxoonward!<Esc>',
   // Tier 3 — Faster
   't3-cut-word': 'dw',

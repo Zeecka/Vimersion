@@ -17,37 +17,52 @@ import type { HeroReaction } from './stageState'
  */
 const HERO_URL = 'models/hero.glb'
 
-function HeroModel({ reaction }: { reaction: HeroReaction }) {
+export interface HeroColors {
+  primary: string
+  secondary: string
+}
+
+function HeroModel({ reaction, colors }: { reaction: HeroReaction; colors?: HeroColors | null }) {
   const group = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(HERO_URL)
   const { actions, mixer } = useAnimations(animations, group)
 
   // Re-shade every mesh with the shared toon ramp so the hero matches the
-  // cel-shaded world (keeps the original palette via material.color).
+  // cel-shaded world. The model's 'Main' / 'Grey' materials take the equipped
+  // character's palette (or the player's custom colors) — this is what ties
+  // the 3D hero to the character bought in the Shop.
   useMemo(() => {
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh
       if (!mesh.isMesh) return
       const convert = (m: THREE.Material): THREE.Material => {
         const src = m as THREE.MeshStandardMaterial
-        return new THREE.MeshToonMaterial({
-          color: src.color?.clone() ?? new THREE.Color('#cfd6e4'),
+        let color = src.color?.clone() ?? new THREE.Color('#cfd6e4')
+        if (colors && src.name === 'Main') color = new THREE.Color(colors.primary)
+        if (colors && src.name === 'Grey') color = new THREE.Color(colors.secondary).lerp(new THREE.Color('#cfd6e4'), 0.45)
+        const out = new THREE.MeshToonMaterial({
+          color,
           map: src.map ?? null,
           transparent: src.transparent,
           opacity: src.opacity,
           gradientMap: getGradientMap(),
         })
+        out.name = src.name
+        return out
       }
       mesh.material = Array.isArray(mesh.material) ? mesh.material.map(convert) : convert(mesh.material)
     })
-  }, [scene])
+    // Key on the color VALUES — the colors object is rebuilt by every parent
+    // render and must not retrigger material creation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scene, colors?.primary, colors?.secondary])
 
   useHeroRig(actions as Record<string, THREE.AnimationAction | null>, mixer, reaction)
 
   return <primitive ref={group} object={scene} position={[0, -1.28, 0]} scale={0.5} />
 }
 
-export default function Hero3D({ reaction }: { reaction: HeroReaction }) {
+export default function Hero3D({ reaction, colors }: { reaction: HeroReaction; colors?: HeroColors | null }) {
   const wrapper = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(true)
   const [hidden, setHidden] = useState(document.hidden)
@@ -79,7 +94,7 @@ export default function Hero3D({ reaction }: { reaction: HeroReaction }) {
       >
         <hemisphereLight args={['#8a9bd4', '#141a2a', 1.1]} />
         <directionalLight position={[2, 3, 4]} intensity={1.4} />
-        <HeroModel reaction={reaction} />
+        <HeroModel reaction={reaction} colors={colors} />
       </Canvas>
     </div>
   )

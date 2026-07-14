@@ -1,9 +1,11 @@
 import { useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { useGame } from '../game/store'
-import { AVATARS, THEMES, BACKGROUNDS, type Cosmetic, type CosmeticKind } from '../game/cosmetics'
+import { useGame, type HeroEffect } from '../game/store'
+import { AVATARS, THEMES, BACKGROUNDS, COSMETIC_BY_ID, type Cosmetic, type CosmeticKind } from '../game/cosmetics'
+import { heroColorsFor } from '../game/avatarStyle'
 import { sfx } from '../game/sound'
-import { Avatar } from './Avatar'
+import { Avatar, PlayerAvatar } from './Avatar'
+import { Emoji } from './Emoji'
 
 const TABS: { key: CosmeticKind; label: string; items: Cosmetic[] }[] = [
   { key: 'avatar', label: 'Characters', items: AVATARS },
@@ -45,6 +47,96 @@ function bgPreviewStyle(bg?: string): CSSProperties {
           'radial-gradient(ellipse at 50% 0%, rgba(61,220,132,0.16), transparent 60%), repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.35) 3px, transparent 4px), #0a0e14',
       }
   }
+}
+
+const EFFECTS: HeroEffect[] = ['sparkles', 'fire', 'bolt']
+
+/**
+ * Hero personalization: main colors + aura effect for the EQUIPPED character.
+ * Applied everywhere the hero appears (homepage, top bar, "Your Hero" panel).
+ */
+function CustomizePanel() {
+  const equippedAvatar = useGame((s) => s.equipped.avatar)
+  const hero = useGame((s) => s.hero)
+  const setHero = useGame((s) => s.setHero)
+
+  const item = COSMETIC_BY_ID[equippedAvatar]
+  const effective = heroColorsFor(equippedAvatar, hero)
+  const customized = !!(hero.primary || hero.secondary)
+
+  const pickers: { key: 'primary' | 'secondary'; label: string }[] = [
+    { key: 'primary', label: 'Primary' },
+    { key: 'secondary', label: 'Secondary' },
+  ]
+
+  return (
+    <div className="panel mt-5 flex flex-wrap items-center gap-x-6 gap-y-4 p-4">
+      <div className="flex items-center gap-3">
+        <span
+          className="rounded-full p-[2px]"
+          style={{
+            background: effective
+              ? `linear-gradient(135deg, ${effective.primary}, ${effective.secondary})`
+              : 'linear-gradient(135deg, var(--color-term), var(--color-cyan))',
+          }}
+        >
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-bg">
+            <PlayerAvatar size={38} />
+          </span>
+        </span>
+        <div>
+          <p className="text-sm font-medium text-ink">{item?.name ?? 'Your hero'}</p>
+          <p className="text-[11px] text-ink-dim">Personalize your hero — colors &amp; aura apply everywhere.</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {pickers.map((p) => (
+          <label key={p.key} className="flex cursor-pointer flex-col items-center gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
+            <input
+              type="color"
+              value={hero[p.key] ?? effective?.[p.key] ?? '#7c6bff'}
+              onChange={(e) => setHero({ [p.key]: e.target.value })}
+              className="h-8 w-12 cursor-pointer rounded border border-border bg-panel-2"
+              aria-label={`${p.label} hero color`}
+            />
+            {p.label}
+          </label>
+        ))}
+        <button
+          disabled={!customized}
+          onClick={() => {
+            sfx.ui()
+            setHero({ primary: null, secondary: null })
+          }}
+          className={`self-center rounded border border-border px-3 py-1.5 text-xs transition-colors ${
+            customized ? 'text-ink-dim hover:border-term hover:text-term' : 'cursor-not-allowed opacity-40'
+          }`}
+        >
+          reset colors
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="mr-1 text-[10px] uppercase tracking-widest text-ink-dim">Aura</span>
+        {EFFECTS.map((fx) => (
+          <button
+            key={fx}
+            onClick={() => {
+              setHero({ effect: fx })
+              sfx.ui()
+            }}
+            title={`aura: ${fx}`}
+            className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+              hero.effect === fx ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
+            }`}
+          >
+            <Emoji name={fx} size={14} /> {fx}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function ItemPreview({ c }: { c: Cosmetic }) {
@@ -106,6 +198,8 @@ export function Shop() {
           </button>
         ))}
       </div>
+
+      {tab === 'avatar' && <CustomizePanel />}
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map((c) => {

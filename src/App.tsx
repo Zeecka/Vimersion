@@ -5,16 +5,18 @@ import { CommandBelt } from './ui/CommandBelt'
 import { WorldMap } from './ui/WorldMap'
 import { Shop } from './ui/Shop'
 import { Background } from './ui/Background'
-import { Avatar } from './ui/Avatar'
+import { PlayerAvatar } from './ui/Avatar'
 import { Emoji } from './ui/Emoji'
+import { Profile } from './ui/Profile'
 import { CampaignMode } from './modes/CampaignMode'
 import { ArcadeMode } from './modes/ArcadeMode'
 import { CHALLENGES } from './content/tiers'
 import { useGame, MASTERY_THRESHOLD } from './game/store'
 import { levelFromXp } from './game/xp'
-import { shareScore } from './game/share'
-import { setSoundMuted, sfx } from './game/sound'
 import { COMMANDS } from './game/commands'
+import { initAccount } from './game/account'
+import { DONATE_URL } from './game/links'
+import { setSoundMuted, sfx } from './game/sound'
 import { COSMETIC_BY_ID } from './game/cosmetics'
 import { effectiveQuality } from './game/quality'
 import { setStage, useStage } from './three/stageState'
@@ -29,13 +31,20 @@ type Screen =
   | { name: 'play'; id: string }
   | { name: 'arcade' }
   | { name: 'shop' }
+  | { name: 'profile'; publicId: string }
 
 function firstUnsolvedId(completed: Record<string, unknown>): string | null {
   return CHALLENGES.find((ch) => !completed[ch.id])?.id ?? null
 }
 
+/** A shared verified-score link (?u=<publicId>) opens on the score page. */
+function initialScreen(): Screen {
+  const u = new URLSearchParams(window.location.search).get('u')
+  return u ? { name: 'profile', publicId: u } : { name: 'home' }
+}
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>({ name: 'home' })
+  const [screen, setScreen] = useState<Screen>(initialScreen)
   const soundOn = useGame((s) => s.soundOn)
   const equipped = useGame((s) => s.equipped)
   const quality = useGame((s) => s.quality)
@@ -49,6 +58,12 @@ export default function App() {
 
   // A lost WebGL context downgrades to lite for the rest of the session.
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
+
+  // Probe the optional backend once: restores the session, merges progress,
+  // starts auto-sync. A static deployment simply reports 'offline'.
+  useEffect(() => {
+    void initAccount()
+  }, [])
 
   useEffect(() => {
     setSoundMuted(!soundOn)
@@ -77,6 +92,11 @@ export default function App() {
 
   const go = (s: Screen) => setScreen(s)
   const play = (id: string) => go({ name: 'play', id })
+  const leaveProfile = () => {
+    // Drop the ?u= param so a reload doesn't bounce back to the shared score.
+    window.history.replaceState(null, '', window.location.pathname)
+    go({ name: 'home' })
+  }
 
   const challenge = screen.name === 'play' ? CHALLENGES.find((c) => c.id === screen.id) : undefined
 
@@ -91,8 +111,8 @@ export default function App() {
         </Suspense>
       )}
       <div className="relative z-10 min-h-screen">
-        {screen.name !== 'home' && (
-          <Hud onHome={() => go({ name: 'home' })} onShop={() => go({ name: 'shop' })} />
+        {screen.name !== 'profile' && (
+          <Hud onHome={() => go({ name: 'home' })} onShop={() => go({ name: 'shop' })} onMap={() => go({ name: 'map' })} />
         )}
 
         <AnimatePresence mode="wait">
@@ -114,6 +134,7 @@ export default function App() {
             {screen.name === 'map' && <WorldMap onPlay={play} />}
             {screen.name === 'arcade' && <ArcadeMode />}
             {screen.name === 'shop' && <Shop />}
+            {screen.name === 'profile' && <Profile publicId={screen.publicId} onPlay={leaveProfile} />}
             {screen.name === 'play' &&
               (challenge ? (
                 <CampaignMode challenge={challenge} onPlay={play} onMap={() => go({ name: 'map' })} />
@@ -141,40 +162,18 @@ function Home({
   const xp = useGame((s) => s.xp)
   const coins = useGame((s) => s.coins)
   const completed = useGame((s) => s.completed)
-  const mastery = useGame((s) => s.mastery)
-  const streak = useGame((s) => s.streak.count)
   const arcadeBest = useGame((s) => s.arcadeBest)
-  const avatar = useGame((s) => s.equipped.avatar)
   const reset = useGame((s) => s.resetProgress)
 
-  const [shareMsg, setShareMsg] = useState<string | null>(null)
-
-  const level = levelFromXp(xp)
   const solved = Object.keys(completed).length
-  const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
-  const hasProgress = solved > 0 || xp > 0 || coins > 0
+  const hasProgress = solved > 0 || xp > 0 || coins > 0 || arcadeBest > 0
   const nextId = firstUnsolvedId(completed)
-
-  const onShare = async () => {
-    sfx.ui()
-    const res = await shareScore({ level, solved, total: CHALLENGES.length, mastered, coins })
-    setShareMsg(res === 'shared' ? 'Shared! 🎉' : res === 'copied' ? 'Score copied to clipboard!' : 'Could not share — try again')
-    window.setTimeout(() => setShareMsg(null), 2600)
-  }
 
   const startCampaign = () => {
     sfx.ui()
     if (nextId) onPlay(nextId)
     else onMap()
   }
-
-  const stats = [
-    { label: 'LEVEL', value: level, color: 'text-term', bar: 'var(--color-term)' },
-    { label: 'COINS', value: coins, color: 'text-amber', bar: 'var(--color-amber)' },
-    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: 'var(--color-cyan)' },
-    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: 'var(--color-magenta)' },
-    { label: 'ARCADE', value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
-  ]
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -185,11 +184,18 @@ function Home({
             onShop()
           }}
           title="Customize your character"
-          className="mx-auto mb-4 block rounded-full p-[2.5px] transition-transform hover:scale-105"
-          style={{ background: 'linear-gradient(135deg, var(--color-term), var(--color-cyan), var(--color-magenta))' }}
+          className="group mx-auto mb-4 block"
         >
-          <span className="grid h-20 w-20 place-items-center rounded-full bg-bg">
-            <Avatar id={avatar} size={46} />
+          <span
+            className="mx-auto block w-fit rounded-full p-[2.5px] transition-transform group-hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, var(--color-term), var(--color-cyan), var(--color-magenta))' }}
+          >
+            <span className="grid h-24 w-24 place-items-center rounded-full bg-bg">
+              <PlayerAvatar size={56} />
+            </span>
+          </span>
+          <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber underline decoration-dotted underline-offset-4 group-hover:opacity-80">
+            <Emoji name="palette" size={13} /> customize your character
           </span>
         </button>
         <motion.h1
@@ -204,18 +210,7 @@ function Home({
         </p>
       </div>
 
-      <div className="mt-10 grid grid-cols-3 gap-3 text-center sm:grid-cols-5">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="panel py-3"
-            style={{ borderTop: `2.5px solid ${s.bar}`, boxShadow: `0 -1px 16px -7px ${s.bar}` }}
-          >
-            <div className={`font-terminal text-2xl font-semibold tabular-nums ${s.color}`}>{s.value}</div>
-            <div className="text-[10px] uppercase tracking-widest text-ink-dim">{s.label}</div>
-          </div>
-        ))}
-      </div>
+      <HomeStats />
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button
@@ -237,35 +232,11 @@ function Home({
         </button>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
-        <button onClick={() => { sfx.ui(); onShop() }} className="inline-flex items-center gap-1.5 text-amber underline decoration-dotted underline-offset-4 hover:opacity-80">
-          <Emoji name="palette" size={16} /> customize your character
-        </button>
-        <button onClick={onShare} className="inline-flex items-center gap-1.5 text-cyan underline decoration-dotted underline-offset-4 hover:opacity-80">
-          <Emoji name="rocket" size={16} /> share my score
-        </button>
-        <button onClick={() => { sfx.ui(); onMap() }} className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-term">
-          world map
-        </button>
-      </div>
-      {shareMsg && (
-        <p className="mt-2 text-center text-xs text-term">{shareMsg}</p>
-      )}
-
       <div className="mt-10">
         <CommandBelt />
       </div>
 
-      <div className="mt-8 flex items-center justify-between text-xs text-ink-dim">
-        <span className="inline-flex items-center gap-1.5">
-          {streak > 0 ? (
-            <>
-              <Emoji name="fire" size={13} /> {streak}-day streak
-            </>
-          ) : (
-            'Play daily to build a streak'
-          )}
-        </span>
+      <div className="mt-8 flex items-center justify-center text-xs text-ink-dim">
         {hasProgress && (
           <button
             onClick={() => {
@@ -278,9 +249,53 @@ function Home({
         )}
       </div>
 
-      <p className="mt-8 text-center text-xs text-ink-dim">
-        Built with CodeMirror + real Vim keybindings · free &amp; open source
+      <p className="mt-8 flex items-center justify-center gap-3 text-center text-xs text-ink-dim">
+        free &amp; open source
+        <a
+          href={DONATE_URL}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => sfx.ui()}
+          className="inline-flex items-center gap-1.5 rounded-full border border-magenta/50 px-3 py-1 font-bold text-magenta transition-colors hover:bg-magenta/10"
+        >
+          ♥ donate
+        </a>
       </p>
+    </div>
+  )
+}
+
+function HomeStats() {
+  const xp = useGame((s) => s.xp)
+  const coins = useGame((s) => s.coins)
+  const completed = useGame((s) => s.completed)
+  const mastery = useGame((s) => s.mastery)
+  const arcadeBest = useGame((s) => s.arcadeBest)
+
+  const level = levelFromXp(xp)
+  const solved = Object.keys(completed).length
+  const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
+
+  const stats = [
+    { label: 'LEVEL', value: level, color: 'text-term', bar: 'var(--color-term)' },
+    { label: 'COINS', value: coins, color: 'text-amber', bar: 'var(--color-amber)' },
+    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: 'var(--color-cyan)' },
+    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: 'var(--color-magenta)' },
+    { label: 'ARCADE', value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
+  ]
+
+  return (
+    <div className="mt-10 grid grid-cols-3 gap-3 text-center sm:grid-cols-5">
+      {stats.map((s) => (
+        <div
+          key={s.label}
+          className="panel py-3"
+          style={{ borderTop: `2.5px solid ${s.bar}`, boxShadow: `0 -1px 16px -7px ${s.bar}` }}
+        >
+          <div className={`font-terminal text-2xl font-semibold tabular-nums ${s.color}`}>{s.value}</div>
+          <div className="text-[10px] uppercase tracking-widest text-ink-dim">{s.label}</div>
+        </div>
+      ))}
     </div>
   )
 }

@@ -83,7 +83,18 @@ export const tier1: Challenge[] = [
     taughtCommands: ['dd', 'u'],
     startText: UNDO_TEXT,
     startCursor: { line: 1, ch: 0 },
-    goal: { targetText: UNDO_TEXT, describe: 'File restored to its original state' },
+    // Two ratcheted stages: the file must first CHANGE, then be restored —
+    // a single targetText === startText goal would be met before any keypress.
+    goal: {
+      predicate: (v) => v.state.doc.toString() !== UNDO_TEXT,
+      describe: 'A line is deleted — the file no longer matches',
+    },
+    stages: [
+      {
+        brief: 'Now press u — restore the file exactly as it was.',
+        goal: { targetText: UNDO_TEXT, describe: 'File restored to its original state' },
+      },
+    ],
     par: 3,
     hint: 'Press dd to delete a line — then u to undo it. u is your best friend.',
   },

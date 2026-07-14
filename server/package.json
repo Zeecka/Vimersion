@@ -1,0 +1,9 @@
+{
+  "name": "vimersion-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-sqlite index.mjs",
+    "test": "node --experimental-sqlite --test"
+  }
+}

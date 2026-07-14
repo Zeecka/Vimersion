@@ -77,6 +77,10 @@ const VimEditor = forwardRef<VimEditorHandle, Props>(function VimEditor(
 
       const runGoalCheck = (view: EditorView) => {
         if (done.current) return
+        // Never judge the pristine buffer: the initial cursor placement fires a
+        // selectionSet update, and a goal that matches the start state (e.g. a
+        // delete-then-undo round trip) would otherwise win with zero input.
+        if (keystrokes.current === 0) return
         const vimCtx = makeVimCtx(view)
         let advanced = false
         while (stageIdx.current < stages.length && goalMet(view, stages[stageIdx.current].goal, vimCtx)) {

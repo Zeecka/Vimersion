@@ -9,7 +9,7 @@ import { create } from 'zustand'
  * prop-drilling through the transform-animating <motion.main>.
  */
 export type HeroReaction = 'idle' | 'typing' | 'win' | 'levelup' | 'fail'
-export type StageScreen = 'home' | 'map' | 'play' | 'arcade' | 'shop'
+export type StageScreen = 'home' | 'map' | 'play' | 'arcade' | 'shop' | 'profile'
 
 interface StageState {
   screen: StageScreen

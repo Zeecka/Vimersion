@@ -7,6 +7,14 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: './',
+  server: {
+    // Optional accounts/score backend (server/). When it isn't running the
+    // proxy 502s, /api/config fails, and the app degrades to offline mode.
+    proxy: { '/api': 'http://localhost:3001' },
+  },
+  preview: {
+    proxy: { '/api': 'http://localhost:3001' },
+  },
   // No manualChunks: Stage3D/Hero3D are the only entries into the 3D module
   // graph and both are dynamic imports, so rolldown's default chunking already
   // isolates three/r3f/drei into async chunks the lite tier never fetches.

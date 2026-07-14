@@ -1,14 +1,15 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useGame, MASTERY_THRESHOLD } from '../game/store'
+import { useGame, MASTERY_THRESHOLD, type HeroEffect } from '../game/store'
 import { levelProgress } from '../game/xp'
 import { COMMANDS } from '../game/commands'
 import { COSMETIC_BY_ID, AVATARS } from '../game/cosmetics'
+import { heroColorsFor } from '../game/avatarStyle'
 import { WORLDS, challengesForTier } from '../content/tiers'
 import { sfx } from '../game/sound'
 import { effectiveQuality } from '../game/quality'
 import { useStage, type HeroReaction } from '../three/stageState'
-import { Avatar } from './Avatar'
+import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
 
 /** How the hero should feel right now, driven by the play screen. */
@@ -18,8 +19,7 @@ export type Reaction = HeroReaction
 const Hero3D = lazy(() => import('../three/Hero3D'))
 
 const EMOTES = ['cool', 'muscle', 'party', 'starstruck', 'wave', 'fire'] as const
-const EFFECTS = ['sparkles', 'fire', 'bolt'] as const
-type Effect = (typeof EFFECTS)[number]
+const EFFECTS: HeroEffect[] = ['sparkles', 'fire', 'bolt']
 
 // Deterministic particle spread (no Math.random — keeps things stable across renders).
 const PARTICLES = [
@@ -32,7 +32,7 @@ const PARTICLES = [
 ]
 
 /** The classic SVG avatar with spinning aura — lite tier + 3D loading fallback. */
-function ClassicPortrait({ reaction, avatar, bobClass }: { reaction: Reaction; avatar: string; bobClass: string }) {
+function ClassicPortrait({ reaction, bobClass }: { reaction: Reaction; bobClass: string }) {
   return (
     <div className="absolute inset-x-0 bottom-2 grid place-items-center">
       <motion.div
@@ -49,7 +49,7 @@ function ClassicPortrait({ reaction, avatar, bobClass }: { reaction: Reaction; a
               }}
             />
             <span className="relative grid h-[88px] w-[88px] place-items-center rounded-full bg-bg ring-1 ring-border">
-              <Avatar id={avatar} size={62} />
+              <PlayerAvatar size={62} />
             </span>
           </div>
         </div>
@@ -68,7 +68,11 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const avatar = useGame((s) => s.equipped.avatar)
 
   const [emote, setEmote] = useState<string | null>(null)
-  const [effect, setEffect] = useState<Effect>('sparkles')
+  // The aura effect is a persisted customization (Shop → Customize / here).
+  const heroCustom = useGame((s) => s.hero)
+  const setHero = useGame((s) => s.setHero)
+  const effect = heroCustom.effect
+  const heroColors = heroColorsFor(avatar, heroCustom)
   const clearTimer = useRef<number | undefined>(undefined)
 
   const quality = useGame((s) => s.quality)
@@ -159,12 +163,12 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
             (and as the Suspense fallback while the 3D chunk/model loads). */}
         {tier === 'webgl' ? (
           <div className="absolute inset-x-0 bottom-0 top-2">
-            <Suspense fallback={<ClassicPortrait reaction={reaction} avatar={avatar} bobClass={bobClass} />}>
-              <Hero3D reaction={reaction} />
+            <Suspense fallback={<ClassicPortrait reaction={reaction} bobClass={bobClass} />}>
+              <Hero3D reaction={reaction} colors={heroColors} />
             </Suspense>
           </div>
         ) : (
-          <ClassicPortrait reaction={reaction} avatar={avatar} bobClass={bobClass} />
+          <ClassicPortrait reaction={reaction} bobClass={bobClass} />
         )}
       </div>
 
@@ -207,7 +211,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
             <button
               key={fx}
               onMouseDown={noFocusSteal}
-              onClick={() => { setEffect(fx); sfx.ui() }}
+              onClick={() => { setHero({ effect: fx }); sfx.ui() }}
               className={`flex flex-1 items-center justify-center gap-1 rounded-md border py-1.5 text-xs transition-colors ${
                 effect === fx ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
               }`}

@@ -5,6 +5,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStage, setStage } from './stageState'
 import { AmbientScene } from './AmbientScene'
+import { BACKDROPS } from './backdrops'
 import { SCENES_3D } from './sceneRegistry'
 
 /**
@@ -35,6 +36,7 @@ export default function Stage3D() {
   const accent = useStage((s) => s.accent)
   const screen = useStage((s) => s.screen)
   const sceneIndex = useStage((s) => s.sceneIndex)
+  const bgId = useStage((s) => s.bgId)
   const ready = useStage((s) => s.ready)
   const [frameloop, setFrameloop] = useState<'always' | 'never'>('always')
   // Perf ladder: 0 = full (dpr 1.75 + bloom), 1 = mid (1.25), 2 = low (1, no bloom).
@@ -42,6 +44,9 @@ export default function Stage3D() {
 
   // A level with a dedicated 3D scene replaces the ambient backdrop.
   const LevelScene3D = screen === 'play' && sceneIndex !== null ? SCENES_3D[sceneIndex] : undefined
+  // The equipped background cosmetic picks the WebGL backdrop shader;
+  // 'platform' (Pixel Kingdom) keeps the floating-islands AmbientScene.
+  const Backdrop = BACKDROPS[bgId]
 
   // Stop the render loop entirely while the tab is hidden.
   useEffect(() => {
@@ -90,7 +95,13 @@ export default function Stage3D() {
         <hemisphereLight args={['#8a9bd4', '#141a2a', 0.9]} />
         <directionalLight position={[4, 6, 3]} intensity={1.15} />
         <Suspense fallback={null}>
-          {LevelScene3D ? <LevelScene3D accent={accent} /> : <AmbientScene accent={accent} screen={screen} />}
+          {LevelScene3D ? (
+            <LevelScene3D accent={accent} />
+          ) : Backdrop ? (
+            <Backdrop accent={accent} />
+          ) : (
+            <AmbientScene accent={accent} screen={screen} />
+          )}
         </Suspense>
         {perfStep < 2 && (
           <EffectComposer multisampling={0}>

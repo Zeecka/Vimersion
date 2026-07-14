@@ -29,7 +29,7 @@ async function openBoss(browser) {
   await page.goto(BASE)
   await page.evaluate((seed) => localStorage.setItem('vimersion-save', JSON.stringify(seed)), SEED)
   await page.reload()
-  await page.click('text=world map')
+  await page.click('header button[title="World map"]')
   await page.waitForTimeout(400)
   await page.click('text=The Gatekeeper')
   await page.waitForTimeout(800)
