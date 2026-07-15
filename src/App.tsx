@@ -24,6 +24,8 @@ import { setStage, useStage } from './three/stageState'
 // The entire 3D graph (three, r3f, drei, models) lives behind this one lazy
 // boundary — the sync bundle stays 3D-free and the editor stays instant.
 const Stage3D = lazy(() => import('./three/Stage3D'))
+// The first-run primer loads only when actually shown (new players / on request).
+const HowToPlay = lazy(() => import('./ui/HowToPlay'))
 
 type Screen =
   | { name: 'home' }
@@ -165,10 +167,26 @@ function Home({
   const arcadeBest = useGame((s) => s.arcadeBest)
   const reset = useGame((s) => s.resetProgress)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const solved = Object.keys(completed).length
   const hasProgress = solved > 0 || xp > 0 || coins > 0 || arcadeBest > 0
   const nextId = firstUnsolvedId(completed)
+
+  // Show the how-to-play primer once, automatically, to a brand-new player.
+  // Tracked in its own localStorage key so it never touches the save schema.
+  useEffect(() => {
+    try {
+      if (!hasProgress && !localStorage.getItem('vimersion-seen-intro')) {
+        setShowHelp(true)
+        localStorage.setItem('vimersion-seen-intro', '1')
+      }
+    } catch {
+      /* private mode / storage disabled — just skip the auto-intro */
+    }
+    // Intentionally run once on mount; hasProgress is stable at first paint.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const startCampaign = () => {
     sfx.ui()
@@ -230,6 +248,18 @@ function Home({
           <span className="inline-flex items-center justify-center gap-2">
             <Emoji name="target" size={22} /> Motion Rush
           </span>
+        </button>
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={() => {
+            sfx.ui()
+            setShowHelp(true)
+          }}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
+        >
+          <Emoji name="bulb" size={13} /> New to Vim? How to play
         </button>
       </div>
 
@@ -319,6 +349,12 @@ function Home({
           ♥ donate
         </a>
       </p>
+
+      {showHelp && (
+        <Suspense fallback={null}>
+          <HowToPlay onClose={() => setShowHelp(false)} />
+        </Suspense>
+      )}
     </div>
   )
 }
