@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { cheatsheetSections, downloadCheatsheet, printCheatsheet } from '../game/cheatsheet'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
@@ -37,7 +38,10 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
     window.setTimeout(() => setFlash(null), 2400)
   }
 
-  return (
+  // Portal to <body>: the top bar (backdrop-blur) is a containing block for
+  // fixed-position descendants, which would otherwise squash this overlay into
+  // the header bar. Rendering at the document root escapes that trap.
+  return createPortal(
     <motion.div
       className="fixed inset-0 z-50 grid place-items-center bg-bg/75 p-4 backdrop-blur-sm"
       initial={{ opacity: 0 }}
@@ -166,6 +170,7 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
           </p>
         )}
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }

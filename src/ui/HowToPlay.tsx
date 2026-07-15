@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { CheatsheetButton } from './Cheatsheet'
 import { Emoji } from './Emoji'
@@ -64,7 +65,9 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
     },
   ]
 
-  return (
+  // Portal to <body> so an ancestor containing block (the animating main's
+  // transform, the top bar's backdrop-blur) can't squash this fixed overlay.
+  return createPortal(
     <motion.div
       className="fixed inset-0 z-50 grid place-items-center bg-bg/75 p-4 backdrop-blur-sm"
       initial={{ opacity: 0 }}
@@ -130,7 +133,8 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }
 
