@@ -32,12 +32,17 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 |---|---|
 | 🎯 **VimGolf scoring** | every keystroke counts — beat *par* for ⭐⭐⭐ |
 | 👾 **Boss fights** | multi-stage battles with a **keystroke-budget HP bar**; undo can't rewind a cleared stage, and losing costs nothing but a retry |
-| 🤖 **3D hero** | a cel-shaded robot that idles, *punches while you type*, and celebrates your wins |
+| 🤖 **Your Hero** | a cel-shaded robot you *restyle* — body/visor/accessory colors + a custom aura — that idles, *punches while you type*, and celebrates your wins |
 | 🌋 **Living worlds** | WebGL scenes behind smoked-glass panels (react-three-fiber, selective bloom) — with a full **SVG lite mode** for low-power devices |
 | 🧠 **Vim-state goals** | challenges can verify *registers, marks, modes and macros* — not just buffer text |
 | ⌨️ **Command Belt** | your growing, category-grouped collection of mastered commands |
 | 🕹️ **Motion Rush** | whack-a-mole arcade drilling `hjkl` speed with combos |
 | 💾 **Zero backend** | progress in localStorage with versioned migrations; fonts & models self-hosted — **fully offline** |
+
+<div align="center">
+<img src="docs/media/result.png" width="62%" alt="Level results — three stars, keystrokes vs par, XP and coins earned">
+<br><em>Beat <b>par</b> for ⭐⭐⭐ — every keystroke counts.</em>
+</div>
 
 ## 🗺️ The worlds
 
@@ -53,12 +58,40 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 **43 levels** shipped so far (40 challenges + 3 bosses) — every par machine-proven solvable.
 
 <div align="center">
-<table><tr>
-<td><img src="docs/media/level.png" alt="A level — real Vim editor over a 3D volcano scene"></td>
-<td><img src="docs/media/worldmap.png" alt="World map with stars and unlocks"></td>
-</tr><tr>
-<td align="center"><em>The real editor, a volcano, and your robot</em></td>
+<table>
+<tr>
+<td width="50%"><img src="docs/media/level.png" alt="A challenge — the real Vim editor and your Hero over a 3D scene"></td>
+<td width="50%"><img src="docs/media/boss.png" alt="A boss fight with the keystroke-budget integrity bar"></td>
+</tr>
+<tr>
+<td align="center"><em>A real editor, your Hero, and a living 3D world</em></td>
+<td align="center"><em>Boss fights drain a <b>keystroke-budget</b> HP bar</em></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/worldmap.png" alt="World map with stars and world unlocks"></td>
+<td width="50%"><img src="docs/media/arcade.png" alt="Motion Rush — the hjkl speed-drill arcade"></td>
+</tr>
+<tr>
 <td align="center"><em>Star-rated progression across worlds</em></td>
+<td align="center"><em><b>Motion Rush</b> — drill <code>hjkl</code> speed for combos</em></td>
+</tr>
+</table>
+</div>
+
+## 🎨 Make it yours
+
+One **Hero**, styled your way — pick body / trim / visor colors, a visor style, an
+accessory and a custom aura, previewed **live in 3D**. It then shows up everywhere you
+play. Earn coins by clearing levels and spend them in the **Shop** on animated scene
+backgrounds and terminal color themes.
+
+<div align="center">
+<table><tr>
+<td width="50%"><img src="docs/media/customize.png" alt="The Hero studio — live 3D preview with colour, visor, accessory and aura controls"></td>
+<td width="50%"><img src="docs/media/shop.png" alt="The Shop — buy and equip animated scene backgrounds with coins"></td>
+</tr><tr>
+<td align="center"><em>The Hero studio — a live 3D preview you can restyle</em></td>
+<td align="center"><em>Spend coins on scenes &amp; themes</em></td>
 </tr></table>
 </div>
 
@@ -84,10 +117,16 @@ sync (local + server merged on login, nothing lost), and **verified share links*
 simply hides all account UI. Set `GOOGLE_CLIENT_ID/SECRET` and/or
 `GITHUB_CLIENT_ID/SECRET` plus `SESSION_SECRET` — see `server/.env.example`.
 
+<div align="center">
+<img src="docs/media/signin.png" width="70%" alt="Optional sign-in dialog — Continue with Google or GitHub, or keep playing anonymously">
+<br><em>Accounts are optional — the game is 100% playable signed out.</em>
+</div>
+
 > [!NOTE]
-> **Graphics tiers:** the `FX` pill in the HUD cycles **Auto / 3D / Lite**. Auto picks
-> Lite on reduced-motion, low-memory, or software-GL devices — Lite is the original
-> procedural-SVG art and is fully featured, not a downgrade of gameplay.
+> **Graphics tiers:** quality is **auto-detected per device** — there's no toggle to
+> fuss with. Reduced-motion, low-memory, or software-GL devices get **Lite**: the
+> original procedural-SVG art, fully featured and not a downgrade of gameplay. If the
+> WebGL context is ever lost, the session falls back to Lite automatically.
 
 ## 🧪 Testing — pars are proven, not guessed
 
@@ -117,7 +156,7 @@ flowchart LR
         ED[VimEditor<br>CM6 + real vim]:::core
         CT[content/tier1-4<br>challenges as data]:::data
         VF[verify.ts<br>vim-state checkers]:::data
-        ST[(zustand store<br>saves v5)]:::data
+        ST[(zustand store<br>saves v10)]:::data
         CT --> ED
         VF --> ED
         APP --> ED
@@ -178,7 +217,7 @@ Step-by-step guide (goals, par math, bosses, the traps): **[docs/AUTHORING.md](d
 | | |
 |---|---|
 | 🤖 3D hero | [**RobotExpressive**](https://github.com/mrdoob/three.js) by Tomás Laulhé (CC0, mod. Don McCurdy) — meshopt-optimized, re-shaded with the game's toon ramp |
-| 🧑‍🎤 2D avatars | [DiceBear](https://www.dicebear.com/) (generated at build time, bundled as static SVGs) |
+| 🎨 2D Hero mark | original procedural SVG — the lite-tier twin of the 3D Hero, painted by the same colors, visor & accessory |
 | 😀 UI glyphs | [Twemoji](https://github.com/jdecked/twemoji) (CC-BY 4.0), bundled locally |
 | 🔤 Fonts | [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) + [JetBrains Mono](https://www.jetbrains.com/lp/mono/) (OFL), self-hosted via Fontsource |
 | 🌋 Scenes | original procedural CSS/SVG (lite) and three.js (3D) — no asset downloads |
