@@ -69,10 +69,31 @@ export const COMMANDS: VimCommand[] = [
   { id: 'sub-confirm', keys: ':s//gc', label: 'confirm each match', tier: 4, category: 'ex' },
   { id: 'marks', keys: 'm{r}', label: 'set mark / jump back', tier: 4, category: 'power' },
 
-  // Tier 5 — Superpowers (re-tiered from 4)
+  // Tier 5 — Superpowers (macro re-tiered from 4)
   { id: 'macro', keys: 'q{r}', label: 'record macro', tier: 5, category: 'power' },
-  { id: 'dot', keys: '.', label: 'repeat', tier: 5, category: 'power' },
-  { id: 'registers', keys: '"{r}', label: 'registers', tier: 5, category: 'power' },
+  { id: 'macro-replay', keys: '@{r} / @@', label: 'play macro', tier: 5, category: 'power' },
+  { id: 'dot', keys: '.', label: 'repeat last change', tier: 5, category: 'power' },
+  { id: 'gn', keys: 'cgn', label: 'change next match', tier: 5, category: 'operator' },
+  { id: 'incr', keys: 'Ctrl-a / Ctrl-x', label: 'increment / decrement', tier: 5, category: 'edit' },
+  { id: 'registers', keys: '"{a-z}', label: 'named registers', tier: 5, category: 'power' },
+  { id: 'reg-zero', keys: '"0p', label: 'yank register', tier: 5, category: 'power' },
+  { id: 'reg-append', keys: '"{A-Z}', label: 'append to register', tier: 5, category: 'power' },
+  { id: 'blackhole', keys: '"_d', label: 'blackhole register', tier: 5, category: 'power' },
+
+  // Tier 6 — Legend
+  { id: 'J', keys: 'J', label: 'join lines', tier: 6, category: 'edit' },
+  { id: 'gJ', keys: 'gJ', label: 'join, no space', tier: 6, category: 'edit' },
+  { id: 'case-upper', keys: 'gU{m}', label: 'uppercase', tier: 6, category: 'operator' },
+  { id: 'case-toggle', keys: 'g~{m}', label: 'toggle case', tier: 6, category: 'operator' },
+  { id: 'replace', keys: 'r{c}', label: 'replace char', tier: 6, category: 'edit' },
+  { id: 'ip', keys: 'ip / ap', label: 'paragraph object', tier: 6, category: 'text-object' },
+  { id: 'block-i', keys: 'Ctrl-v I', label: 'block insert', tier: 6, category: 'edit' },
+  { id: 'block-a', keys: 'Ctrl-v $A', label: 'block append', tier: 6, category: 'edit' },
+  { id: 'gq', keys: 'gqip', label: 'reflow paragraph', tier: 6, category: 'operator' },
+  { id: 'sort', keys: ':sort', label: 'sort lines', tier: 6, category: 'ex' },
+  { id: 'global', keys: ':g//', label: 'global command', tier: 6, category: 'ex' },
+  { id: 'vglobal', keys: ':v//', label: 'inverse global', tier: 6, category: 'ex' },
+  { id: 'normal', keys: ':normal', label: 'run normal cmds', tier: 6, category: 'ex' },
 ]
 
 export const COMMANDS_BY_ID: Record<string, VimCommand> = Object.fromEntries(

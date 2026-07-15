@@ -3,7 +3,9 @@ import { tier1 } from './tier1'
 import { tier2 } from './tier2'
 import { tier3 } from './tier3'
 import { tier4 } from './tier4'
-import { gatekeeper, gauntlet, grepgut } from './bosses'
+import { tier5 } from './tier5'
+import { tier6 } from './tier6'
+import { archivist, automaton, gatekeeper, gauntlet, grepgut } from './bosses'
 
 /**
  * Authoring notes (keystroke pars):
@@ -23,8 +25,21 @@ export const WORLDS: WorldMeta[] = [
   { tier: 6, name: 'Legend', subtitle: 'Global commands & power idioms', accent: '#ffd76b' },
 ]
 
-/** All authored challenges, in play order. Tiers 5–6 are coming next. */
-export const CHALLENGES: Challenge[] = [...tier1, gatekeeper, ...tier2, ...tier3, gauntlet, ...tier4, grepgut]
+/** All authored challenges, in play order — six complete worlds, each capped
+ *  by its boss (bosses flex, not gate; see tierUnlocked). */
+export const CHALLENGES: Challenge[] = [
+  ...tier1,
+  gatekeeper,
+  ...tier2,
+  ...tier3,
+  gauntlet,
+  ...tier4,
+  grepgut,
+  ...tier5,
+  automaton,
+  ...tier6,
+  archivist,
+]
 
 export function challengesForTier(tier: Tier): Challenge[] {
   return CHALLENGES.filter((c) => c.tier === tier)

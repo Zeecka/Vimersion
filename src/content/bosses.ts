@@ -1,4 +1,5 @@
 import type { Challenge } from '../game/types'
+import { allOf, bufferEquals, recordedMacro } from '../game/verify'
 
 /**
  * Zone bosses — multi-stage fights in a single buffer with a keystroke budget
@@ -176,4 +177,80 @@ export const grepgut: Challenge = {
   hint: '/pattern then n hops matches; dd per hit. :%s/old/new/g fixes the whole file. d% deletes from a bracket to its partner.',
 }
 
-export const BOSSES: Challenge[] = [gatekeeper, gauntlet, grepgut]
+/** World 5 boss — the whole Superpowers kit in one machine: record a macro to
+ *  arm the counters, register-juggle to salvage a template past a delete, then
+ *  dot-stamp the finish.
+ *  Optimal: qa<C-a>jq @a @a (9) · yy j "_dd p (8) · gg A;<Esc> j. j. (9) = 26. */
+export const automaton: Challenge = {
+  id: 'boss-automaton',
+  tier: 5,
+  kind: 'boss',
+  title: 'The Automaton',
+  brief: 'BOSS: The Automaton runs on repetition. Stage 1 — record a macro (qa…q) that bumps a count with Ctrl-a, then @a it down the column.',
+  taughtCommands: ['macro', 'macro-replay', 'incr', 'blackhole', 'registers', 'dot'],
+  startText: ['count = 0', 'count = 0', 'count = 0', 'KEEP = base', 'trash = tmp', '# end'].join('\n'),
+  goal: {
+    predicate: allOf(
+      bufferEquals(['count = 1', 'count = 1', 'count = 1', 'KEEP = base', 'trash = tmp', '# end'].join('\n')),
+      recordedMacro('a'),
+    ),
+    describe: 'Stage 1: every count reads 1 — via a recorded macro',
+  },
+  stages: [
+    {
+      brief: 'Stage 2 — yank KEEP, then black-hole ("_dd) the trash line so your yank survives, and paste KEEP under # end.',
+      goal: {
+        targetText: ['count = 1', 'count = 1', 'count = 1', 'KEEP = base', '# end', 'KEEP = base'].join('\n'),
+        describe: 'Stage 2: trash gone, KEEP duplicated under # end',
+      },
+    },
+    {
+      brief: 'Stage 3 — finish the counters: append ; to the first, then dot your way down (j. j.).',
+      goal: {
+        targetText: ['count = 1;', 'count = 1;', 'count = 1;', 'KEEP = base', '# end', 'KEEP = base'].join('\n'),
+        describe: 'Stage 3: all three counters end with a semicolon',
+      },
+    },
+  ],
+  par: 26,
+  keystrokeBudget: 58,
+  hint: 'qa<C-a>jq records a one-line bump; @a replays it. "_dd deletes without touching your yank. A; then j. j. stamps the semicolons.',
+}
+
+/** World 6 boss — bulk-editing legend: purge with :g, reorder with :sort, then
+ *  comment the survivors with a visual-block insert.
+ *  Optimal: :g/DEBUG/d<CR> (11) · :sort<CR> (6) · gg <C-v>jjj I# <Esc> (10) = 27. */
+export const archivist: Challenge = {
+  id: 'boss-archivist',
+  tier: 6,
+  kind: 'boss',
+  title: 'The Archivist',
+  brief: 'BOSS: The Archivist demands order. Stage 1 — purge every DEBUG line in one sweep with :g/DEBUG/d.',
+  taughtCommands: ['global', 'sort', 'block-i', 'ctrl-v'],
+  startText: ['zeta = 3', 'alpha = 1', 'DEBUG trace', 'beta = 2', 'DEBUG trace', 'gamma = 4'].join('\n'),
+  goal: {
+    targetText: ['zeta = 3', 'alpha = 1', 'beta = 2', 'gamma = 4'].join('\n'),
+    describe: 'Stage 1: both DEBUG lines are gone',
+  },
+  stages: [
+    {
+      brief: 'Stage 2 — put the survivors in order with :sort.',
+      goal: {
+        targetText: ['alpha = 1', 'beta = 2', 'gamma = 4', 'zeta = 3'].join('\n'),
+        describe: 'Stage 2: the four settings are sorted',
+      },
+    },
+    {
+      brief: 'Stage 3 — comment them all: gg, then a visual-block down the column and I# to prefix every line.',
+      goal: {
+        targetText: ['# alpha = 1', '# beta = 2', '# gamma = 4', '# zeta = 3'].join('\n'),
+        describe: 'Stage 3: every line is commented with "# "',
+      },
+    },
+  ],
+  par: 27,
+  keystrokeBudget: 60,
+  hint: ':g/DEBUG/d deletes matching lines; :sort orders them. Then gg and Ctrl-v jjj selects the column — I# <Esc> comments every row.',
+}
+
+export const BOSSES: Challenge[] = [gatekeeper, gauntlet, grepgut, automaton, archivist]
