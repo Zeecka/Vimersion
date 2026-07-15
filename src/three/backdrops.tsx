@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { ComponentType } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { ScreenQuad } from '@react-three/drei'
@@ -58,6 +58,7 @@ varying vec2 vUv;
 uniform float uTime;
 uniform float uAspect;
 uniform vec3 uAccent;
+uniform vec2 uPointer; // -1..1 pointer offset, CPU-lerped (for parallax)
 
 float hash11(float p) {
   p = fract(p * 0.1031);
@@ -156,29 +157,35 @@ void main() {
   vec2 uv = vUv;
   vec2 p = (uv - 0.5) * vec2(uAspect, 1.0);
   float t = uTime;
+  // Parallax: nearer ribbons shift more than the far star field. Sign flipped so
+  // the light leans toward the pointer, like looking around the aurora.
+  vec2 par = -uPointer;
   vec3 col = mix(${lin('#0a0e14')}, ${lin('#060a16')}, uv.y);
 
-  col += vec3(0.80, 0.85, 0.95) * starsAt(p * 24.0, 0.04, t) * 0.35;
+  col += vec3(0.80, 0.85, 0.95) * starsAt((p + par * 0.06) * 24.0, 0.04, t) * 0.35;
 
   // shared curtain texture: vertical rays drifting sideways
   float rays = 0.55 + 0.45 * vnoise(vec2(uv.x * 26.0 - t * 0.12, uv.y * 3.0));
 
-  { // green ribbon
-    float w = fbm4(vec2(uv.x * 1.4 + t * 0.020, 3.1 + t * 0.012));
+  { // green ribbon — farthest, moves least
+    vec2 o = par * vec2(0.045, 0.028);
+    float w = fbm4(vec2((uv.x + o.x) * 1.4 + t * 0.020, 3.1 + t * 0.012));
     float env = 0.25 + 0.75 * vnoise(vec2(uv.x * 1.8 + 5.2, t * 0.025));
-    float d = (uv.y - (0.72 + (w - 0.5) * 0.85)) * 7.0;
+    float d = ((uv.y + o.y) - (0.72 + (w - 0.5) * 0.85)) * 7.0;
     col += ${lin('#3ddc84')} * exp(-d * d) * rays * env * 0.30;
   }
-  { // cyan ribbon
-    float w = fbm4(vec2(uv.x * 1.7 - t * 0.016 + 11.7, 8.4 + t * 0.010));
+  { // cyan ribbon — mid depth
+    vec2 o = par * vec2(0.075, 0.045);
+    float w = fbm4(vec2((uv.x + o.x) * 1.7 - t * 0.016 + 11.7, 8.4 + t * 0.010));
     float env = 0.25 + 0.75 * vnoise(vec2(uv.x * 2.2 + 19.4, 4.0 - t * 0.020));
-    float d = (uv.y - (0.58 + (w - 0.5) * 0.75)) * 8.0;
+    float d = ((uv.y + o.y) - (0.58 + (w - 0.5) * 0.75)) * 8.0;
     col += ${lin('#59c2ff')} * exp(-d * d) * rays * env * 0.24;
   }
-  { // violet ribbon
-    float w = fbm4(vec2(uv.x * 1.2 + t * 0.013 + 23.3, 15.9 - t * 0.008));
+  { // violet ribbon — nearest, moves most
+    vec2 o = par * vec2(0.11, 0.068);
+    float w = fbm4(vec2((uv.x + o.x) * 1.2 + t * 0.013 + 23.3, 15.9 - t * 0.008));
     float env = 0.25 + 0.75 * vnoise(vec2(uv.x * 1.5 + 33.7, 9.0 + t * 0.022));
-    float d = (uv.y - (0.44 + (w - 0.5) * 0.70)) * 6.5;
+    float d = ((uv.y + o.y) - (0.44 + (w - 0.5) * 0.70)) * 6.5;
     col += ${lin('#b78cff')} * exp(-d * d) * rays * env * 0.18;
   }
 
@@ -447,6 +454,7 @@ function makeBackdrop(id: string, fragmentShader: string): ComponentType<Backdro
             uTime: { value: 0 },
             uAspect: { value: 16 / 9 }, // sane pre-resize default, kept current in useFrame
             uAccent: { value: new THREE.Color(accent) }, // initial tint; accent deliberately not a dep
+            uPointer: { value: new THREE.Vector2(0, 0) }, // parallax, lerped in useFrame
           },
           depthWrite: false,
           depthTest: false,
@@ -461,10 +469,33 @@ function makeBackdrop(id: string, fragmentShader: string): ComponentType<Backdro
       ;(material.uniforms.uAccent.value as THREE.Color).set(accent)
     }, [accent, material])
 
+    // Pointer parallax: track the raw pointer (−1..1); useFrame eases toward it.
+    // Reduced-motion users get a gentle autonomous drift instead of following.
+    const pointerTarget = useRef({ x: 0, y: 0 })
+    const reduce = useRef(false)
+    useEffect(() => {
+      reduce.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduce.current) return
+      const onMove = (e: PointerEvent) => {
+        pointerTarget.current.x = (e.clientX / window.innerWidth - 0.5) * 2
+        pointerTarget.current.y = (e.clientY / window.innerHeight - 0.5) * 2
+      }
+      window.addEventListener('pointermove', onMove, { passive: true })
+      return () => window.removeEventListener('pointermove', onMove)
+    }, [])
+
     useFrame((state, delta) => {
       // Clamped delta (AmbientScene convention): background-tab resume can't jump.
       material.uniforms.uTime.value += Math.min(delta, 0.05)
       material.uniforms.uAspect.value = state.size.width / Math.max(state.size.height, 1)
+      if (reduce.current) {
+        const t = material.uniforms.uTime.value
+        pointerTarget.current.x = Math.sin(t * 0.5) * 0.5
+        pointerTarget.current.y = Math.cos(t * 0.4) * 0.4
+      }
+      const pt = material.uniforms.uPointer.value as THREE.Vector2
+      pt.x += (pointerTarget.current.x - pt.x) * 0.05
+      pt.y += (pointerTarget.current.y - pt.y) * 0.05
     })
 
     // Drawn first (renderOrder −1000), never touches depth → scene geometry

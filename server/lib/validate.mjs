@@ -87,8 +87,9 @@ function checkOwned(v) {
 
 function checkEquipped(v) {
   if (!isPlainObject(v)) fail('equipped: expected an object')
+  // v10 dropped `avatar` (the single Hero replaced the avatar roster); any legacy
+  // `avatar` key is simply ignored.
   return {
-    avatar: checkString(v.avatar, 64, 'equipped.avatar'),
     theme: checkString(v.theme, 64, 'equipped.theme'),
     background: checkString(v.background, 64, 'equipped.background'),
   }
@@ -100,12 +101,30 @@ function checkHeroColor(v, label) {
   return v
 }
 
+function checkAura(v) {
+  if (v === null || v === undefined) return { color: null, style: 'sparkles', intensity: 0.6 }
+  if (!isPlainObject(v)) fail('hero.aura: expected an object')
+  const intensity = v.intensity === undefined ? 0.6 : v.intensity
+  if (typeof intensity !== 'number' || Number.isNaN(intensity) || intensity < 0 || intensity > 1) {
+    fail('hero.aura.intensity: expected a number in 0..1')
+  }
+  return {
+    color: checkHeroColor(v.color, 'hero.aura.color'),
+    style: v.style === undefined ? 'sparkles' : checkString(v.style, 24, 'hero.aura.style'),
+    intensity,
+  }
+}
+
+/** Hero customization (v10): three color zones + accessory/visor + aura. */
 function checkHero(v) {
   if (!isPlainObject(v)) fail('hero: expected an object')
   return {
-    primary: checkHeroColor(v.primary, 'hero.primary'),
-    secondary: checkHeroColor(v.secondary, 'hero.secondary'),
-    effect: v.effect === undefined ? '' : checkString(v.effect, 24, 'hero.effect'),
+    body: checkHeroColor(v.body, 'hero.body'),
+    trim: checkHeroColor(v.trim, 'hero.trim'),
+    visor: checkHeroColor(v.visor, 'hero.visor'),
+    accessory: v.accessory === undefined ? 'none' : checkString(v.accessory, 24, 'hero.accessory'),
+    visorStyle: v.visorStyle === undefined ? 'bar' : checkString(v.visorStyle, 24, 'hero.visorStyle'),
+    aura: checkAura(v.aura),
   }
 }
 
@@ -130,7 +149,7 @@ export function validateSnapshot(input) {
     owned: input.owned === undefined ? [] : checkOwned(input.owned),
     equipped:
       input.equipped === undefined
-        ? { avatar: '', theme: '', background: '' }
+        ? { theme: '', background: '' }
         : checkEquipped(input.equipped),
   }
   if (input.hero !== undefined) out.hero = checkHero(input.hero)

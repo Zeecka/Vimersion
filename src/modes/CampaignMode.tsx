@@ -113,7 +113,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
         </div>
 
         {/* Play column */}
-        <div className="flex min-h-[calc(100vh-93px)] flex-1 flex-col">
+        <div className="flex flex-1 flex-col">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
@@ -153,11 +153,23 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             <BossBar spent={keystrokes} budget={challenge.keystrokeBudget} />
           )}
 
-          {/* The editor sits on a dark glass panel so the one equipped background
-              (CRT by default, or a level's 3D scene) shows through behind the
-              code — a single coherent backdrop, not a separate per-level scene
-              clashing with it. The 78%-opaque tint keeps the code legible. */}
-          <div className="panel-glass relative mt-3 flex-1 overflow-hidden">
+          {/* The editor sits on a dark glass panel so the equipped background shows
+              through behind the code. On top of that, each WORLD washes the panel in
+              its own accent (border + soft glow) so every level in a world shares one
+              consistent landscape. The 78%-opaque glass keeps the code legible. */}
+          <div
+            className="panel-glass relative mt-3 h-[42vh] min-h-[240px] max-h-[480px] overflow-hidden"
+            style={{ borderColor: `color-mix(in srgb, ${world.accent} 38%, var(--color-border))` }}
+          >
+            {/* Per-world accent wash — consistent across every level in the world. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `radial-gradient(125% 78% at 50% -12%, color-mix(in srgb, ${world.accent} 20%, transparent), transparent 62%)`,
+                boxShadow: `inset 0 0 70px -22px ${world.accent}`,
+              }}
+            />
             <div className="relative z-10 h-full">
               <VimEditor
                 ref={editorRef}
@@ -173,20 +185,27 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             </div>
           </div>
 
-          <div className="mt-3 min-h-[1.75rem] text-sm">
+          <div className="mt-3">
             {showHint ? (
-              <p className="inline-flex items-center gap-1.5 text-ink-dim">
-                <Emoji name="bulb" size={15} /> {challenge.hint}
-              </p>
+              <div className="flex items-start gap-2.5 rounded-xl border border-amber/30 bg-amber/10 px-3.5 py-2.5 text-sm text-ink">
+                <span className="mt-0.5 shrink-0">
+                  <Emoji name="bulb" size={16} />
+                </span>
+                <span>
+                  <span className="mr-1.5 text-[11px] font-bold uppercase tracking-widest text-amber">Hint</span>
+                  {challenge.hint}
+                </span>
+              </div>
             ) : (
               <button
                 // preventDefault on mousedown keeps focus in the editor (a normal click
                 // would move focus to this button and swallow subsequent Vim keys).
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={revealHint}
-                className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-term"
+                className="group inline-flex items-center gap-2 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-amber hover:text-amber"
               >
-                need a hint?
+                <Emoji name="bulb" size={14} />
+                Need a hint?
               </button>
             )}
           </div>

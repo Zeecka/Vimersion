@@ -164,6 +164,7 @@ function Home({
   const completed = useGame((s) => s.completed)
   const arcadeBest = useGame((s) => s.arcadeBest)
   const reset = useGame((s) => s.resetProgress)
+  const [confirmReset, setConfirmReset] = useState(false)
 
   const solved = Object.keys(completed).length
   const hasProgress = solved > 0 || xp > 0 || coins > 0 || arcadeBest > 0
@@ -236,18 +237,75 @@ function Home({
         <CommandBelt />
       </div>
 
-      <div className="mt-8 flex items-center justify-center text-xs text-ink-dim">
+      <div className="mt-8 flex items-center justify-center">
         {hasProgress && (
           <button
             onClick={() => {
-              if (window.confirm('Reset all progress and cosmetics? This cannot be undone.')) reset()
+              sfx.ui()
+              setConfirmReset(true)
             }}
-            className="underline decoration-dotted underline-offset-4 hover:text-danger"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs text-ink-dim transition-colors hover:border-danger hover:text-danger"
           >
-            reset progress
+            <span aria-hidden>⟲</span> reset progress
           </button>
         )}
       </div>
+
+      {/* Conditional render (no AnimatePresence exit): closing unmounts the
+          full-screen overlay instantly, so an invisible z-40 layer can never
+          linger and swallow clicks on Home. It still animates IN. */}
+      {confirmReset && (
+        <motion.div
+          className="fixed inset-0 z-40 grid place-items-center bg-bg/70 p-4 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.18 }}
+          onClick={() => setConfirmReset(false)}
+        >
+          <motion.div
+            className="panel w-full max-w-sm p-6 text-center"
+            initial={{ scale: 0.92, y: 12, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="mx-auto grid h-12 w-12 place-items-center rounded-full text-2xl text-danger"
+              style={{ background: 'color-mix(in srgb, var(--color-danger) 15%, transparent)' }}
+              aria-hidden
+            >
+              ⚠
+            </div>
+            <h3 className="mt-3 font-terminal text-2xl font-bold text-danger">Reset everything?</h3>
+            <p className="mt-2 text-sm text-ink-dim">
+              This erases <b className="text-ink">all</b> progress — levels, XP, coins, streak and
+              cosmetics — and can’t be undone.
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <button
+                onClick={() => {
+                  sfx.ui()
+                  setConfirmReset(false)
+                }}
+                className="rounded-xl border border-border px-5 py-2.5 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  sfx.error()
+                  reset()
+                  setConfirmReset(false)
+                }}
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
+                style={{ background: 'var(--color-danger)' }}
+              >
+                Reset everything
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       <p className="mt-8 flex items-center justify-center gap-3 text-center text-xs text-ink-dim">
         free &amp; open source

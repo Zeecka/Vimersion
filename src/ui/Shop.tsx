@@ -1,16 +1,22 @@
-import { useState, type CSSProperties } from 'react'
+import { Suspense, lazy, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { useGame, type HeroEffect } from '../game/store'
-import { AVATARS, THEMES, BACKGROUNDS, COSMETIC_BY_ID, type Cosmetic, type CosmeticKind } from '../game/cosmetics'
-import { heroColorsFor } from '../game/avatarStyle'
+import { useGame } from '../game/store'
+import { THEMES, BACKGROUNDS, COSMETIC_BY_ID, type Cosmetic } from '../game/cosmetics'
+import { heroLookFrom, ACCESSORIES, VISOR_STYLES, AURA_STYLES, type AccessoryId, type VisorStyle } from '../game/heroParts'
+import { effectiveQuality } from '../game/quality'
+import { useStage } from '../three/stageState'
 import { sfx } from '../game/sound'
-import { Avatar, PlayerAvatar } from './Avatar'
+import { HeroMark } from './HeroMark'
 import { Emoji } from './Emoji'
 
-const TABS: { key: CosmeticKind; label: string; items: Cosmetic[] }[] = [
-  { key: 'avatar', label: 'Characters', items: AVATARS },
-  { key: 'theme', label: 'Themes', items: THEMES },
-  { key: 'background', label: 'Backgrounds', items: BACKGROUNDS },
+// Local Suspense boundary — the 3D hero preview never blocks the rest of the Shop.
+const Hero3D = lazy(() => import('../three/Hero3D'))
+
+type TabKey = 'characters' | 'theme' | 'background'
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'characters', label: 'Characters' },
+  { key: 'theme', label: 'Themes' },
+  { key: 'background', label: 'Backgrounds' },
 ]
 
 /**
@@ -67,89 +73,48 @@ function bgPreviewStyle(bg?: string): CSSProperties {
   }
 }
 
-const EFFECTS: HeroEffect[] = ['sparkles', 'fire', 'bolt']
-
-/**
- * Hero personalization: main colors + aura effect for the EQUIPPED character.
- * Applied everywhere the hero appears (homepage, top bar, "Your Hero" panel).
- */
-function CustomizePanel() {
-  const equippedAvatar = useGame((s) => s.equipped.avatar)
-  const hero = useGame((s) => s.hero)
-  const setHero = useGame((s) => s.setHero)
-
-  const item = COSMETIC_BY_ID[equippedAvatar]
-  const effective = heroColorsFor(equippedAvatar, hero)
-  const customized = !!(hero.primary || hero.secondary)
-
-  const pickers: { key: 'primary' | 'secondary'; label: string }[] = [
-    { key: 'primary', label: 'Primary' },
-    { key: 'secondary', label: 'Secondary' },
-  ]
-
+function ColorField({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
   return (
-    <div className="panel mt-5 flex flex-wrap items-center gap-x-6 gap-y-4 p-4">
-      <div className="flex items-center gap-3">
-        <span
-          className="rounded-full p-[2px]"
-          style={{
-            background: effective
-              ? `linear-gradient(135deg, ${effective.primary}, ${effective.secondary})`
-              : 'linear-gradient(135deg, var(--color-term), var(--color-cyan))',
-          }}
-        >
-          <span className="grid h-14 w-14 place-items-center rounded-full bg-bg">
-            <PlayerAvatar size={38} />
-          </span>
-        </span>
-        <div>
-          <p className="text-sm font-medium text-ink">{item?.name ?? 'Your hero'}</p>
-          <p className="text-[11px] text-ink-dim">Personalize your hero — colors &amp; aura apply everywhere.</p>
-        </div>
-      </div>
+    <label className="flex cursor-pointer flex-col items-center gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 w-12 cursor-pointer rounded border border-border bg-panel-2"
+        aria-label={hint ?? `${label} color`}
+      />
+      {label}
+    </label>
+  )
+}
 
-      <div className="flex items-center gap-4">
-        {pickers.map((p) => (
-          <label key={p.key} className="flex cursor-pointer flex-col items-center gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
-            <input
-              type="color"
-              value={hero[p.key] ?? effective?.[p.key] ?? '#7c6bff'}
-              onChange={(e) => setHero({ [p.key]: e.target.value })}
-              className="h-8 w-12 cursor-pointer rounded border border-border bg-panel-2"
-              aria-label={`${p.label} hero color`}
-            />
-            {p.label}
-          </label>
-        ))}
-        <button
-          disabled={!customized}
-          onClick={() => {
-            sfx.ui()
-            setHero({ primary: null, secondary: null })
-          }}
-          className={`self-center rounded border border-border px-3 py-1.5 text-xs transition-colors ${
-            customized ? 'text-ink-dim hover:border-term hover:text-term' : 'cursor-not-allowed opacity-40'
-          }`}
-        >
-          reset colors
-        </button>
-      </div>
-
-      <div className="flex items-center gap-1.5">
-        <span className="mr-1 text-[10px] uppercase tracking-widest text-ink-dim">Aura</span>
-        {EFFECTS.map((fx) => (
+function PickRow<T extends string>({
+  label,
+  items,
+  active,
+  onPick,
+}: {
+  label: string
+  items: { id: T; name: string }[]
+  active: T
+  onPick: (id: T) => void
+}) {
+  return (
+    <div className="mt-4">
+      <div className="text-[10px] uppercase tracking-widest text-ink-dim">{label}</div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {items.map((it) => (
           <button
-            key={fx}
+            key={it.id}
             onClick={() => {
-              setHero({ effect: fx })
+              onPick(it.id)
               sfx.ui()
             }}
-            title={`aura: ${fx}`}
-            className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-              hero.effect === fx ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
+            className={`rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+              active === it.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
             }`}
           >
-            <Emoji name={fx} size={14} /> {fx}
+            {it.name}
           </button>
         ))}
       </div>
@@ -157,14 +122,118 @@ function CustomizePanel() {
   )
 }
 
-function ItemPreview({ c }: { c: Cosmetic }) {
-  if (c.kind === 'avatar') {
-    return (
-      <div className="grid h-20 place-items-center rounded bg-panel-2">
-        <Avatar id={c.id} size={44} />
+/**
+ * The Hero customizer — replaces the old fixed-avatar roster. A live 3D preview
+ * of the equipped Hero (2D <HeroMark/> in the lite tier) plus controls for
+ * per-zone colors, visor style, accessory and a custom aura.
+ */
+function CharacterStudio() {
+  const hero = useGame((s) => s.hero)
+  const setHero = useGame((s) => s.setHero)
+  const equipped = useGame((s) => s.equipped)
+  const quality = useGame((s) => s.quality)
+  const contextLost = useStage((s) => s.contextLost)
+  const tier = contextLost ? 'lite' : effectiveQuality(quality)
+
+  const look = heroLookFrom(hero)
+  const accent = COSMETIC_BY_ID[equipped.theme]?.accent ?? '#7c6bff'
+  const auraColor = hero.aura.color ?? accent
+  const customized =
+    !!(hero.body || hero.trim || hero.visor || hero.aura.color) ||
+    hero.accessory !== 'none' ||
+    hero.visorStyle !== 'bar' ||
+    hero.aura.style !== 'sparkles' ||
+    hero.aura.intensity !== 0.6
+
+  return (
+    <div className="panel mt-5 p-4 sm:p-5">
+      <p className="text-sm text-ink-dim">Your one Hero — style it, and it appears everywhere you play.</p>
+
+      {/* live preview */}
+      <div
+        className="relative mx-auto mt-3 h-56 w-full max-w-xs overflow-hidden rounded-xl border border-border"
+        style={{ background: 'radial-gradient(ellipse at 50% 15%, color-mix(in srgb, var(--color-term) 12%, #0b0f18), #080b11 78%)' }}
+      >
+        {tier === 'webgl' ? (
+          <Suspense fallback={<div className="grid h-full place-items-center"><HeroMark look={look} size={120} /></div>}>
+            <Hero3D reaction="idle" hero={hero} />
+          </Suspense>
+        ) : (
+          <div className="grid h-full place-items-center">
+            <HeroMark look={look} size={120} />
+          </div>
+        )}
       </div>
-    )
-  }
+
+      {/* colors */}
+      <div className="mt-4">
+        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Colors</div>
+        <div className="mt-2 flex gap-4">
+          <ColorField label="Body" value={look.body} onChange={(v) => setHero({ body: v })} />
+          <ColorField label="Trim" value={look.trim} onChange={(v) => setHero({ trim: v })} />
+          <ColorField label="Visor" value={look.visor} onChange={(v) => setHero({ visor: v })} />
+        </div>
+      </div>
+
+      <PickRow<VisorStyle> label="Visor Style" items={VISOR_STYLES} active={hero.visorStyle} onPick={(id) => setHero({ visorStyle: id })} />
+      <PickRow<AccessoryId> label="Accessory" items={ACCESSORIES} active={hero.accessory} onPick={(id) => setHero({ accessory: id })} />
+
+      {/* aura */}
+      <div className="mt-4">
+        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Aura</div>
+        <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-3">
+          <ColorField label="Color" hint="Aura color" value={auraColor} onChange={(v) => setHero({ aura: { color: v } })} />
+          <div className="flex flex-wrap gap-1.5">
+            {AURA_STYLES.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => {
+                  setHero({ aura: { style: a.id } })
+                  sfx.ui()
+                }}
+                className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                  hero.aura.style === a.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
+                }`}
+              >
+                <Emoji name={a.emoji} size={14} /> {a.name}
+              </button>
+            ))}
+          </div>
+          <label className="flex min-w-[130px] flex-1 flex-col gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
+            Intensity
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={hero.aura.intensity}
+              onChange={(e) => setHero({ aura: { intensity: Number(e.target.value) } })}
+              style={{ accentColor: 'var(--color-term)' }}
+              aria-label="Aura intensity"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <button
+          disabled={!customized}
+          onClick={() => {
+            sfx.ui()
+            setHero({ body: null, trim: null, visor: null, accessory: 'none', visorStyle: 'bar', aura: { color: null, style: 'sparkles', intensity: 0.6 } })
+          }}
+          className={`rounded border border-border px-3 py-1.5 text-xs transition-colors ${
+            customized ? 'text-ink-dim hover:border-term hover:text-term' : 'cursor-not-allowed opacity-40'
+          }`}
+        >
+          reset hero
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ItemPreview({ c }: { c: Cosmetic }) {
   if (c.kind === 'theme') {
     return <div className="h-20 rounded" style={{ background: `linear-gradient(135deg, ${c.accent}, ${c.accentDim})` }} />
   }
@@ -177,8 +246,8 @@ export function Shop() {
   const equipped = useGame((s) => s.equipped)
   const buy = useGame((s) => s.buyItem)
   const equip = useGame((s) => s.equipItem)
-  const [tab, setTab] = useState<CosmeticKind>('avatar')
-  const items = TABS.find((t) => t.key === tab)!.items
+  const [tab, setTab] = useState<TabKey>('characters')
+  const items = tab === 'theme' ? THEMES : tab === 'background' ? BACKGROUNDS : []
 
   const onBuy = (c: Cosmetic) => {
     if (buy(c.id)) {
@@ -217,51 +286,53 @@ export function Shop() {
         ))}
       </div>
 
-      {tab === 'avatar' && <CustomizePanel />}
-
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {items.map((c) => {
-          const isOwned = owned.includes(c.id)
-          const isEquipped = equipped[c.kind] === c.id
-          const canAfford = coins >= c.price
-          return (
-            <motion.div key={c.id} layout className="panel flex flex-col p-3">
-              <ItemPreview c={c} />
-              <div className="mt-2 flex-1">
-                <p className="text-sm font-medium text-ink">{c.name}</p>
-                {c.blurb && <p className="text-[11px] leading-snug text-ink-dim">{c.blurb}</p>}
-              </div>
-              <div className="mt-3">
-                {isEquipped ? (
-                  <div className="rounded py-1.5 text-center text-xs font-bold text-term" style={{ background: 'color-mix(in srgb, var(--color-term) 15%, transparent)' }}>
-                    ✓ Equipped
-                  </div>
-                ) : isOwned ? (
-                  <button
-                    onClick={() => {
-                      equip(c.id)
-                      sfx.ui()
-                    }}
-                    className="w-full rounded border border-term py-1.5 text-xs font-bold text-term transition-colors hover:bg-term/10"
-                  >
-                    Equip
-                  </button>
-                ) : (
-                  <button
-                    disabled={!canAfford}
-                    onClick={() => onBuy(c)}
-                    className={`flex w-full items-center justify-center gap-1.5 rounded py-1.5 text-xs font-bold transition-transform ${
-                      canAfford ? 'btn-accent hover:scale-[1.03]' : 'cursor-not-allowed bg-panel-2 text-ink-dim'
-                    }`}
-                  >
-                    <span className="coin" /> {c.price}
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
+      {tab === 'characters' ? (
+        <CharacterStudio />
+      ) : (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {items.map((c) => {
+            const isOwned = owned.includes(c.id)
+            const isEquipped = equipped[c.kind] === c.id
+            const canAfford = coins >= c.price
+            return (
+              <motion.div key={c.id} layout className="panel flex flex-col p-3">
+                <ItemPreview c={c} />
+                <div className="mt-2 flex-1">
+                  <p className="text-sm font-medium text-ink">{c.name}</p>
+                  {c.blurb && <p className="text-[11px] leading-snug text-ink-dim">{c.blurb}</p>}
+                </div>
+                <div className="mt-3">
+                  {isEquipped ? (
+                    <div className="rounded py-1.5 text-center text-xs font-bold text-term" style={{ background: 'color-mix(in srgb, var(--color-term) 15%, transparent)' }}>
+                      ✓ Equipped
+                    </div>
+                  ) : isOwned ? (
+                    <button
+                      onClick={() => {
+                        equip(c.id)
+                        sfx.ui()
+                      }}
+                      className="w-full rounded border border-term py-1.5 text-xs font-bold text-term transition-colors hover:bg-term/10"
+                    >
+                      Equip
+                    </button>
+                  ) : (
+                    <button
+                      disabled={!canAfford}
+                      onClick={() => onBuy(c)}
+                      className={`flex w-full items-center justify-center gap-1.5 rounded py-1.5 text-xs font-bold transition-transform ${
+                        canAfford ? 'btn-accent hover:scale-[1.03]' : 'cursor-not-allowed bg-panel-2 text-ink-dim'
+                      }`}
+                    >
+                      <span className="coin" /> {c.price}
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

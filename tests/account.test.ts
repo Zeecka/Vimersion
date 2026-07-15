@@ -10,9 +10,9 @@ function snap(over: Partial<Snapshot> = {}): Snapshot {
     mastery: {},
     streak: { count: 0, lastPlayed: null },
     arcadeBest: 0,
-    owned: ['cursor', 'nightglass', 'crt'],
-    equipped: { avatar: 'cursor', theme: 'nightglass', background: 'crt' },
-    hero: { primary: null, secondary: null, effect: 'sparkles' },
+    owned: ['nightglass', 'crt'],
+    equipped: { theme: 'nightglass', background: 'crt' },
+    hero: { body: null, trim: null, visor: null, accessory: 'none', visorStyle: 'bar', aura: { color: null, style: 'sparkles', intensity: 0.6 } },
     ...over,
   }
 }
@@ -40,10 +40,10 @@ describe('account snapshot merge (login reconciliation)', () => {
 
   it('unions owned cosmetics and per-command mastery maxes', () => {
     const m = mergeSnapshots(
-      snap({ owned: ['cursor', 'ninja'], mastery: { x: 5, dd: 1 } }),
-      snap({ owned: ['cursor', 'fox'], mastery: { x: 2, u: 4 } }),
+      snap({ owned: ['crt', 'amber'], mastery: { x: 5, dd: 1 } }),
+      snap({ owned: ['crt', 'matrix'], mastery: { x: 2, u: 4 } }),
     )
-    expect(new Set(m.owned)).toEqual(new Set(['cursor', 'ninja', 'fox']))
+    expect(new Set(m.owned)).toEqual(new Set(['crt', 'amber', 'matrix']))
     expect(m.mastery).toEqual({ x: 5, dd: 1, u: 4 })
   })
 
@@ -54,10 +54,16 @@ describe('account snapshot merge (login reconciliation)', () => {
   })
 
   it('cosmetic loadout follows the higher-xp profile', () => {
-    const local = snap({ xp: 10, equipped: { avatar: 'ninja', theme: 'amber', background: 'crt' } })
-    const server = snap({ xp: 900, equipped: { avatar: 'fox', theme: 'gold', background: 'matrix' }, hero: { primary: '#112233', secondary: null, effect: 'fire' } })
+    const local = snap({ xp: 10, equipped: { theme: 'amber', background: 'crt' } })
+    const server = snap({
+      xp: 900,
+      equipped: { theme: 'gold', background: 'matrix' },
+      hero: { body: '#112233', trim: null, visor: null, accessory: 'tophat', visorStyle: 'bar', aura: { color: null, style: 'fire', intensity: 0.6 } },
+    })
     const m = mergeSnapshots(local, server)
-    expect(m.equipped.avatar).toBe('fox')
-    expect(m.hero.effect).toBe('fire')
+    expect(m.equipped.theme).toBe('gold')
+    expect(m.equipped.background).toBe('matrix')
+    expect(m.hero.accessory).toBe('tophat')
+    expect(m.hero.aura.style).toBe('fire')
   })
 })

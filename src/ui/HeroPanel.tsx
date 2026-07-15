@@ -1,10 +1,9 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useGame, MASTERY_THRESHOLD, type HeroEffect } from '../game/store'
+import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { levelProgress } from '../game/xp'
 import { COMMANDS } from '../game/commands'
-import { COSMETIC_BY_ID, AVATARS } from '../game/cosmetics'
-import { heroColorsFor } from '../game/avatarStyle'
+import { AURA_STYLES } from '../game/heroParts'
 import { WORLDS, challengesForTier } from '../content/tiers'
 import { sfx } from '../game/sound'
 import { effectiveQuality } from '../game/quality'
@@ -19,7 +18,10 @@ export type Reaction = HeroReaction
 const Hero3D = lazy(() => import('../three/Hero3D'))
 
 const EMOTES = ['cool', 'muscle', 'party', 'starstruck', 'wave', 'fire'] as const
-const EFFECTS: HeroEffect[] = ['sparkles', 'fire', 'bolt']
+
+/** Playful rank title derived from level (purely cosmetic flavor). */
+const RANKS = ['Rookie', 'Operator', 'Coder', 'Hacker', 'Wizard', 'Legend']
+const rankFor = (level: number) => RANKS[Math.min(RANKS.length - 1, Math.floor((level - 1) / 3))]
 
 // Deterministic particle spread (no Math.random — keeps things stable across renders).
 const PARTICLES = [
@@ -64,31 +66,29 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const completed = useGame((s) => s.completed)
   const mastery = useGame((s) => s.mastery)
   const arcadeBest = useGame((s) => s.arcadeBest)
-  const owned = useGame((s) => s.owned)
-  const avatar = useGame((s) => s.equipped.avatar)
 
   const [emote, setEmote] = useState<string | null>(null)
-  // The aura effect is a persisted customization (Shop → Customize / here).
+  // The aura is a persisted customization (Shop → Characters / here).
   const heroCustom = useGame((s) => s.hero)
   const setHero = useGame((s) => s.setHero)
-  const effect = heroCustom.effect
-  const heroColors = heroColorsFor(avatar, heroCustom)
+  const auraStyle = heroCustom.aura.style
+  const auraEmoji = AURA_STYLES.find((a) => a.id === auraStyle)?.emoji ?? 'sparkles'
   const clearTimer = useRef<number | undefined>(undefined)
 
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
 
-  const name = COSMETIC_BY_ID[avatar]?.name ?? 'Rookie'
   const { level, into, span, pct } = levelProgress(xp)
+  const name = rankFor(level)
 
   const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
   const perfects = Object.values(completed).filter((r) => r.stars >= 3).length
+  const solved = Object.keys(completed).length
   const worldsCleared = WORLDS.filter((w) => {
     const cs = challengesForTier(w.tier)
     return cs.length > 0 && cs.every((c) => completed[c.id])
   }).length
-  const companions = AVATARS.filter((a) => owned.includes(a.id)).length
 
   const pop = (name: string, hold = 1700) => {
     setEmote(name)
@@ -117,7 +117,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
     { icon: 'trophy', label: 'worlds cleared', n: worldsCleared },
     { icon: 'star', label: 'perfect solves', n: perfects },
     { icon: 'gem', label: 'commands mastered', n: mastered },
-    { icon: 'crown', label: 'companions', n: companions },
+    { icon: 'crown', label: 'levels solved', n: solved },
     { icon: 'bolt', label: 'arcade best', n: arcadeBest },
   ]
 
@@ -135,7 +135,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
               className="absolute bottom-0"
               style={{ left: p.left, animation: `vm-float ${p.dur} ease-in-out ${p.delay} infinite` }}
             >
-              <Emoji name={effect} size={14} />
+              <Emoji name={auraEmoji} size={14} />
             </span>
           ))}
         </div>
@@ -164,7 +164,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
         {tier === 'webgl' ? (
           <div className="absolute inset-x-0 bottom-0 top-2">
             <Suspense fallback={<ClassicPortrait reaction={reaction} bobClass={bobClass} />}>
-              <Hero3D reaction={reaction} colors={heroColors} />
+              <Hero3D reaction={reaction} hero={heroCustom} />
             </Suspense>
           </div>
         ) : (
@@ -203,20 +203,20 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
         </div>
       </div>
 
-      {/* effects */}
+      {/* aura style — full customization (color, intensity) lives in Shop → Characters */}
       <div>
-        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">Aura Effect</div>
-        <div className="flex gap-1.5">
-          {EFFECTS.map((fx) => (
+        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">Aura</div>
+        <div className="flex flex-wrap gap-1.5">
+          {AURA_STYLES.map((a) => (
             <button
-              key={fx}
+              key={a.id}
               onMouseDown={noFocusSteal}
-              onClick={() => { setHero({ effect: fx }); sfx.ui() }}
+              onClick={() => { setHero({ aura: { style: a.id } }); sfx.ui() }}
               className={`flex flex-1 items-center justify-center gap-1 rounded-md border py-1.5 text-xs transition-colors ${
-                effect === fx ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
+                auraStyle === a.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
               }`}
             >
-              <Emoji name={fx} size={14} /> {fx}
+              <Emoji name={a.emoji} size={14} /> {a.name}
             </button>
           ))}
         </div>

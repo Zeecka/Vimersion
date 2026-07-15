@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
 import { sfx } from '../game/sound'
 import { KeyCap } from '../ui/atoms'
-import { Avatar } from '../ui/Avatar'
+import { PlayerAvatar } from '../ui/Avatar'
 
 const ROWS = 5
 const COLS = 9
@@ -46,8 +46,6 @@ type Phase = 'ready' | 'playing' | 'over'
 export function ArcadeMode() {
   const recordArcade = useGame((s) => s.recordArcade)
   const best = useGame((s) => s.arcadeBest)
-  const avatarId = useGame((s) => s.equipped.avatar)
-  const isBlockAvatar = avatarId === 'cursor'
 
   const [phase, setPhase] = useState<Phase>('ready')
   const [timeLeft, setTimeLeft] = useState(GAME_SECONDS)
@@ -172,16 +170,13 @@ export function ArcadeMode() {
             const c = i % COLS
             const isCursor = st.cursor.r === r && st.cursor.c === c
             const isMole = st.mole.r === r && st.mole.c === c && phase === 'playing'
-            const cursorBg = isBlockAvatar
-              ? 'var(--color-term)'
-              : 'color-mix(in srgb, var(--color-term) 20%, transparent)'
             return (
               <div
                 key={i}
                 className="grid h-9 w-9 place-items-center rounded font-mono text-lg"
                 style={{
-                  background: isCursor ? cursorBg : 'rgba(255,255,255,0.02)',
-                  color: isCursor && isBlockAvatar ? 'var(--color-bg)' : '#3a4454',
+                  background: isCursor ? 'color-mix(in srgb, var(--color-term) 18%, transparent)' : 'rgba(255,255,255,0.02)',
+                  color: '#3a4454',
                   boxShadow: isCursor ? '0 0 12px color-mix(in srgb, var(--color-term) 50%, transparent)' : undefined,
                 }}
               >
@@ -195,7 +190,7 @@ export function ArcadeMode() {
                     @
                   </motion.span>
                 ) : isCursor ? (
-                  isBlockAvatar ? <span>▉</span> : <Avatar id={avatarId} size={26} />
+                  <PlayerAvatar size={26} />
                 ) : (
                   '·'
                 )}

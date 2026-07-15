@@ -4,24 +4,17 @@ import type { Challenge, ChallengeResult, Stars } from './types'
 import type { QualitySetting } from './quality'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
 import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS, LEGACY_DEFAULT_THEMES } from './cosmetics'
+import { INITIAL_HERO, LEGACY_AVATAR_IDS, normalizeHero, type HeroAura, type HeroCustom } from './heroParts'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
 
 export interface Equipped {
-  avatar: string
   theme: string
   background: string
 }
 
-export type HeroEffect = 'sparkles' | 'fire' | 'bolt'
-
-/** Player-chosen hero personalization. null colors = the character's own palette. */
-export interface HeroCustom {
-  primary: string | null
-  secondary: string | null
-  effect: HeroEffect
-}
+export type { HeroCustom }
 
 export interface CompleteOutcome {
   stars: Stars
@@ -53,7 +46,7 @@ interface GameStore extends Persisted {
   recordArcade: (score: number, commands: string[]) => { isNewBest: boolean; coinsGained: number }
   buyItem: (id: string) => boolean
   equipItem: (id: string) => void
-  setHero: (partial: Partial<HeroCustom>) => void
+  setHero: (partial: Partial<Omit<HeroCustom, 'aura'>> & { aura?: Partial<HeroAura> }) => void
   bumpStreak: () => void
   toggleSound: () => void
   setQuality: (q: QualitySetting) => void
@@ -79,9 +72,9 @@ const initial: Persisted = {
   streak: { count: 0, lastPlayed: null },
   soundOn: true,
   arcadeBest: 0,
-  owned: [DEFAULTS.avatar, DEFAULTS.theme, DEFAULTS.background],
+  owned: [DEFAULTS.theme, DEFAULTS.background],
   equipped: { ...DEFAULTS },
-  hero: { primary: null, secondary: null, effect: 'sparkles' },
+  hero: INITIAL_HERO,
   quality: 'auto',
 }
 
@@ -157,7 +150,8 @@ export const useGame = create<GameStore>()(
         set({ equipped: { ...s.equipped, [item.kind]: id } })
       },
 
-      setHero: (partial) => set((s) => ({ hero: { ...s.hero, ...partial } })),
+      setHero: (partial) =>
+        set((s) => ({ hero: { ...s.hero, ...partial, aura: { ...s.hero.aura, ...(partial.aura ?? {}) } } })),
 
       bumpStreak: () => {
         const s = get()
@@ -177,16 +171,22 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: 'vimersion-save',
-      version: 9,
+      version: 10,
       migrate: (persisted, version) => {
-        const p = (persisted ?? {}) as Partial<Persisted>
+        const p = (persisted ?? {}) as Record<string, any>
+        const pe = (p.equipped ?? {}) as Record<string, unknown>
         const merged = {
           ...initial,
           ...p,
-          owned: Array.from(new Set([...(p.owned ?? []), ...initial.owned])),
-          equipped: { ...initial.equipped, ...(p.equipped ?? {}) },
-          // v6: hero personalization (colors + aura effect) — backfill defaults.
-          hero: { ...initial.hero, ...(p.hero ?? {}) },
+          owned: Array.from(new Set([...((p.owned as string[]) ?? []), ...initial.owned])),
+          // v10: `equipped.avatar` was removed — keep only theme + background.
+          equipped: {
+            theme: typeof pe.theme === 'string' ? pe.theme : initial.equipped.theme,
+            background: typeof pe.background === 'string' ? pe.background : initial.equipped.background,
+          },
+          // Hero customization: coerce the old {primary,secondary,effect} (pre-v10)
+          // or the new shape to the canonical HeroCustom.
+          hero: normalizeHero(p.hero),
         } as Persisted
         // v4: default became the side-scrolling "Pixel Kingdom". Move anyone still on
         // an older default onto it (their old background stays owned, so they can
@@ -201,10 +201,11 @@ export const useGame = create<GameStore>()(
         if (version < 5 && LEGACY_DEFAULT_THEMES.includes(merged.equipped.theme)) {
           merged.equipped.theme = DEFAULTS.theme
         }
-        // v7: the "Pixel Kingdom" (platform) background was removed. Move anyone
-        // on it — or on any now-unknown background — to the default, and drop it
-        // from owned so it can't be re-equipped.
-        merged.owned = merged.owned.filter((id) => id !== 'platform')
+        // v7: the "Pixel Kingdom" (platform) background was removed.
+        // v10: the fixed-avatar roster + block cursor were removed in favor of the
+        // single customizable Hero. Drop 'platform' and all old avatar ids from
+        // `owned`, and repair any now-unknown equipped background.
+        merged.owned = merged.owned.filter((id) => id !== 'platform' && !LEGACY_AVATAR_IDS.includes(id))
         if (!COSMETIC_BY_ID[merged.equipped.background]) {
           merged.equipped.background = DEFAULTS.background
         }

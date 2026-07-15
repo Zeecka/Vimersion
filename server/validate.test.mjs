@@ -22,8 +22,8 @@ function goodSnapshot() {
     mastery: { h: 5, j: 3, k: 2, dd: 12 },
     streak: { count: 4, lastPlayed: '2026-7-14' },
     arcadeBest: 900,
-    owned: ['cat', 'nightglass', 'dunes'],
-    equipped: { avatar: 'cat', theme: 'nightglass', background: 'dunes' },
+    owned: ['nightglass', 'dunes'],
+    equipped: { theme: 'nightglass', background: 'dunes' },
   }
 }
 
@@ -61,13 +61,33 @@ test('optional sections default when absent', () => {
   assert.deepEqual(out.streak, { count: 0, lastPlayed: null })
   assert.equal(out.arcadeBest, 0)
   assert.deepEqual(out.owned, [])
-  assert.deepEqual(out.equipped, { avatar: '', theme: '', background: '' })
+  assert.deepEqual(out.equipped, { theme: '', background: '' })
   assert.ok(!('hero' in out))
 })
 
 test('hero is validated and kept when present', () => {
-  const out = validateSnapshot({ ...goodSnapshot(), hero: { primary: '#AbCdEf', secondary: null, effect: 'sparkle' } })
-  assert.deepEqual(out.hero, { primary: '#AbCdEf', secondary: null, effect: 'sparkle' })
+  const hero = {
+    body: '#AbCdEf',
+    trim: null,
+    visor: null,
+    accessory: 'antenna',
+    visorStyle: 'goggles',
+    aura: { color: '#112233', style: 'fire', intensity: 0.8 },
+  }
+  const out = validateSnapshot({ ...goodSnapshot(), hero })
+  assert.deepEqual(out.hero, hero)
+})
+
+test('hero defaults fill in for a minimal/absent-field hero', () => {
+  const out = validateSnapshot({ ...goodSnapshot(), hero: { body: '#7c6bff' } })
+  assert.deepEqual(out.hero, {
+    body: '#7c6bff',
+    trim: null,
+    visor: null,
+    accessory: 'none',
+    visorStyle: 'bar',
+    aura: { color: null, style: 'sparkles', intensity: 0.6 },
+  })
 })
 
 // ---- Shape rejections ---------------------------------------------------------
@@ -119,11 +139,13 @@ rejects((s) => (s.streak.lastPlayed = 'x'.repeat(17)), 'long streak.lastPlayed i
 rejects((s) => (s.owned = 'cat'), 'non-array owned is rejected')
 rejects((s) => (s.owned = Array.from({ length: 201 }, (_, i) => `i${i}`)), 'owned above cap is rejected')
 rejects((s) => (s.owned = [42]), 'non-string owned item is rejected')
-rejects((s) => (s.equipped = { avatar: 'cat', theme: 7, background: 'dunes' }), 'non-string equipped value is rejected')
-rejects((s) => (s.equipped = { avatar: 'cat' }), 'equipped missing keys is rejected')
-rejects((s) => (s.hero = { primary: 'red', secondary: null, effect: '' }), 'non-hex hero color is rejected')
-rejects((s) => (s.hero = { primary: '#12345', secondary: null, effect: '' }), 'short hex hero color is rejected')
-rejects((s) => (s.hero = { primary: null, secondary: null, effect: 'x'.repeat(25) }), 'long hero effect is rejected')
+rejects((s) => (s.equipped = { theme: 7, background: 'dunes' }), 'non-string equipped value is rejected')
+rejects((s) => (s.equipped = { theme: 'nightglass' }), 'equipped missing keys is rejected')
+rejects((s) => (s.hero = { body: 'red' }), 'non-hex hero color is rejected')
+rejects((s) => (s.hero = { body: '#12345' }), 'short hex hero color is rejected')
+rejects((s) => (s.hero = { accessory: 'x'.repeat(25) }), 'long hero accessory is rejected')
+rejects((s) => (s.hero = { aura: { intensity: 2 } }), 'aura intensity out of range is rejected')
+rejects((s) => (s.hero = { aura: 'nope' }), 'non-object aura is rejected')
 
 // ---- Plausibility cross-check ------------------------------------------------
 
