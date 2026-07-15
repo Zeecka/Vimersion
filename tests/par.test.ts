@@ -44,6 +44,13 @@ const SOLUTIONS: Record<string, string> = {
   't4-sub-confirm': ':%s/count/total/gc<CR>ynyny',
   't4-marks': 'maggdd`a',
   'boss-grepgut': '/eror<CR>ddndd:%s/warn/WARN/g<CR>jf(d%x',
+  // Extra fundamentals (open-above, change-to-end, brackets, transpose, indent)
+  't2-open-above': 'Oimport sys<Esc>',
+  't3-change-tail': 'Cinfo<Esc>',
+  't3-bracket': 'ci[mono<Esc>',
+  't3-transpose': 'xp',
+  't3-indent': '>j',
+  't6-indent-para': '>ip',
   // Tier 5 — Superpowers (dot, gn, Ctrl-a, registers, macros)
   't5-dot': 'A;<Esc>j.j.',
   't5-dot-op': 'fDdaw;.;.',

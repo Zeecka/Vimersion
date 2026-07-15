@@ -37,6 +37,7 @@ export const COMMANDS: VimCommand[] = [
   { id: 'G', keys: 'G', label: 'bottom of file', tier: 2, category: 'motion' },
   { id: 'f', keys: 'f{c}', label: 'find char', tier: 2, category: 'motion' },
   { id: 'cw', keys: 'cw', label: 'change word', tier: 2, category: 'edit' },
+  { id: 'O', keys: 'O', label: 'open line above', tier: 2, category: 'modes' },
 
   // Tier 3 — Faster
   { id: 'd-motion', keys: 'd{m}', label: 'delete + motion', tier: 3, category: 'operator' },
@@ -48,6 +49,9 @@ export const COMMANDS: VimCommand[] = [
   { id: 'aw', keys: 'daw', label: 'a word + space', tier: 3, category: 'text-object' },
   { id: 'it', keys: 'cit', label: 'inner tag', tier: 3, category: 'text-object' },
   { id: 'D', keys: 'D', label: 'delete to line end', tier: 3, category: 'operator' },
+  { id: 'C', keys: 'C', label: 'change to line end', tier: 3, category: 'operator' },
+  { id: 'i[', keys: 'ci[', label: 'inner brackets', tier: 3, category: 'text-object' },
+  { id: 'indent', keys: '>> / >{m}', label: 'indent lines', tier: 3, category: 'edit' },
   { id: 'count', keys: '{n}{cmd}', label: 'count prefix', tier: 3, category: 'motion' },
   { id: 'p', keys: 'p', label: 'paste', tier: 3, category: 'edit' },
   { id: 'V', keys: 'V', label: 'visual line', tier: 3, category: 'modes' },

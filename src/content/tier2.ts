@@ -115,4 +115,15 @@ export const tier2: Challenge[] = [
     par: 10,
     hint: 'w to cat, cw → type dog → Esc. Then j down to the junk line and dd.',
   },
+  {
+    id: 't2-open-above',
+    tier: 2,
+    title: 'Prepend',
+    brief: 'This module is missing its import. Open a NEW line ABOVE with O and add it.',
+    taughtCommands: ['O'],
+    startText: 'def main():',
+    goal: { targetText: ['import sys', 'def main():'].join('\n'), describe: 'An import sys line sits above def main()' },
+    par: 12, // Oimport sys<Esc>
+    hint: 'o opens a line BELOW the cursor; its capital, O, opens one ABOVE — and drops you into insert mode there. Type the import, then Esc.',
+  },
 ]

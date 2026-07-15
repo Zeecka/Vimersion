@@ -191,4 +191,55 @@ export const tier3: Challenge[] = [
     par: 12, // cit (3) Welcome (7) + Esc
     hint: 'cit = change inner tag — it empties everything between <h1> and </h1>, wherever your cursor is inside the element. Type Welcome, then Esc.',
   },
+  {
+    id: 't3-change-tail',
+    tier: 3,
+    title: 'Rewrite the Tail',
+    brief: 'The log level is wrong. From the value, C wipes to the end of the line so you can retype it.',
+    taughtCommands: ['C'],
+    startText: 'log.level = verbose',
+    startCursor: { line: 1, ch: 12 }, // on the 'v' of verbose
+    goal: { targetText: 'log.level = info', describe: 'The level reads info' },
+    par: 6, // Cinfo<Esc>
+    hint: 'C is D’s changing cousin: it deletes from the cursor to the end of the line AND drops you into insert. Type info, then Esc.',
+  },
+  {
+    id: 't3-bracket',
+    tier: 3,
+    title: 'Inside the Brackets',
+    brief: 'Collapse the whole list to one value. ci[ changes everything between [ and ] — just like ci( and ci".',
+    taughtCommands: ['i[', 'c-motion'],
+    startText: 'colors = [red, green, blue]',
+    startCursor: { line: 1, ch: 10 }, // inside the brackets
+    goal: { targetText: 'colors = [mono]', describe: 'The brackets hold just: mono' },
+    par: 8, // ci[mono<Esc>
+    hint: 'The [ ] pair is a text object too. ci[ (or ci]) empties it wherever you are inside. Type mono, then Esc.',
+  },
+  {
+    id: 't3-transpose',
+    tier: 3,
+    title: 'Fat Finger',
+    brief: 'A classic typo: the i and e are swapped. Fix "recieve" with the two-key transpose xp.',
+    taughtCommands: ['x', 'p'],
+    startText: 'recieve the goods',
+    startCursor: { line: 1, ch: 3 }, // on the misplaced 'i'
+    goal: { targetText: 'receive the goods', describe: 'It reads receive' },
+    par: 2, // xp
+    hint: 'x deletes the character (holding it), and p drops it back down AFTER the next one — so xp swaps two neighbours. The muscle-memory fix for transposed letters.',
+  },
+  {
+    id: 't3-indent',
+    tier: 3,
+    title: 'Step In',
+    brief: 'The function body sits flush left. Indent both statements one level with > over a motion.',
+    taughtCommands: ['indent'],
+    startText: ['def totals():', 'sum = a + b', 'return sum'].join('\n'),
+    startCursor: { line: 2, ch: 0 }, // on the first body line
+    goal: {
+      targetText: ['def totals():', '  sum = a + b', '  return sum'].join('\n'),
+      describe: 'Both body lines are indented under def',
+    },
+    par: 2, // >j
+    hint: '>> indents the current line; >{motion} indents a range. >j indents this line and the one below. (Its mirror, <<, dedents.)',
+  },
 ]

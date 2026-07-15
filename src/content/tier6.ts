@@ -192,4 +192,19 @@ export const tier6: Challenge[] = [
     par: 3, // 6r*
     hint: 'r replaces the single character under the cursor without entering insert mode. 6r* overwrites six characters with *.',
   },
+  {
+    id: 't6-indent-para',
+    tier: 6,
+    title: 'Block Shift',
+    brief: 'Nest the whole settings block under config: in one move. > takes a text object — indent the inner paragraph with >ip.',
+    taughtCommands: ['indent', 'ip'],
+    startText: ['config:', '', 'host = localhost', 'port = 8080', 'debug = true'].join('\n'),
+    startCursor: { line: 3, ch: 0 }, // inside the settings paragraph
+    goal: {
+      targetText: ['config:', '', '  host = localhost', '  port = 8080', '  debug = true'].join('\n'),
+      describe: 'All three settings indented one level; config: untouched',
+    },
+    par: 3, // >ip
+    hint: '>ip indents the "inner paragraph" — the block of non-blank lines around the cursor — in a single step. The blank line stops it before config:.',
+  },
 ]
