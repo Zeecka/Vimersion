@@ -36,6 +36,8 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 | 🌋 **Living worlds** | WebGL scenes behind smoked-glass panels (react-three-fiber, selective bloom) — with a full **SVG lite mode** for low-power devices |
 | 🧠 **Vim-state goals** | challenges can verify *registers, marks, modes and macros* — not just buffer text |
 | ⌨️ **Command Belt** | your growing, category-grouped collection of mastered commands |
+| 📄 **Downloadable cheatsheet** | every command the game teaches, grouped by world — export as **Markdown** or a **printable HTML** page (→ Save as PDF), or open it in-play to look a key up |
+| 🎛️ **Play, unstuck** | look up **Commands**, **Restart** a fumbled attempt, or **Quit** to the map — right from the play screen, without losing Vim focus |
 | 🕹️ **Motion Rush** | whack-a-mole arcade drilling `hjkl` speed with combos |
 | 💾 **Zero backend** | progress in localStorage with versioned migrations; fonts & models self-hosted — **fully offline** |
 
@@ -52,10 +54,11 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 | 🔵 | **2 · Comfortable** | words `w b e` · line ends `0 $` · jumps `gg G` · `f` · `cw` | — | ✅ |
 | 🟠 | **3 · Faster** | operators × motions × **text objects** (`ciw ci( ci" daw cit`) · visual `v V Ctrl-v` | ⚔️ The Refactor Gauntlet | ✅ |
 | 🟣 | **4 · Seeker** | search `/ ? n *` · find `f t ;` · `%` · substitute `:s :%s//g :s///gc` · marks | 🔎 Grep & Gut | ✅ |
-| 🩷 | **5 · Superpowers** | registers · macros `q @` · the dot `.` · `gn` · `Ctrl-a` | 🏭 *coming* | 🚧 |
-| 🟡 | **6 · Legend** | `:g :v` · `:sort` · `:normal` · case ops · block-insert · insert-mode power | 🐉 *coming* | 🚧 |
+| 🩷 | **5 · Superpowers** | registers `"a "0 "_ "A` · macros `q @ @@` · the dot `.` · `gn` · `Ctrl-a` | 🏭 The Automaton | ✅ |
+| 🟡 | **6 · Legend** | `:g :v` · `:sort` · `:normal` · case ops `gU g~` · `J gJ` · block-insert `I $A` · `gqip` | 🐉 The Archivist | ✅ |
 
-**43 levels** shipped so far (40 challenges + 3 bosses) — every par machine-proven solvable.
+**All six worlds shipped — 76 levels (71 challenges + 5 bosses)** — every par machine-proven
+solvable, and each new level re-verified solving at ⭐⭐⭐ in a real browser.
 
 <div align="center">
 <table>
@@ -131,16 +134,17 @@ simply hides all account UI. Set `GOOGLE_CLIENT_ID/SECRET` and/or
 ## 🧪 Testing — pars are proven, not guessed
 
 ```bash
-npm run test       # 51 vitest tests
-npm run qa         # 40 browser checks (needs `npm run preview` running)
+npm run test       # 89 vitest tests
+npm run qa         # browser checks (needs `npm run preview` running)
 npm run typecheck
-cd server && npm test   # 52 backend tests (validator + live HTTP round-trips)
+cd server && npm test   # backend tests (validator + live HTTP round-trips)
 ```
 
 | Layer | What it guarantees |
 |-------|--------------------|
 | `tests/content.test.ts` | ids unique · taught commands resolve · cursors in bounds · boss budgets sane |
-| `tests/par.test.ts` | **every challenge's par is solved by a reference solution driven through the real vim keymap** — including search/ex/confirm *dialogs* |
+| `tests/par.test.ts` | **every challenge's par is solved by a reference solution driven through the real vim keymap** — including search/ex/confirm *dialogs*, macros, `Ctrl-a`, `:g`/`:sort`/`:normal` and visual-block edits |
+| `tests/cheatsheet.test.ts` | the downloadable cheatsheet covers **every** catalog command; the HTML export is self-contained and HTML-escaped |
 | `scripts/qa/` | real-Chromium suites: tier isolation (lite fetches **zero** 3D bytes), boss flow, save migration, offline reload |
 
 > [!IMPORTANT]
@@ -151,10 +155,10 @@ cd server && npm test   # 52 backend tests (validator + live HTTP round-trips)
 
 ```mermaid
 flowchart LR
-    subgraph SYNC["⚡ sync bundle · ~266 KB gz · 3D-free"]
+    subgraph SYNC["⚡ sync bundle · ~278 KB gz · 3D-free"]
         APP[App + Nightglass UI]:::ui
         ED[VimEditor<br>CM6 + real vim]:::core
-        CT[content/tier1-4<br>challenges as data]:::data
+        CT[content/tier1-6<br>challenges as data]:::data
         VF[verify.ts<br>vim-state checkers]:::data
         ST[(zustand store<br>saves v10)]:::data
         CT --> ED
@@ -167,11 +171,13 @@ flowchart LR
         H3[Hero3D robot]:::three
         TH[three + r3f + drei<br>~208 KB gz]:::three
         LH[lang-html<br>~64 KB gz]:::three
+        CS[CheatsheetModal<br>+ generator]:::three
         S3 --> TH
         H3 --> TH
     end
     APP -. "React.lazy (webgl tier only)" .-> S3
     APP -. "React.lazy" .-> H3
+    APP -. "React.lazy (on open)" .-> CS
     ED -. "loadLang (tag levels only)" .-> LH
 
     classDef ui fill:#7c6bff,color:#0b0d14,stroke:none
@@ -206,10 +212,10 @@ Step-by-step guide (goals, par math, bosses, the traps): **[docs/AUTHORING.md](d
 
 ## 📍 Roadmap
 
-- [x] Worlds 1–4 · boss mechanic · Nightglass 3D slice · vim-state verification
+- [x] **Worlds 1–6 complete** · boss mechanic · Nightglass 3D slice · vim-state verification
+- [x] 📄 **Downloadable cheatsheet** (Markdown / printable HTML) · in-play Commands · Restart · Quit
 - [ ] 🎨 **Visual rollout** — per-world 3D environments, Map/Shop/Results polish
-- [ ] ⚙️ **Mechanics** — overworld map, achievements, daily quests, spaced-repetition review
-- [ ] 🩷 **Worlds 5–6** — registers, macros, `:g`/`:sort` power idioms + plugin "Concepts" cards
+- [ ] ⚙️ **Mechanics** — achievements, daily quests, spaced-repetition review
 - [ ] 🏌️ Golf mode, onboarding, remappable keys
 
 ## 🙏 Credits

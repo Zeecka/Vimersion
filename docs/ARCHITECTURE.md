@@ -89,10 +89,11 @@ so challenges can verify **vim state**, not just text.
 
 | Chunk | Size (gz) | When fetched |
 |-------|----------:|--------------|
-| `index` (App, editor, vim, content, UI) | ~266 KB | always — **must stay 3D-free** |
+| `index` (App, editor, vim, content, UI) | ~278 KB | always — **must stay 3D-free & ≤ 280 KB** |
 | shared three/r3f/drei graph | ~208 KB | webgl tier, on idle |
 | `Stage3D` / `Hero3D` entries | ~20 KB each | webgl tier, on idle |
 | `lang-html` (syntax tree for `it`/`at`) | ~64 KB | first tag-object level only |
+| `CheatsheetModal` (+ generator/HTML template) | ~4 KB | when the cheatsheet is opened |
 | `hero.glb` (meshopt) | 183 KB | webgl tier |
 
 > [!WARNING]

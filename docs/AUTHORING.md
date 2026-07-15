@@ -106,7 +106,8 @@ the vim dialogs** — search, ex commands, and the interactive `:s///c` confirm 
 1. Challenges → `src/content/tierN.ts`; boss → `src/content/bosses.ts`
 2. Register in `src/content/tiers.ts`: `WORLDS` metadata + spread into `CHALLENGES`
    (boss goes *after* its tier's spread)
-3. New command ids → `src/game/commands.ts` (they appear in the Command Belt by category)
+3. New command ids → `src/game/commands.ts` (they appear in the Command Belt **and the
+   downloadable cheatsheet** by category — `commands.ts` is the single source of truth for both)
 4. Reference solutions → `tests/par.test.ts`
 
 ## ✅ Ship checklist
