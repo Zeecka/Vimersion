@@ -4,6 +4,7 @@ import { XPBar } from './XPBar'
 import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
 import { AccountButton, AccountModal } from './Account'
+import { CheatsheetButton } from './Cheatsheet'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { useAccount, flushSync, verifiedShareUrl } from '../game/account'
 import { levelFromXp } from '../game/xp'
@@ -81,6 +82,7 @@ export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () 
               onShop()
             }}
             title="Customize your character"
+            aria-label="Customize your character"
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-amber hover:text-amber"
           >
             <Emoji name="palette" size={14} /> <span className="hidden md:inline">customize</span>
@@ -92,14 +94,21 @@ export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () 
               onMap()
             }}
             title="World map"
+            aria-label="World map"
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
           >
             <Emoji name="target" size={14} /> <span className="hidden md:inline">maps</span>
           </button>
+          <CheatsheetButton
+            label="cheatsheet"
+            responsive
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-magenta hover:text-magenta"
+          />
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => void onShare()}
             title="Share my score"
+            aria-label="Share my score"
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
           >
             <Emoji name="rocket" size={14} /> <span className="hidden md:inline">share my score</span>
@@ -122,6 +131,7 @@ export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () 
             onShop()
           }}
           title="Shop"
+          aria-label={`Shop — ${coins} coins`}
           className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-amber transition-colors hover:border-amber"
         >
           <span className="coin" /> <span className="tabular-nums">{coins}</span>
