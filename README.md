@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/vim-logo.svg" width="72" alt="Vimersion logo">
+<img src="docs/media/logo.png" width="72" alt="Vimersion logo">
 
 # :Vimersion
 
