@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import VimEditor, { type VimEditorHandle } from '../editor/VimEditor'
-import { ModeBadge } from '../ui/atoms'
+import { KeyedText, ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
 import { CheatsheetButton } from '../ui/Cheatsheet'
@@ -106,6 +106,33 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
     editorRef.current?.focus()
   }
 
+  // Focus safety net: a click on dead space (the page background, the brief, the
+  // hero panel) blurs the editor to <body>, and from there every Vim keystroke is
+  // silently swallowed — the level looks broken with no way back but clicking the
+  // editor. Whenever focus lands on nothing, hand it to the editor.
+  //
+  // Only the <body> case is reclaimed: focus that lands on a real element (a
+  // toolbar button, a modal's dialog panel) is left alone, so Tab-navigation and
+  // modal focus traps keep working. This also covers modal close, where the
+  // unmounting panel drops focus to <body>.
+  useEffect(() => {
+    let timer: number | undefined
+    const onFocusOut = () => {
+      window.clearTimeout(timer)
+      // Defer: at focusout time activeElement is still transitioning.
+      timer = window.setTimeout(() => {
+        if (!document.hasFocus()) return // window itself lost focus — not ours to fix
+        const active = document.activeElement
+        if (!active || active === document.body) editorRef.current?.focus()
+      }, 0)
+    }
+    document.addEventListener('focusout', onFocusOut)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('focusout', onFocusOut)
+    }
+  }, [])
+
   const overPar = keystrokes > challenge.par
 
   return (
@@ -123,7 +150,9 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
               <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
                 World {challenge.tier} · {challenge.title}
               </p>
-              <h2 className="mt-1 text-lg text-ink">{activeStage.brief ?? challenge.brief}</h2>
+              <h2 className="mt-1 text-lg text-ink">
+                <KeyedText text={activeStage.brief ?? challenge.brief} />
+              </h2>
             </div>
             <div className="flex items-center gap-2">
               {stages.length > 1 && (
@@ -236,7 +265,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                 </span>
                 <span>
                   <span className="mr-1.5 text-[11px] font-bold uppercase tracking-widest text-amber">Hint</span>
-                  {challenge.hint}
+                  <KeyedText text={challenge.hint} />
                 </span>
               </div>
             )}

@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
-    "qa": "node scripts/qa/smoke.mjs && node scripts/qa/boss.mjs && node scripts/qa/qa.mjs"
+    "qa": "node scripts/qa/smoke.mjs && node scripts/qa/focus.mjs && node scripts/qa/boss.mjs && node scripts/qa/qa.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.4",

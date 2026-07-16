@@ -29,10 +29,18 @@ export interface Goal {
   describe: string
 }
 
+/**
+ * Authored copy shown to the player. Keys are named in `backticks` and render
+ * as keycaps — see <KeyedText> in src/ui/atoms.tsx. Backtick the keys the
+ * player presses ('delete it with `x`'), not prose that merely mentions a
+ * concept ('you are in normal mode').
+ */
+type Copy = string
+
 /** One stage of a multi-stage (boss) challenge, fought in the SAME buffer. */
 export interface ChallengeStage {
   /** Instruction shown when this stage begins (falls back to the challenge brief). */
-  brief?: string
+  brief?: Copy
   goal: Goal
 }
 
@@ -42,7 +50,7 @@ export interface Challenge {
   tier: Tier
   title: string
   /** One-line instruction shown above the editor. */
-  brief: string
+  brief: Copy
   /** Command ids credited toward mastery when this challenge is completed. */
   taughtCommands: string[]
   startText: string
@@ -51,7 +59,7 @@ export interface Challenge {
   goal: Goal
   /** Target keystroke count for a perfect (3-star) solve. */
   par: number
-  hint: string
+  hint: Copy
   /** 'boss' gets multi-stage flow, a keystroke budget & a special result screen. */
   kind?: 'standard' | 'boss'
   /** Boss stages 2..n, checked in order after `goal` (stage 1) — same buffer,

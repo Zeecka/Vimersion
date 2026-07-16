@@ -17,7 +17,7 @@ export const gatekeeper: Challenge = {
   tier: 1,
   kind: 'boss',
   title: 'The Gatekeeper',
-  brief: 'BOSS: The Gatekeeper blocks World 1. First — purge both SPAM lines with dd.',
+  brief: 'BOSS: The Gatekeeper blocks World 1. First — purge both SPAM lines with `dd`.',
   taughtCommands: ['dd', 'i', 'x', 'o', 'esc'],
   startText: [
     'The gate of World 1.',
@@ -40,7 +40,7 @@ export const gatekeeper: Challenge = {
       },
     },
     {
-      brief: "Stage 3 — open a new line at the bottom with o and declare: onward!",
+      brief: "Stage 3 — open a new line at the bottom with `o` and declare: onward!",
       goal: {
         targetText: ['The gate of World 1.', 'the guard is asleep', 'gate: locked', 'onward!'].join('\n'),
         describe: 'Stage 3: the buffer ends with onward!',
@@ -49,7 +49,7 @@ export const gatekeeper: Challenge = {
   ],
   par: 21,
   keystrokeBudget: 47,
-  hint: 'dd deletes a line. $ jumps to line end, i inserts before the cursor, x deletes under it. o opens a line below — Esc when done.',
+  hint: '`dd` deletes a line. `$` jumps to line end, `i` inserts before the cursor, `x` deletes under it. `o` opens a line below — `Esc` when done.',
 }
 
 /** World 3 boss — chains the tier's grammar: ciw rename, daw dedupe, dd cleanup.
@@ -59,7 +59,7 @@ export const gauntlet: Challenge = {
   tier: 3,
   kind: 'boss',
   title: 'The Refactor Gauntlet',
-  brief: 'BOSS: This function fights back. Stage 1 — rename cnt to count with ciw.',
+  brief: 'BOSS: This function fights back. Stage 1 — rename cnt to count with `ciw`.',
   taughtCommands: ['iw', 'aw', 'c-motion', 'dd'],
   startText: [
     'let cnt = fetchItems()',
@@ -79,7 +79,7 @@ export const gauntlet: Challenge = {
   },
   stages: [
     {
-      brief: 'Stage 2 — the message stutters. Delete the duplicated to with daw.',
+      brief: 'Stage 2 — the message stutters. Delete the duplicated to with `daw`.',
       goal: {
         targetText: [
           'let count = fetchItems()',
@@ -91,7 +91,7 @@ export const gauntlet: Challenge = {
       },
     },
     {
-      brief: 'Stage 3 — finish it: kill the legacy comment line with dd.',
+      brief: 'Stage 3 — finish it: kill the legacy comment line with `dd`.',
       goal: {
         targetText: ['let count = fetchItems()', 'let msg = "Ready to launch"', 'print(msg)'].join('\n'),
         describe: 'Stage 3: the legacy comment is gone',
@@ -100,7 +100,7 @@ export const gauntlet: Challenge = {
   ],
   par: 22,
   keystrokeBudget: 49,
-  hint: 'ciw changes the word under the cursor. daw deletes a word plus its space (w hops words to reach it). dd kills a whole line.',
+  hint: '`ciw` changes the word under the cursor. `daw` deletes a word plus its space (`w` hops words to reach it). `dd` kills a whole line.',
 }
 
 /** World 4 boss — log-file surgery with the whole Seeker kit: search-and-
@@ -111,7 +111,7 @@ export const grepgut: Challenge = {
   tier: 4,
   kind: 'boss',
   title: 'Grep & Gut',
-  brief: 'BOSS: This log lies. Stage 1 — hunt down BOTH [eror] lines with /eror and delete them (n finds the next).',
+  brief: 'BOSS: This log lies. Stage 1 — hunt down BOTH [eror] lines with `/eror` and delete them (`n` finds the next).',
   taughtCommands: ['search', 'n', 'sub-all', 'percent', 'dd'],
   startText: [
     '[boot] service starting',
@@ -140,7 +140,7 @@ export const grepgut: Challenge = {
   },
   stages: [
     {
-      brief: 'Stage 2 — promote every [warn] tag to [WARN] in one blast: :%s/warn/WARN/g.',
+      brief: 'Stage 2 — promote every [warn] tag to [WARN] in one blast: `:%s/warn/WARN/g`.',
       goal: {
         targetText: [
           '[boot] service starting',
@@ -156,7 +156,7 @@ export const grepgut: Challenge = {
       },
     },
     {
-      brief: 'Stage 3 — the stat line leaks internals. Land on the ( with f(, gut it with d%, and x the leftover space.',
+      brief: 'Stage 3 — the stat line leaks internals. Land on the ( with `f(`, gut it with `d%`, and `x` the leftover space.',
       goal: {
         targetText: [
           '[boot] service starting',
@@ -174,7 +174,7 @@ export const grepgut: Challenge = {
   ],
   par: 36,
   keystrokeBudget: 80,
-  hint: '/pattern then n hops matches; dd per hit. :%s/old/new/g fixes the whole file. d% deletes from a bracket to its partner.',
+  hint: '`/pattern` then `n` hops matches; `dd` per hit. `:%s/old/new/g` fixes the whole file. `d%` deletes from a bracket to its partner.',
 }
 
 /** World 5 boss — the whole Superpowers kit in one machine: record a macro to
@@ -186,7 +186,7 @@ export const automaton: Challenge = {
   tier: 5,
   kind: 'boss',
   title: 'The Automaton',
-  brief: 'BOSS: The Automaton runs on repetition. Stage 1 — record a macro (qa…q) that bumps a count with Ctrl-a, then @a it down the column.',
+  brief: 'BOSS: The Automaton runs on repetition. Stage 1 — record a macro (`qa`…`q`) that bumps a count with `Ctrl-a`, then `@a` it down the column.',
   taughtCommands: ['macro', 'macro-replay', 'incr', 'blackhole', 'registers', 'dot'],
   startText: ['count = 0', 'count = 0', 'count = 0', 'KEEP = base', 'trash = tmp', '# end'].join('\n'),
   goal: {
@@ -198,14 +198,14 @@ export const automaton: Challenge = {
   },
   stages: [
     {
-      brief: 'Stage 2 — yank KEEP, then black-hole ("_dd) the trash line so your yank survives, and paste KEEP under # end.',
+      brief: 'Stage 2 — yank KEEP, then black-hole (`"_dd`) the trash line so your yank survives, and paste KEEP under # end.',
       goal: {
         targetText: ['count = 1', 'count = 1', 'count = 1', 'KEEP = base', '# end', 'KEEP = base'].join('\n'),
         describe: 'Stage 2: trash gone, KEEP duplicated under # end',
       },
     },
     {
-      brief: 'Stage 3 — finish the counters: append ; to the first, then dot your way down (j. j.).',
+      brief: 'Stage 3 — finish the counters: append ; to the first, then dot your way down (`j``.` `j``.`).',
       goal: {
         targetText: ['count = 1;', 'count = 1;', 'count = 1;', 'KEEP = base', '# end', 'KEEP = base'].join('\n'),
         describe: 'Stage 3: all three counters end with a semicolon',
@@ -214,7 +214,7 @@ export const automaton: Challenge = {
   ],
   par: 26,
   keystrokeBudget: 58,
-  hint: 'qa<C-a>jq records a one-line bump; @a replays it. "_dd deletes without touching your yank. A; then j. j. stamps the semicolons.',
+  hint: '`qa``Ctrl-a``j``q` records a one-line bump; `@a` replays it. `"_dd` deletes without touching your yank. `A`; then `j``.` `j``.` stamps the semicolons.',
 }
 
 /** World 6 boss — bulk-editing legend: purge with :g, reorder with :sort, then
@@ -225,7 +225,7 @@ export const archivist: Challenge = {
   tier: 6,
   kind: 'boss',
   title: 'The Archivist',
-  brief: 'BOSS: The Archivist demands order. Stage 1 — purge every DEBUG line in one sweep with :g/DEBUG/d.',
+  brief: 'BOSS: The Archivist demands order. Stage 1 — purge every DEBUG line in one sweep with `:g/DEBUG/d`.',
   taughtCommands: ['global', 'sort', 'block-i', 'ctrl-v'],
   startText: ['zeta = 3', 'alpha = 1', 'DEBUG trace', 'beta = 2', 'DEBUG trace', 'gamma = 4'].join('\n'),
   goal: {
@@ -234,14 +234,14 @@ export const archivist: Challenge = {
   },
   stages: [
     {
-      brief: 'Stage 2 — put the survivors in order with :sort.',
+      brief: 'Stage 2 — put the survivors in order with `:sort`.',
       goal: {
         targetText: ['alpha = 1', 'beta = 2', 'gamma = 4', 'zeta = 3'].join('\n'),
         describe: 'Stage 2: the four settings are sorted',
       },
     },
     {
-      brief: 'Stage 3 — comment them all: gg, then a visual-block down the column and I# to prefix every line.',
+      brief: 'Stage 3 — comment them all: `gg`, then a visual-block down the column and `I#` to prefix every line.',
       goal: {
         targetText: ['# alpha = 1', '# beta = 2', '# gamma = 4', '# zeta = 3'].join('\n'),
         describe: 'Stage 3: every line is commented with "# "',
@@ -250,7 +250,7 @@ export const archivist: Challenge = {
   ],
   par: 27,
   keystrokeBudget: 60,
-  hint: ':g/DEBUG/d deletes matching lines; :sort orders them. Then gg and Ctrl-v jjj selects the column — I# <Esc> comments every row.',
+  hint: '`:g/DEBUG/d` deletes matching lines; `:sort` orders them. Then `gg` and `Ctrl-v` `jjj` selects the column — `I#` `Esc` comments every row.',
 }
 
 export const BOSSES: Challenge[] = [gatekeeper, gauntlet, grepgut, automaton, archivist]

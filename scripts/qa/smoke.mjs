@@ -1,6 +1,7 @@
 // Vimersion runtime smoke test: lite tier by default, forced webgl tier,
 // console-error capture, network isolation check, screenshots.
 import { chromium } from 'playwright'
+import { prepPage } from './harness.mjs'
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173'
 const SHOT_DIR = process.env.SHOT_DIR ?? '.qa-shots'
@@ -20,6 +21,7 @@ const browser = await chromium.launch({
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
   page.setDefaultTimeout(60000)
+  await prepPage(page)
   const errors = []
   const requests = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
@@ -64,6 +66,7 @@ const browser = await chromium.launch({
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
   page.setDefaultTimeout(60000)
+  await prepPage(page)
   const errors = []
   const requests = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))

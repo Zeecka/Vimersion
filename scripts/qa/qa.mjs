@@ -4,8 +4,8 @@ import { chromium } from 'playwright'
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173'
 const SHOT = process.env.SHOT_DIR ?? '.qa-shots'
 const T1 = ['t1-first-blood', 't1-navigate', 't1-insert', 't1-append', 't1-delete-line', 't1-undo', 't1-open-line', 't1-capstone']
-const T2 = ['t2-word-leap', 't2-end-word', 't2-back-word', 't2-line-ends', 't2-find-char', 't2-change-word', 't2-file-ends', 't2-capstone']
-const T3 = ['t3-cut-word', 't3-shear', 't3-ciw', 't3-ci-paren', 't3-ci-quote', 't3-daw', 't3-counts', 't3-dupe-line', 't3-transplant', 't3-visual-snip', 't3-visual-line', 't3-visual-block', 't3-tag-change']
+const T2 = ['t2-word-leap', 't2-end-word', 't2-back-word', 't2-line-ends', 't2-find-char', 't2-change-word', 't2-file-ends', 't2-capstone', 't2-open-above']
+const T3 = ['t3-cut-word', 't3-shear', 't3-ciw', 't3-ci-paren', 't3-ci-quote', 't3-daw', 't3-counts', 't3-dupe-line', 't3-transplant', 't3-visual-snip', 't3-visual-line', 't3-visual-block', 't3-tag-change', 't3-change-tail', 't3-bracket', 't3-transpose', 't3-indent']
 const T4_PRE = ['t4-searchlight', 't4-third-strike', 't4-question', 't4-star-player', 't4-slice-args', 't4-repeat-find', 't4-percent', 't4-sub-line', 't4-sub-global']
 
 const seededSave = (ids, extra = {}) => ({

@@ -1,5 +1,6 @@
 // Boss-flow test: stage ratchet, undo immunity, budget fail + free retry.
 import { chromium } from 'playwright'
+import { prepPage } from './harness.mjs'
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173'
 const T1 = ['t1-first-blood', 't1-navigate', 't1-insert', 't1-append', 't1-delete-line', 't1-undo', 't1-open-line', 't1-capstone']
@@ -23,6 +24,7 @@ async function openBoss(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await ctx.newPage()
   page.setDefaultTimeout(60000)
+  await prepPage(page)
   const errors = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   page.on('pageerror', (e) => errors.push(String(e)))
