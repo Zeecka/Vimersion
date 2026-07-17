@@ -44,6 +44,7 @@ const SOLUTIONS: Record<string, string> = {
   't4-sub-confirm': ':%s/count/total/gc<CR>ynyny',
   't4-marks': 'maggdd`a',
   'boss-grepgut': '/eror<CR>ddndd:%s/warn/WARN/g<CR>jf(d%x',
+  'boss-proofreader': 'cwthe<Esc>jddcwsave<Esc>',
   // Extra fundamentals (open-above, change-to-end, brackets, transpose, indent)
   't2-open-above': 'Oimport sys<Esc>',
   't3-change-tail': 'Cinfo<Esc>',

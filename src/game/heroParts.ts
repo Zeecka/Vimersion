@@ -64,13 +64,26 @@ export const VISOR_STYLES: { id: VisorStyle; name: string }[] = [
   { id: 'grille', name: 'Grille' },
 ]
 
-export const AURA_STYLES: { id: AuraStyle; name: string; emoji: string }[] = [
-  { id: 'sparkles', name: 'Sparkles', emoji: 'sparkles' },
-  { id: 'fire', name: 'Fire', emoji: 'fire' },
-  { id: 'bolt', name: 'Bolt', emoji: 'bolt' },
-  { id: 'orbit', name: 'Orbit', emoji: 'sparkles' },
-  { id: 'rings', name: 'Rings', emoji: 'sparkles' },
+/**
+ * Aura styles are Shop purchases: `price` coins to unlock, then equip from the
+ * Character studio. Sparkles is the free default (owned from the start). Color &
+ * intensity remain free once a style is owned. The `owned` set in the save keys
+ * these by their `auraSku()` id so they never collide with theme/background ids.
+ */
+export const AURA_STYLES: { id: AuraStyle; name: string; emoji: string; price: number }[] = [
+  { id: 'sparkles', name: 'Sparkles', emoji: 'sparkles', price: 0 },
+  { id: 'fire', name: 'Fire', emoji: 'fire', price: 60 },
+  { id: 'bolt', name: 'Bolt', emoji: 'bolt', price: 60 },
+  { id: 'orbit', name: 'Orbit', emoji: 'sparkles', price: 90 },
+  { id: 'rings', name: 'Rings', emoji: 'sparkles', price: 90 },
 ]
+
+/** Ownership key for an aura style — namespaced so it never collides with a
+ *  theme/background cosmetic id inside the shared `owned` array. */
+export const auraSku = (id: AuraStyle): string => `aura:${id}`
+
+/** The aura skus a fresh save owns for free (just the default). */
+export const DEFAULT_OWNED_AURAS: string[] = AURA_STYLES.filter((a) => a.price === 0).map((a) => auraSku(a.id))
 
 const ACCESSORY_IDS = ACCESSORIES.map((a) => a.id) as string[]
 const VISOR_IDS = VISOR_STYLES.map((v) => v.id) as string[]

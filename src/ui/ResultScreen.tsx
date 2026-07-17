@@ -91,7 +91,7 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, nextLabe
             keystrokes <b className="text-ink">{keystrokes}</b>
           </span>
           <span className="text-ink-dim">
-            par <b className="text-ink">{par}</b>
+            goal <b className="text-ink">{par}</b>
           </span>
         </div>
 

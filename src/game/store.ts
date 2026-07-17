@@ -4,7 +4,17 @@ import type { Challenge, ChallengeResult, Stars } from './types'
 import type { QualitySetting } from './quality'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
 import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS, LEGACY_DEFAULT_THEMES } from './cosmetics'
-import { INITIAL_HERO, LEGACY_AVATAR_IDS, normalizeHero, type HeroAura, type HeroCustom } from './heroParts'
+import {
+  AURA_STYLES,
+  DEFAULT_OWNED_AURAS,
+  INITIAL_HERO,
+  LEGACY_AVATAR_IDS,
+  auraSku,
+  normalizeHero,
+  type AuraStyle,
+  type HeroAura,
+  type HeroCustom,
+} from './heroParts'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
@@ -34,22 +44,33 @@ interface Persisted {
   streak: { count: number; lastPlayed: string | null }
   soundOn: boolean
   arcadeBest: number
+  /** Best number of correct answers in a single Quiz round. */
+  quizBest: number
   owned: string[]
   equipped: Equipped
   hero: HeroCustom
   /** Graphics quality: 'auto' resolves per-device via detectQuality(). */
   quality: QualitySetting
+  /** Whether the first-run "How to play" primer has been shown. It auto-opens
+   *  once, on the player's first campaign level. */
+  seenPrimer: boolean
 }
 
 interface GameStore extends Persisted {
   completeChallenge: (ch: Challenge, keystrokes: number) => CompleteOutcome
   recordArcade: (score: number, commands: string[]) => { isNewBest: boolean; coinsGained: number }
+  /** Record a finished Quiz round: awards coins, tracks the best, bumps the streak. */
+  recordQuiz: (correct: number, total: number) => { isNewBest: boolean; coinsGained: number }
   buyItem: (id: string) => boolean
   equipItem: (id: string) => void
+  /** Buy an aura style (coins → `owned`). Returns false if unaffordable/owned. */
+  buyAura: (id: AuraStyle) => boolean
   setHero: (partial: Partial<Omit<HeroCustom, 'aura'>> & { aura?: Partial<HeroAura> }) => void
   bumpStreak: () => void
   toggleSound: () => void
   setQuality: (q: QualitySetting) => void
+  /** Mark the first-run primer as seen so it never auto-opens again. */
+  markPrimerSeen: () => void
   resetProgress: () => void
 }
 
@@ -72,10 +93,12 @@ const initial: Persisted = {
   streak: { count: 0, lastPlayed: null },
   soundOn: true,
   arcadeBest: 0,
-  owned: [DEFAULTS.theme, DEFAULTS.background],
+  quizBest: 0,
+  owned: [DEFAULTS.theme, DEFAULTS.background, ...DEFAULT_OWNED_AURAS],
   equipped: { ...DEFAULTS },
   hero: INITIAL_HERO,
   quality: 'auto',
+  seenPrimer: false,
 }
 
 export const useGame = create<GameStore>()(
@@ -135,6 +158,16 @@ export const useGame = create<GameStore>()(
         return { isNewBest, coinsGained }
       },
 
+      recordQuiz: (correct, total) => {
+        const s = get()
+        const isNewBest = correct > s.quizBest
+        const perfect = total > 0 && correct === total
+        const coinsGained = correct * 3 + (perfect ? 10 : 0)
+        set({ quizBest: Math.max(correct, s.quizBest), coins: s.coins + coinsGained })
+        get().bumpStreak()
+        return { isNewBest, coinsGained }
+      },
+
       buyItem: (id) => {
         const item = COSMETIC_BY_ID[id]
         const s = get()
@@ -148,6 +181,15 @@ export const useGame = create<GameStore>()(
         const s = get()
         if (!item || !s.owned.includes(id)) return
         set({ equipped: { ...s.equipped, [item.kind]: id } })
+      },
+
+      buyAura: (id) => {
+        const style = AURA_STYLES.find((a) => a.id === id)
+        const sku = auraSku(id)
+        const s = get()
+        if (!style || s.owned.includes(sku) || s.coins < style.price) return false
+        set({ coins: s.coins - style.price, owned: [...s.owned, sku] })
+        return true
       },
 
       setHero: (partial) =>
@@ -167,17 +209,21 @@ export const useGame = create<GameStore>()(
 
       setQuality: (q) => set({ quality: q }),
 
+      markPrimerSeen: () => set({ seenPrimer: true }),
+
       resetProgress: () => set({ ...initial, owned: [...initial.owned], equipped: { ...initial.equipped } }),
     }),
     {
       name: 'vimersion-save',
-      version: 10,
+      version: 12,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Record<string, any>
         const pe = (p.equipped ?? {}) as Record<string, unknown>
         const merged = {
           ...initial,
           ...p,
+          // `...initial.owned` backfills the free default aura (and theme/bg) into
+          // every legacy save (v11: auras became Shop purchases).
           owned: Array.from(new Set([...((p.owned as string[]) ?? []), ...initial.owned])),
           // v10: `equipped.avatar` was removed — keep only theme + background.
           equipped: {
@@ -216,6 +262,18 @@ export const useGame = create<GameStore>()(
         if (version < 9 && merged.equipped.background === 'synthwave') {
           merged.equipped.background = DEFAULTS.background
         }
+        // v11: aura styles became Shop purchases. Grant ownership of whatever aura
+        // the player already had equipped, so upgrading never revokes their look
+        // (the "migration dividend"). New paid styles still cost coins.
+        if (version < 11) {
+          const equippedSku = auraSku(merged.hero.aura.style)
+          if (!merged.owned.includes(equippedSku)) merged.owned = [...merged.owned, equippedSku]
+        }
+        // v12: the first-run primer moved from Home to the first campaign level.
+        // Existing players have already used the app, so don't nag them — mark it
+        // seen for every migrating save. Only brand-new saves (which never run
+        // migrate) keep seenPrimer=false and get the auto-open.
+        if (version < 12) merged.seenPrimer = true
         return merged
       },
       partialize: (s): Persisted => ({
@@ -226,10 +284,12 @@ export const useGame = create<GameStore>()(
         streak: s.streak,
         soundOn: s.soundOn,
         arcadeBest: s.arcadeBest,
+        quizBest: s.quizBest,
         owned: s.owned,
         equipped: s.equipped,
         hero: s.hero,
         quality: s.quality,
+        seenPrimer: s.seenPrimer,
       }),
     },
   ),

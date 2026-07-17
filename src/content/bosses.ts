@@ -33,14 +33,14 @@ export const gatekeeper: Challenge = {
   },
   stages: [
     {
-      brief: "Stage 2 — fix the guard's report: 'aslep' → 'asleep', then 'lockedd' → 'locked'.",
+      brief: "Stage 2 — fix the guard's report: 'aslep' → `asleep`, then 'lockedd' → `locked`.",
       goal: {
         targetText: ['The gate of World 1.', 'the guard is asleep', 'gate: locked'].join('\n'),
         describe: 'Stage 2: both typos fixed',
       },
     },
     {
-      brief: "Stage 3 — open a new line at the bottom with `o` and declare: onward!",
+      brief: "Stage 3 — open a new line at the bottom with `o` and declare: `onward!`",
       goal: {
         targetText: ['The gate of World 1.', 'the guard is asleep', 'gate: locked', 'onward!'].join('\n'),
         describe: 'Stage 3: the buffer ends with onward!',
@@ -52,6 +52,43 @@ export const gatekeeper: Challenge = {
   hint: '`dd` deletes a line. `$` jumps to line end, `i` inserts before the cursor, `x` deletes under it. `o` opens a line below — `Esc` when done.',
 }
 
+/** World 2 boss — the whole "Comfortable" kit in one proofread: change-word
+ *  (cw) twice with a line delete (dd) between, navigating by line.
+ *  Optimal: cwthe<Esc> (6) · jdd (3) · cwsave<Esc> (7) = 16 keys. */
+export const proofreader: Challenge = {
+  id: 'boss-proofreader',
+  tier: 2,
+  kind: 'boss',
+  title: 'The Proofreader',
+  brief: 'BOSS: The Proofreader guards World 2. Stage 1 — fix the typo: change `teh` to `the` with `cw`.',
+  taughtCommands: ['cw', 'w', 'dd'],
+  startText: ['teh readme file', 'REMOVE ME', 'saev the draft'].join('\n'),
+  startCursor: { line: 1, ch: 0 },
+  goal: {
+    targetText: ['the readme file', 'REMOVE ME', 'saev the draft'].join('\n'),
+    describe: 'Stage 1: the first word reads "the"',
+  },
+  stages: [
+    {
+      brief: 'Stage 2 — a whole line has to go. Drop down a line and delete `REMOVE ME` with `dd`.',
+      goal: {
+        targetText: ['the readme file', 'saev the draft'].join('\n'),
+        describe: 'Stage 2: the REMOVE ME line is gone',
+      },
+    },
+    {
+      brief: 'Stage 3 — one more typo. Change `saev` to `save` with `cw`.',
+      goal: {
+        targetText: ['the readme file', 'save the draft'].join('\n'),
+        describe: 'Stage 3: the buffer reads "save the draft"',
+      },
+    },
+  ],
+  par: 18,
+  keystrokeBudget: 40,
+  hint: '`cw` changes the word under the cursor — type the fix, then `Esc`. `j` moves down a line; `dd` deletes a whole line.',
+}
+
 /** World 3 boss — chains the tier's grammar: ciw rename, daw dedupe, dd cleanup.
  *  Optimal: ciwcount (8) · <Esc> j wwww daw (9) · j dd (3) = 20 keys. */
 export const gauntlet: Challenge = {
@@ -59,7 +96,7 @@ export const gauntlet: Challenge = {
   tier: 3,
   kind: 'boss',
   title: 'The Refactor Gauntlet',
-  brief: 'BOSS: This function fights back. Stage 1 — rename cnt to count with `ciw`.',
+  brief: 'BOSS: This function fights back. Stage 1 — rename cnt to `count` with `ciw`.',
   taughtCommands: ['iw', 'aw', 'c-motion', 'dd'],
   startText: [
     'let cnt = fetchItems()',
@@ -205,7 +242,7 @@ export const automaton: Challenge = {
       },
     },
     {
-      brief: 'Stage 3 — finish the counters: append ; to the first, then dot your way down (`j``.` `j``.`).',
+      brief: 'Stage 3 — finish the counters: append `;` to the first, then dot your way down (`j``.` `j``.`).',
       goal: {
         targetText: ['count = 1;', 'count = 1;', 'count = 1;', 'KEEP = base', '# end', 'KEEP = base'].join('\n'),
         describe: 'Stage 3: all three counters end with a semicolon',
@@ -253,4 +290,4 @@ export const archivist: Challenge = {
   hint: '`:g/DEBUG/d` deletes matching lines; `:sort` orders them. Then `gg` and `Ctrl-v` `jjj` selects the column — `I#` `Esc` comments every row.',
 }
 
-export const BOSSES: Challenge[] = [gatekeeper, gauntlet, grepgut, automaton, archivist]
+export const BOSSES: Challenge[] = [gatekeeper, proofreader, gauntlet, grepgut, automaton, archivist]

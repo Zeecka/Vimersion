@@ -19,7 +19,17 @@ import { sfx } from '../game/sound'
  * the optional account control. (Graphics quality is auto-detected per device;
  * there is no manual toggle.)
  */
-export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () => void; onMap: () => void }) {
+export function Hud({
+  onHome,
+  onShop,
+  onMap,
+  onQuiz,
+}: {
+  onHome: () => void
+  onShop: () => void
+  onMap: () => void
+  onQuiz: () => void
+}) {
   const streak = useGame((s) => s.streak.count)
   const soundOn = useGame((s) => s.soundOn)
   const toggleSound = useGame((s) => s.toggleSound)
@@ -98,6 +108,18 @@ export function Hud({ onHome, onShop, onMap }: { onHome: () => void; onShop: () 
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
           >
             <Emoji name="target" size={14} /> <span className="hidden md:inline">maps</span>
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              sfx.ui()
+              onQuiz()
+            }}
+            title="Quiz mode — tap-to-answer trainer"
+            aria-label="Quiz mode"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
+          >
+            <Emoji name="star" size={14} /> <span className="hidden md:inline">quiz</span>
           </button>
           <CheatsheetButton
             label="cheatsheet"

@@ -90,7 +90,7 @@ export const tier4: Challenge[] = [
     id: 't4-star-player',
     tier: 4,
     title: 'Star Player',
-    brief: 'Cursor is on tmp in the comment. Press `*` to jump straight to its use in the code, then rename it to rows with `ciw`.',
+    brief: 'Cursor is on tmp in the comment. Press `*` to jump straight to its use in the code, then rename it to `rows` with `ciw`.',
     taughtCommands: ['star', 'iw'],
     startText: ['# tmp holds the parsed rows', 'result = transform(tmp)'].join('\n'),
     startCursor: { line: 1, ch: 2 }, // on "tmp" in the comment
@@ -183,7 +183,7 @@ export const tier4: Challenge[] = [
     id: 't4-sub-confirm',
     tier: 4,
     title: 'Sniper Sub',
-    brief: 'Rename the count VARIABLE to total — but the strings must keep saying count. Add the `c` flag and answer `y`/`n` per match.',
+    brief: 'Rename the count VARIABLE to `total` — but the strings must keep saying count. Add the `c` flag and answer `y`/`n` per match.',
     taughtCommands: ['sub-confirm'],
     startText: ['count = 0', 'print("count so far:", count)', 'log("final count")', 'count += 1'].join('\n'),
     goal: {

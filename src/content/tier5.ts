@@ -172,6 +172,6 @@ export const tier5: Challenge[] = [
       describe: 'Every build bumped to 101 and marked shipped — via a recorded macro',
     },
     par: 22, // qa0<C-a>$ciwshipped<Esc>jq @a @a
-    hint: 'Record: `0` returns to the line start, `Ctrl-a` bumps the number, `$` jumps to the last word, `ciw`shipped rewrites it, `Esc`, `j`. Stop with `q`, then `@a` `@a`.',
+    hint: 'Record: `0` returns to the line start, `Ctrl-a` bumps the number, `$` jumps to the last word, `ciw` `shipped` rewrites it, `Esc`, `j`. Stop with `q`, then `@a` `@a`.',
   },
 ]

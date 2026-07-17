@@ -2,7 +2,7 @@ import { Suspense, lazy, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
 import { THEMES, BACKGROUNDS, COSMETIC_BY_ID, type Cosmetic } from '../game/cosmetics'
-import { heroLookFrom, ACCESSORIES, VISOR_STYLES, AURA_STYLES, type AccessoryId, type VisorStyle } from '../game/heroParts'
+import { heroLookFrom, auraSku, ACCESSORIES, VISOR_STYLES, AURA_STYLES, type AccessoryId, type VisorStyle } from '../game/heroParts'
 import { effectiveQuality } from '../game/quality'
 import { useStage } from '../three/stageState'
 import { sfx } from '../game/sound'
@@ -131,6 +131,9 @@ function CharacterStudio() {
   const hero = useGame((s) => s.hero)
   const setHero = useGame((s) => s.setHero)
   const equipped = useGame((s) => s.equipped)
+  const owned = useGame((s) => s.owned)
+  const coins = useGame((s) => s.coins)
+  const buyAura = useGame((s) => s.buyAura)
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
@@ -178,26 +181,50 @@ function CharacterStudio() {
       <PickRow<VisorStyle> label="Visor Style" items={VISOR_STYLES} active={hero.visorStyle} onPick={(id) => setHero({ visorStyle: id })} />
       <PickRow<AccessoryId> label="Accessory" items={ACCESSORIES} active={hero.accessory} onPick={(id) => setHero({ accessory: id })} />
 
-      {/* aura */}
+      {/* aura — each style is a coin purchase; color & intensity are free once owned */}
       <div className="mt-4">
         <div className="text-[10px] uppercase tracking-widest text-ink-dim">Aura</div>
         <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-3">
           <ColorField label="Color" hint="Aura color" value={auraColor} onChange={(v) => setHero({ aura: { color: v } })} />
           <div className="flex flex-wrap gap-1.5">
-            {AURA_STYLES.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => {
-                  setHero({ aura: { style: a.id } })
-                  sfx.ui()
-                }}
-                className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                  hero.aura.style === a.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
-                }`}
-              >
-                <Emoji name={a.emoji} size={14} /> {a.name}
-              </button>
-            ))}
+            {AURA_STYLES.map((a) => {
+              const isOwned = owned.includes(auraSku(a.id))
+              const isActive = hero.aura.style === a.id
+              const canAfford = coins >= a.price
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => {
+                    if (isOwned) {
+                      setHero({ aura: { style: a.id } })
+                      sfx.ui()
+                    } else if (buyAura(a.id)) {
+                      setHero({ aura: { style: a.id } }) // auto-equip on purchase
+                      sfx.levelUp()
+                    } else {
+                      sfx.error()
+                    }
+                  }}
+                  title={isOwned ? `Equip ${a.name}` : `Buy ${a.name} for ${a.price} coins`}
+                  className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                    isActive
+                      ? 'border-term text-term'
+                      : isOwned
+                        ? 'border-border text-ink-dim hover:text-ink'
+                        : canAfford
+                          ? 'border-amber/50 text-amber hover:bg-amber/10'
+                          : 'cursor-not-allowed border-border text-ink-dim opacity-60'
+                  }`}
+                >
+                  <Emoji name={a.emoji} size={14} /> {a.name}
+                  {!isOwned && (
+                    <span className="ml-0.5 inline-flex items-center gap-0.5 tabular-nums">
+                      <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {a.price}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
           <label className="flex min-w-[130px] flex-1 flex-col gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
             Intensity

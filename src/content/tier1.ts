@@ -1,4 +1,5 @@
 import type { Challenge } from '../game/types'
+import { allOf, bufferEquals, inMode } from '../game/verify'
 
 /** Char currently under the cursor (normal-mode "on" a character). */
 function charUnderCursor(view: import('@codemirror/view').EditorView): string {
@@ -43,11 +44,16 @@ export const tier1: Challenge[] = [
     id: 't1-insert',
     tier: 1,
     title: 'Mind the Gap',
-    brief: 'Insert a space so it reads "hello world". Use `i`, then `Esc`.',
+    brief: 'Insert a space so it reads "hello world". Use `i`, type a space, then leave with `Esc`.',
     taughtCommands: ['i', 'esc'],
     startText: 'helloworld',
     startCursor: { line: 1, ch: 5 }, // on the "w"
-    goal: { targetText: 'hello world', describe: 'Buffer reads: hello world' },
+    // Only a win once you've LEFT insert mode: the space alone would trigger
+    // mid-type, so require normal mode — the player must press Esc to finish.
+    goal: {
+      predicate: allOf(bufferEquals('hello world'), inMode('normal')),
+      describe: 'Buffer reads "hello world" — and you are back in normal mode',
+    },
     par: 3,
     hint: 'Cursor on the w → press `i`, type a space, then press `Esc` to leave insert mode.',
   },
@@ -55,13 +61,13 @@ export const tier1: Challenge[] = [
     id: 't1-append',
     tier: 1,
     title: 'Big Finish',
-    brief: 'Append a ! to the end so it reads "You win!". Use `a`, then `Esc`.',
+    brief: 'Append a `!` to the end so it reads "You win!". Use `a`, then `Esc`.',
     taughtCommands: ['a', 'esc'],
     startText: 'You win',
     startCursor: { line: 1, ch: 6 }, // on the last "n"
     goal: { targetText: 'You win!', describe: 'Buffer reads: You win!' },
     par: 3,
-    hint: '`a` inserts AFTER the cursor. Put it on the last letter, press `a`, type !, then `Esc`.',
+    hint: '`a` inserts AFTER the cursor. Put it on the last letter, press `a`, type `!`, then `Esc`.',
   },
   {
     id: 't1-delete-line',
@@ -102,13 +108,13 @@ export const tier1: Challenge[] = [
     id: 't1-open-line',
     tier: 1,
     title: 'Room Below',
-    brief: 'Open a new line below and type world. Use `o`, then `Esc`.',
+    brief: 'Open a new line below and type `world`. Use `o`, then `Esc`.',
     taughtCommands: ['o', 'esc'],
     startText: 'hello',
     startCursor: { line: 1, ch: 0 },
     goal: { targetText: ['hello', 'world'].join('\n'), describe: 'A second line reads: world' },
     par: 7,
-    hint: '`o` opens a new line BELOW and drops you into insert mode. Type world, then `Esc`.',
+    hint: '`o` opens a new line BELOW and drops you into insert mode. Type `world`, then `Esc`.',
   },
   {
     id: 't1-capstone',

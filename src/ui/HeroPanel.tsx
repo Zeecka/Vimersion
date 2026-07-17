@@ -5,7 +5,6 @@ import { levelProgress } from '../game/xp'
 import { COMMANDS } from '../game/commands'
 import { AURA_STYLES } from '../game/heroParts'
 import { WORLDS, challengesForTier } from '../content/tiers'
-import { sfx } from '../game/sound'
 import { effectiveQuality } from '../game/quality'
 import { useStage, type HeroReaction } from '../three/stageState'
 import { PlayerAvatar } from './Avatar'
@@ -16,8 +15,6 @@ export type Reaction = HeroReaction
 
 // Local Suspense boundary — only the portrait ever suspends, never the editor.
 const Hero3D = lazy(() => import('../three/Hero3D'))
-
-const EMOTES = ['cool', 'muscle', 'party', 'starstruck', 'wave', 'fire'] as const
 
 /** Playful rank title derived from level (purely cosmetic flavor). */
 const RANKS = ['Rookie', 'Operator', 'Coder', 'Hacker', 'Wizard', 'Legend']
@@ -68,9 +65,9 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const arcadeBest = useGame((s) => s.arcadeBest)
 
   const [emote, setEmote] = useState<string | null>(null)
-  // The aura is a persisted customization (Shop → Characters / here).
+  // The aura is a persisted customization, bought & equipped in Shop → Characters.
+  // Here it's display-only: the equipped style feeds the floating aura particles.
   const heroCustom = useGame((s) => s.hero)
-  const setHero = useGame((s) => s.setHero)
   const auraStyle = heroCustom.aura.style
   const auraEmoji = AURA_STYLES.find((a) => a.id === auraStyle)?.emoji ?? 'sparkles'
   const clearTimer = useRef<number | undefined>(undefined)
@@ -110,8 +107,6 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
     reaction === 'typing'
       ? 'animate-[vm-hero-bob_0.55s_ease-in-out_infinite]'
       : 'animate-[vm-hero-idle_4s_ease-in-out_infinite]'
-
-  const noFocusSteal = (e: React.MouseEvent) => e.preventDefault()
 
   const trophies = [
     { icon: 'trophy', label: 'worlds cleared', n: worldsCleared },
@@ -183,43 +178,6 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
           />
         </div>
         <div className="mt-1 text-[10px] tabular-nums text-ink-dim">{into} / {span} XP</div>
-      </div>
-
-      {/* emotes */}
-      <div>
-        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">Emotes</div>
-        <div className="grid grid-cols-6 gap-1">
-          {EMOTES.map((name) => (
-            <button
-              key={name}
-              onMouseDown={noFocusSteal}
-              onClick={() => { pop(name); sfx.ui() }}
-              title={`emote: ${name}`}
-              className="grid place-items-center rounded-md border border-border bg-panel-2 py-1.5 transition-transform hover:scale-110 hover:border-term"
-            >
-              <Emoji name={name} size={18} />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* aura style — full customization (color, intensity) lives in Shop → Characters */}
-      <div>
-        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">Aura</div>
-        <div className="flex flex-wrap gap-1.5">
-          {AURA_STYLES.map((a) => (
-            <button
-              key={a.id}
-              onMouseDown={noFocusSteal}
-              onClick={() => { setHero({ aura: { style: a.id } }); sfx.ui() }}
-              className={`flex flex-1 items-center justify-center gap-1 rounded-md border py-1.5 text-xs transition-colors ${
-                auraStyle === a.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
-              }`}
-            >
-              <Emoji name={a.emoji} size={14} /> {a.name}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* loadout / trophies */}

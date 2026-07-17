@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import VimEditor, { type VimEditorHandle } from '../editor/VimEditor'
 import { KeyedText, ModeBadge } from '../ui/atoms'
 import { Emoji } from '../ui/Emoji'
 import { ResultScreen } from '../ui/ResultScreen'
 import { CheatsheetButton } from '../ui/Cheatsheet'
 import { HeroPanel, type Reaction } from '../ui/HeroPanel'
+import { WorldArt } from '../ui/WorldArt'
 import { useGame, type CompleteOutcome } from '../game/store'
 import { CHALLENGES, challengesForTier, worldMeta } from '../content/tiers'
 import { setStage } from '../three/stageState'
 import { stagesOf, type Challenge, type Tier } from '../game/types'
+
+// The first-run "how to play" primer — lazy so it never weighs on the bundle.
+const HowToPlay = lazy(() => import('../ui/HowToPlay'))
 
 interface Props {
   challenge: Challenge
@@ -18,11 +22,14 @@ interface Props {
 
 export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const complete = useGame((s) => s.completeChallenge)
+  const seenPrimer = useGame((s) => s.seenPrimer)
+  const markPrimerSeen = useGame((s) => s.markPrimerSeen)
   const [keystrokes, setKeystrokes] = useState(0)
   const [finalKs, setFinalKs] = useState(0)
   const [mode, setMode] = useState('normal')
   const [outcome, setOutcome] = useState<CompleteOutcome | null>(null)
   const [showHint, setShowHint] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
   const [reaction, setReaction] = useState<Reaction>('idle')
   const [stageIdx, setStageIdx] = useState(0)
@@ -40,18 +47,31 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const next = siblings[idx + 1]
   const sceneIndex = CHALLENGES.findIndex((c) => c.id === challenge.id)
 
-  // A boss caps its world; beating it leaps to the first level of the next world
-  // (undefined when the next world isn't built yet). Standard levels just step to
-  // the next sibling. Either way the ResultScreen's "next" button (and Enter) fires.
-  const nextWorldFirst = isBoss
-    ? challengesForTier((challenge.tier + 1) as Tier).find((c) => (c.kind ?? 'standard') !== 'boss')
-    : undefined
-  const nextTarget = isBoss ? nextWorldFirst : next
+  // First playable level of the next world (its boss is skipped), or undefined
+  // when that world isn't built yet. A boss caps its world → beating it leaps
+  // there. A standard level normally steps to the next sibling, but the LAST
+  // level of a world with no boss cap has no sibling left, so it rolls over to
+  // the next world too. Either way the ResultScreen's "next" button (and Enter)
+  // fires.
+  const nextWorldFirst = challengesForTier((challenge.tier + 1) as Tier).find(
+    (c) => (c.kind ?? 'standard') !== 'boss',
+  )
+  const nextTarget = isBoss ? nextWorldFirst : (next ?? nextWorldFirst)
+  const crossesWorld = !!nextTarget && nextTarget.tier !== challenge.tier
 
   useEffect(() => {
     setStage({ sceneIndex })
     return () => setStage({ sceneIndex: null })
   }, [sceneIndex])
+
+  // First-run primer: auto-open once, on the player's very first campaign level.
+  useEffect(() => {
+    if (!seenPrimer) {
+      setShowHelp(true)
+      markPrimerSeen()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // A keystroke makes the hero "think"; it relaxes to idle shortly after you stop.
   const onKeystroke = useCallback((n: number) => {
@@ -175,7 +195,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             <span className={`inline-flex items-center gap-1.5 tabular-nums ${overPar ? 'text-amber' : 'text-term'}`}>
               <Emoji name="keyboard" size={15} /> {keystrokes}
             </span>
-            <span className="text-ink-dim">par {challenge.par}</span>
+            <span className="text-ink-dim">goal {challenge.par}</span>
             <span className="inline-flex items-center gap-1.5 rounded border border-border bg-panel-2/60 px-2 py-0.5 text-ink-dim sm:ml-auto">
               <Emoji name="target" size={15} /> {activeStage.goal.describe}
             </span>
@@ -187,22 +207,15 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           )}
 
           {/* The editor sits on a dark glass panel so the equipped background shows
-              through behind the code. On top of that, each WORLD washes the panel in
-              its own accent (border + soft glow) so every level in a world shares one
-              consistent landscape. The 78%-opaque glass keeps the code legible. */}
+              through behind the code. Behind the code, each WORLD paints its own
+              procedural abstract art (accent-tinted) so every level in a world
+              shares one landscape. The 78%-opaque glass keeps the code legible. */}
           <div
             className="panel-glass relative mt-3 h-[42vh] min-h-[240px] max-h-[480px] overflow-hidden"
             style={{ borderColor: `color-mix(in srgb, ${world.accent} 38%, var(--color-border))` }}
           >
-            {/* Per-world accent wash — consistent across every level in the world. */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background: `radial-gradient(125% 78% at 50% -12%, color-mix(in srgb, ${world.accent} 20%, transparent), transparent 62%)`,
-                boxShadow: `inset 0 0 70px -22px ${world.accent}`,
-              }}
-            />
+            {/* Per-world abstract-art backdrop — consistent across every level. */}
+            <WorldArt tier={challenge.tier} accent={world.accent} />
             <div className="relative z-10 h-full">
               <VimEditor
                 ref={editorRef}
@@ -234,6 +247,14 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                   Need a hint?
                 </button>
               )}
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowHelp(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
+              >
+                <Emoji name="wave" size={14} />
+                How to play
+              </button>
               <div className="ml-auto flex items-center gap-2">
                 <CheatsheetButton
                   label="Commands"
@@ -280,7 +301,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           par={challenge.par}
           boss={isBoss}
           hasNext={!!nextTarget}
-          nextLabel={isBoss ? 'Next world →' : 'Next →'}
+          nextLabel={crossesWorld ? 'Next world →' : 'Next →'}
           onNext={() => nextTarget && onPlay(nextTarget.id)}
           onReplay={replay}
           onMap={onMap}
@@ -309,6 +330,17 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {showHelp && (
+        <Suspense fallback={null}>
+          <HowToPlay
+            onClose={() => {
+              setShowHelp(false)
+              editorRef.current?.focus()
+            }}
+          />
+        </Suspense>
       )}
     </div>
   )

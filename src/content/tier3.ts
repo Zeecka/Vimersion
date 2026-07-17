@@ -36,13 +36,13 @@ export const tier3: Challenge[] = [
     id: 't3-ciw',
     tier: 3,
     title: 'Inside Job',
-    brief: 'Rename cnt to count — your cursor is already INSIDE the word. Use `ciw`.',
+    brief: 'Rename cnt to `count` — your cursor is already INSIDE the word. Use `ciw`.',
     taughtCommands: ['iw', 'c-motion'],
     startText: 'let cnt = items.length',
     startCursor: { line: 1, ch: 5 }, // mid-word, on the 'n' of cnt
     goal: { targetText: 'let count = items.length', describe: 'Buffer reads: let count = items.length' },
     par: 9, // ciw (3) + "count" (5) + Esc (1); the match lands on the final 't'
-    hint: '`ciw` = change inner word — it works from ANYWHERE inside the word, no need to move to its start. Type count, then `Esc`.',
+    hint: '`ciw` = change inner word — it works from ANYWHERE inside the word, no need to move to its start. Type `count`, then `Esc`.',
   },
   {
     id: 't3-ci-paren',
@@ -53,18 +53,18 @@ export const tier3: Challenge[] = [
     startText: 'await sleep(99999)',
     goal: { targetText: 'await sleep(250)', describe: 'Buffer reads: await sleep(250)' },
     par: 9, // f( (2) ci( (3) 250 (3) + Esc
-    hint: '`ci(` changes everything INSIDE the parentheses — but the cursor must be on or inside them, so `f(` first. Type 250, then `Esc`.',
+    hint: '`ci(` changes everything INSIDE the parentheses — but the cursor must be on or inside them, so `f(` first. Type `250`, then `Esc`.',
   },
   {
     id: 't3-ci-quote',
     tier: 3,
     title: 'String Theory',
-    brief: 'Fix the greeting: change "hola" to "hello" with `ci"`.',
+    brief: 'Fix the greeting: change "hola" to `hello` with `ci"`.',
     taughtCommands: ['i"', 'c-motion'],
     startText: 'console.log("hola", user.name)',
     goal: { targetText: 'console.log("hello", user.name)', describe: 'Buffer reads: console.log("hello", …)' },
     par: 9, // ci" (3) hello (5) + Esc — quotes are found FORWARD on the line
-    hint: '`ci"` changes inside the next quotes on the line — you don\'t even need to move the cursor first. Type hello, then `Esc`.',
+    hint: '`ci"` changes inside the next quotes on the line — you don\'t even need to move the cursor first. Type `hello`, then `Esc`.',
   },
   {
     id: 't3-daw',
@@ -189,7 +189,7 @@ export const tier3: Challenge[] = [
       describe: 'The heading reads: Welcome',
     },
     par: 12, // cit (3) Welcome (7) + Esc
-    hint: '`cit` = change inner tag — it empties everything between <h1> and </h1>, wherever your cursor is inside the element. Type Welcome, then `Esc`.',
+    hint: '`cit` = change inner tag — it empties everything between <h1> and </h1>, wherever your cursor is inside the element. Type `Welcome`, then `Esc`.',
   },
   {
     id: 't3-change-tail',
@@ -201,7 +201,7 @@ export const tier3: Challenge[] = [
     startCursor: { line: 1, ch: 12 }, // on the 'v' of verbose
     goal: { targetText: 'log.level = info', describe: 'The level reads info' },
     par: 6, // Cinfo<Esc>
-    hint: '`C` is `D`’s changing cousin: it deletes from the cursor to the end of the line AND drops you into insert. Type info, then `Esc`.',
+    hint: '`C` is `D`’s changing cousin: it deletes from the cursor to the end of the line AND drops you into insert. Type `info`, then `Esc`.',
   },
   {
     id: 't3-bracket',
@@ -213,7 +213,7 @@ export const tier3: Challenge[] = [
     startCursor: { line: 1, ch: 10 }, // inside the brackets
     goal: { targetText: 'colors = [mono]', describe: 'The brackets hold just: mono' },
     par: 8, // ci[mono<Esc>
-    hint: 'The [ ] pair is a text object too. `ci[` (or `ci]`) empties it wherever you are inside. Type mono, then `Esc`.',
+    hint: 'The [ ] pair is a text object too. `ci[` (or `ci]`) empties it wherever you are inside. Type `mono`, then `Esc`.',
   },
   {
     id: 't3-transpose',

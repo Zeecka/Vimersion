@@ -5,7 +5,7 @@ import { tier3 } from './tier3'
 import { tier4 } from './tier4'
 import { tier5 } from './tier5'
 import { tier6 } from './tier6'
-import { archivist, automaton, gatekeeper, gauntlet, grepgut } from './bosses'
+import { archivist, automaton, gatekeeper, gauntlet, grepgut, proofreader } from './bosses'
 
 /**
  * Authoring notes (keystroke pars):
@@ -31,6 +31,7 @@ export const CHALLENGES: Challenge[] = [
   ...tier1,
   gatekeeper,
   ...tier2,
+  proofreader,
   ...tier3,
   gauntlet,
   ...tier4,

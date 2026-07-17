@@ -8,6 +8,7 @@ import { Background } from './ui/Background'
 import { PlayerAvatar } from './ui/Avatar'
 import { Emoji } from './ui/Emoji'
 import { Profile } from './ui/Profile'
+import { GitHubButton } from './ui/GitHubButton'
 import { CampaignMode } from './modes/CampaignMode'
 import { ArcadeMode } from './modes/ArcadeMode'
 import { CHALLENGES } from './content/tiers'
@@ -24,14 +25,16 @@ import { setStage, useStage } from './three/stageState'
 // The entire 3D graph (three, r3f, drei, models) lives behind this one lazy
 // boundary — the sync bundle stays 3D-free and the editor stays instant.
 const Stage3D = lazy(() => import('./three/Stage3D'))
-// The first-run primer loads only when actually shown (new players / on request).
-const HowToPlay = lazy(() => import('./ui/HowToPlay'))
+// Quiz mode (+ its question bank) is a leaf route — lazy so it never weighs down
+// the sync bundle. On mobile we open here, so it's fetched immediately anyway.
+const QuizMode = lazy(() => import('./modes/QuizMode').then((m) => ({ default: m.QuizMode })))
 
 type Screen =
   | { name: 'home' }
   | { name: 'map' }
   | { name: 'play'; id: string }
   | { name: 'arcade' }
+  | { name: 'quiz' }
   | { name: 'shop' }
   | { name: 'profile'; publicId: string }
 
@@ -39,10 +42,21 @@ function firstUnsolvedId(completed: Record<string, unknown>): string | null {
   return CHALLENGES.find((ch) => !completed[ch.id])?.id ?? null
 }
 
-/** A shared verified-score link (?u=<publicId>) opens on the score page. */
+/** The real editor needs a keyboard, so small touch screens land on Quiz mode. */
+function isMobileViewport(): boolean {
+  try {
+    return window.matchMedia('(max-width: 640px)').matches
+  } catch {
+    return false
+  }
+}
+
+/** A shared verified-score link (?u=<publicId>) opens on the score page. On a
+ *  phone, the app opens straight into Quiz mode (the touch-friendly trainer). */
 function initialScreen(): Screen {
   const u = new URLSearchParams(window.location.search).get('u')
-  return u ? { name: 'profile', publicId: u } : { name: 'home' }
+  if (u) return { name: 'profile', publicId: u }
+  return isMobileViewport() ? { name: 'quiz' } : { name: 'home' }
 }
 
 export default function App() {
@@ -114,7 +128,12 @@ export default function App() {
       )}
       <div className="relative z-10 min-h-screen">
         {screen.name !== 'profile' && (
-          <Hud onHome={() => go({ name: 'home' })} onShop={() => go({ name: 'shop' })} onMap={() => go({ name: 'map' })} />
+          <Hud
+            onHome={() => go({ name: 'home' })}
+            onShop={() => go({ name: 'shop' })}
+            onMap={() => go({ name: 'map' })}
+            onQuiz={() => go({ name: 'quiz' })}
+          />
         )}
 
         <AnimatePresence mode="wait">
@@ -130,11 +149,17 @@ export default function App() {
                 onPlay={play}
                 onMap={() => go({ name: 'map' })}
                 onArcade={() => go({ name: 'arcade' })}
+                onQuiz={() => go({ name: 'quiz' })}
                 onShop={() => go({ name: 'shop' })}
               />
             )}
             {screen.name === 'map' && <WorldMap onPlay={play} />}
             {screen.name === 'arcade' && <ArcadeMode />}
+            {screen.name === 'quiz' && (
+              <Suspense fallback={null}>
+                <QuizMode />
+              </Suspense>
+            )}
             {screen.name === 'shop' && <Shop />}
             {screen.name === 'profile' && <Profile publicId={screen.publicId} onPlay={leaveProfile} />}
             {screen.name === 'play' &&
@@ -154,11 +179,13 @@ function Home({
   onPlay,
   onMap,
   onArcade,
+  onQuiz,
   onShop,
 }: {
   onPlay: (id: string) => void
   onMap: () => void
   onArcade: () => void
+  onQuiz: () => void
   onShop: () => void
 }) {
   const xp = useGame((s) => s.xp)
@@ -167,26 +194,10 @@ function Home({
   const arcadeBest = useGame((s) => s.arcadeBest)
   const reset = useGame((s) => s.resetProgress)
   const [confirmReset, setConfirmReset] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
 
   const solved = Object.keys(completed).length
   const hasProgress = solved > 0 || xp > 0 || coins > 0 || arcadeBest > 0
   const nextId = firstUnsolvedId(completed)
-
-  // Show the how-to-play primer once, automatically, to a brand-new player.
-  // Tracked in its own localStorage key so it never touches the save schema.
-  useEffect(() => {
-    try {
-      if (!hasProgress && !localStorage.getItem('vimersion-seen-intro')) {
-        setShowHelp(true)
-        localStorage.setItem('vimersion-seen-intro', '1')
-      }
-    } catch {
-      /* private mode / storage disabled — just skip the auto-intro */
-    }
-    // Intentionally run once on mount; hasProgress is stable at first paint.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const startCampaign = () => {
     sfx.ui()
@@ -231,13 +242,14 @@ function Home({
 
       <HomeStats />
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <button
-          onClick={startCampaign}
-          className="btn-primary flex-1 rounded-xl px-6 py-4 text-lg font-bold"
-        >
-          {hasProgress ? '▶ Continue Campaign' : '▶ Start Campaign'}
-        </button>
+      <button
+        onClick={startCampaign}
+        className="btn-primary mt-8 w-full rounded-xl px-6 py-4 text-lg font-bold"
+      >
+        {hasProgress ? '▶ Continue Campaign' : '▶ Start Campaign'}
+      </button>
+
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row">
         <button
           onClick={() => {
             sfx.ui()
@@ -249,17 +261,16 @@ function Home({
             <Emoji name="target" size={22} /> Motion Rush
           </span>
         </button>
-      </div>
-
-      <div className="mt-4 flex justify-center">
         <button
           onClick={() => {
             sfx.ui()
-            setShowHelp(true)
+            onQuiz()
           }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
+          className="btn-accent flex-1 rounded-xl px-6 py-4 text-lg font-bold"
         >
-          <Emoji name="bulb" size={13} /> New to Vim? How to play
+          <span className="inline-flex items-center justify-center gap-2">
+            <Emoji name="star" size={22} /> Quiz Mode
+          </span>
         </button>
       </div>
 
@@ -337,8 +348,9 @@ function Home({
         </motion.div>
       )}
 
-      <p className="mt-8 flex items-center justify-center gap-3 text-center text-xs text-ink-dim">
+      <p className="mt-8 flex flex-wrap items-center justify-center gap-3 text-center text-xs text-ink-dim">
         free &amp; open source
+        <GitHubButton />
         <a
           href={DONATE_URL}
           target="_blank"
@@ -349,12 +361,6 @@ function Home({
           ♥ donate
         </a>
       </p>
-
-      {showHelp && (
-        <Suspense fallback={null}>
-          <HowToPlay onClose={() => setShowHelp(false)} />
-        </Suspense>
-      )}
     </div>
   )
 }
