@@ -98,8 +98,8 @@ export const tier4: Challenge[] = [
       targetText: ['# tmp holds the parsed rows', 'result = transform(rows)'].join('\n'),
       describe: 'The code says transform(rows); the comment is left as history',
     },
-    par: 8, // * ciwrows
-    hint: '`*` searches for the exact word under the cursor — no typing the query at all. One press lands you on the next tmp.',
+    par: 9, // * ciwrows <Esc>
+    hint: '`*` searches for the exact word under the cursor — no typing the query at all. One press lands you on the next tmp. Type `rows`, then `Esc`.',
   },
   {
     id: 't4-slice-args',

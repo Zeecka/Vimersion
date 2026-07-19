@@ -61,6 +61,17 @@ export function makeExtensions(onUpdate: (v: ViewUpdate) => void, extra: Extensi
     // to one range and block editing silently breaks.
     EditorState.allowMultipleSelections.of(true),
     EditorView.updateListener.of(onUpdate),
+    // Training wheels: the mouse must never reposition the cursor — this is a Vim
+    // gym, so navigation is hjkl / arrows only. Swallow the click's default caret
+    // placement + drag-select, but keep (or take) keyboard focus so the very next
+    // Vim keystroke still lands in the editor.
+    EditorView.domEventHandlers({
+      mousedown: (event, view) => {
+        event.preventDefault()
+        if (!view.hasFocus) view.focus()
+        return true
+      },
+    }),
     ...extra,
   ]
 }

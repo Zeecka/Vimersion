@@ -23,6 +23,9 @@ services:
     environment:
       VITE_API_TARGET: http://api:3001
       VITE_USE_POLLING: "true"
+      # Served behind the public HTTPS proxy for vim.aperisolve.com: allow the
+      # host and point the HMR socket at wss://<host>:443 (see vite.config.ts).
+      VITE_PUBLIC_HOST: vim.aperisolve.com
     volumes:
       - .:/app
       - vimersion-node-modules:/app/node_modules

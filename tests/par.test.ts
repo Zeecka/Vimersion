@@ -35,7 +35,7 @@ const SOLUTIONS: Record<string, string> = {
   't4-searchlight': '/ERROR<CR>dd',
   't4-third-strike': '/WARN<CR>nnciwINFO<Esc>',
   't4-question': '?sec<CR>dd',
-  't4-star-player': '*ciwrows',
+  't4-star-player': '*ciwrows<Esc>',
   't4-slice-args': 'df,x',
   't4-repeat-find': 'f.;;dt"',
   't4-percent': '%lx',

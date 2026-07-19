@@ -58,7 +58,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
       k: 'Never stuck',
       body: (
         <>
-          Below the editor: <b>Need a hint?</b> spells out the move, <b>Commands</b> opens the full cheatsheet, and{' '}
+          Below the editor: <b>Need a hint?</b> spells out the move, <b>Cheatsheet</b> lists every command, and{' '}
           <b>Restart</b> resets the level if you tangle it up. You can’t break anything.
         </>
       ),

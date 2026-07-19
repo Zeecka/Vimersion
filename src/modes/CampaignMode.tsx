@@ -167,9 +167,20 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
         <div className="flex flex-1 flex-col">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
-                World {challenge.tier} · {challenge.title}
-              </p>
+              {isBoss ? (
+                <p className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-magenta/50 bg-magenta/15 px-2.5 py-0.5 text-magenta shadow-[0_0_16px_-6px_var(--color-magenta)]">
+                    <span aria-hidden>☠</span> Boss Fight
+                  </span>
+                  <span className="text-magenta/70">
+                    World {challenge.tier} · {challenge.title}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
+                  World {challenge.tier} · {challenge.title}
+                </p>
+              )}
               <h2 className="mt-1 text-lg text-ink">
                 <KeyedText text={activeStage.brief ?? challenge.brief} />
               </h2>
@@ -212,7 +223,11 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
               shares one landscape. The 78%-opaque glass keeps the code legible. */}
           <div
             className="panel-glass relative mt-3 h-[42vh] min-h-[240px] max-h-[480px] overflow-hidden"
-            style={{ borderColor: `color-mix(in srgb, ${world.accent} 38%, var(--color-border))` }}
+            style={{
+              borderColor: isBoss
+                ? 'color-mix(in srgb, var(--color-magenta) 55%, var(--color-border))'
+                : `color-mix(in srgb, ${world.accent} 38%, var(--color-border))`,
+            }}
           >
             {/* Per-world abstract-art backdrop — consistent across every level. */}
             <WorldArt tier={challenge.tier} accent={world.accent} />
@@ -257,7 +272,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
               </button>
               <div className="ml-auto flex items-center gap-2">
                 <CheatsheetButton
-                  label="Commands"
+                  label="Cheatsheet"
                   keepEditorFocus
                   onClosed={() => editorRef.current?.focus()}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-magenta hover:text-magenta"
@@ -314,12 +329,12 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           <div className="panel w-full max-w-md p-6 text-center">
             <p className="font-terminal text-3xl font-bold text-danger">REPELLED!</p>
             <p className="mt-2 text-sm text-ink-dim">
-              {challenge.title} shrugged off your {finalKs} keystrokes — the budget was{' '}
-              {challenge.keystrokeBudget}. Every attempt teaches the pattern.
+              {challenge.title} shrugged off your {finalKs} keystrokes — the budget was {challenge.keystrokeBudget}. Reload and
+              clear it in <b className="text-term">{challenge.par}</b> keystrokes or fewer to earn <span className="text-amber">★★★</span>.
             </p>
             <div className="mt-5 flex justify-center gap-3">
               <button onClick={replay} className="btn-primary rounded-xl px-5 py-2.5 font-bold">
-                ⟳ Retry
+                ⟳ Retry for 3 ★
               </button>
               <button
                 onClick={onMap}

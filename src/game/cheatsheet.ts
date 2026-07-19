@@ -40,6 +40,21 @@ export function cheatsheetSections(): CheatSection[] {
   }).filter((s) => s.groups.length > 0)
 }
 
+/** cheatsheetSections() narrowed to a free-text query over command keys + labels.
+ *  Empty groups/sections are dropped so only matching worlds render. */
+export function filterCheatsheetSections(query: string): CheatSection[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return cheatsheetSections()
+  return cheatsheetSections()
+    .map((s) => ({
+      ...s,
+      groups: s.groups
+        .map((g) => ({ ...g, commands: g.commands.filter((c) => c.keys.toLowerCase().includes(q) || c.label.toLowerCase().includes(q)) }))
+        .filter((g) => g.commands.length > 0),
+    }))
+    .filter((s) => s.groups.length > 0)
+}
+
 const SITE = 'https://github.com/Zeecka/Vimersion'
 const TAGLINE = 'Learn Vim by playing — real editor, real keystrokes, real muscle memory.'
 

@@ -135,8 +135,9 @@ export function ArcadeMode() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="mt-6 flex items-center gap-6">
+      {/* Live stats — only while a round runs, so the ready / over states stay clean. */}
+      {phase === 'playing' && (
+        <div className="mt-6 flex items-center gap-6">
         <div>
           <div className="text-xs text-ink-dim">SCORE</div>
           <div className="font-terminal text-3xl text-term tabular-nums">{st.score}</div>
@@ -157,7 +158,8 @@ export function ArcadeMode() {
             />
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Board */}
       <div className="panel relative mt-4 grid place-items-center overflow-hidden p-6">

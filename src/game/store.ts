@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { Challenge, ChallengeResult, Stars } from './types'
 import type { QualitySetting } from './quality'
 import { levelFromXp, starsFor, xpForChallenge } from './xp'
-import { COSMETIC_BY_ID, DEFAULTS, LEGACY_DEFAULT_BACKGROUNDS, LEGACY_DEFAULT_THEMES } from './cosmetics'
+import { COSMETIC_BY_ID, DEFAULTS, FREE_COSMETICS, LEGACY_DEFAULT_BACKGROUNDS, LEGACY_DEFAULT_THEMES } from './cosmetics'
 import {
   AURA_STYLES,
   DEFAULT_OWNED_AURAS,
@@ -94,7 +94,7 @@ const initial: Persisted = {
   soundOn: true,
   arcadeBest: 0,
   quizBest: 0,
-  owned: [DEFAULTS.theme, DEFAULTS.background, ...DEFAULT_OWNED_AURAS],
+  owned: [...FREE_COSMETICS, ...DEFAULT_OWNED_AURAS],
   equipped: { ...DEFAULTS },
   hero: INITIAL_HERO,
   quality: 'auto',

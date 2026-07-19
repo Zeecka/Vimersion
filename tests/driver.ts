@@ -2,6 +2,7 @@ import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { Vim, getCM } from '@replit/codemirror-vim'
 import { html } from '@codemirror/lang-html'
+import { forceParsing } from '@codemirror/language'
 import { makeExtensions } from '../src/editor/vimSetup'
 import { makeVimCtx } from '../src/game/verify'
 import { stagesOf, type Challenge, type Goal } from '../src/game/types'
@@ -69,6 +70,13 @@ export function createEditor(ch: Challenge): EditorView {
     const line = view.state.doc.line(Math.min(ch.startCursor.line, view.state.doc.lines))
     view.dispatch({ selection: EditorSelection.cursor(Math.min(line.from + ch.startCursor.ch, line.to)) })
   }
+
+  // Tag text objects (`it`/`at`, e.g. `cit`) resolve through the Lezer syntax
+  // tree, which parses asynchronously on a budget — under full-suite CPU load it
+  // may not be ready when the first key lands, so `cit` silently no-ops. Force a
+  // complete parse up front so lang challenges play deterministically headless.
+  if (ch.lang) forceParsing(view, view.state.doc.length, 1e9)
+
   return view
 }
 
@@ -114,8 +122,11 @@ export function press(view: EditorView, token: string): void {
 }
 
 export function goalMet(view: EditorView, goal: Goal): boolean {
-  if (goal.targetText !== undefined) return view.state.doc.toString() === goal.targetText
-  if (goal.predicate) return goal.predicate(view, makeVimCtx(view))
+  const vim = makeVimCtx(view)
+  // Mirror the editor: a text goal requires leaving insert mode (the closing
+  // Esc that briefs ask for and pars budget) — never wins mid-type.
+  if (goal.targetText !== undefined) return vim.mode() !== 'insert' && view.state.doc.toString() === goal.targetText
+  if (goal.predicate) return goal.predicate(view, vim)
   return false
 }
 

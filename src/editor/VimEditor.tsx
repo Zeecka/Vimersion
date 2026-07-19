@@ -30,7 +30,11 @@ const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'D
 
 function goalMet(view: EditorView, goal: Goal, vim: VimCtx): boolean {
   if (goal.targetText !== undefined) {
-    return view.state.doc.toString() === goal.targetText
+    // An exact-text goal is not "done" while you are still in insert mode: the
+    // closing Esc is required, matching the briefs ("…then Esc") and the pars
+    // (which budget that keystroke). Otherwise a level wins mid-type, before the
+    // Esc the instructions ask for.
+    return vim.mode() !== 'insert' && view.state.doc.toString() === goal.targetText
   }
   if (goal.predicate) return goal.predicate(view, vim)
   return false

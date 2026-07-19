@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { login, logout, useAccount } from '../game/account'
 import { sfx } from '../game/sound'
@@ -9,6 +10,10 @@ const PROVIDER_LABEL: Record<string, string> = { google: 'Google', github: 'GitH
  * Sign-in dialog. Accounts are OPTIONAL — the copy makes clear the game is
  * fully playable without one; signing in adds cross-device saves and a
  * verified (server-stored) score for sharing.
+ *
+ * Portalled to <body>: it is opened from the HUD, whose `backdrop-blur` would
+ * otherwise become the containing block for `fixed inset-0` and pin this dialog
+ * inside the 54px header. See CheatsheetModal for the same note.
  */
 export function AccountModal({
   onClose,
@@ -31,7 +36,7 @@ export function AccountModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40 grid place-items-center bg-bg/70 p-4 backdrop-blur-sm" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
@@ -80,7 +85,8 @@ export function AccountModal({
           </button>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

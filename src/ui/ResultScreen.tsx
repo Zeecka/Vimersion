@@ -66,6 +66,10 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, nextLabe
     window.setTimeout(() => setShareMsg(null), 2500)
   }
 
+  // Anything short of 3 stars can be improved by replaying for a lower
+  // keystroke count — surface that as an explicit call-to-action.
+  const canImprove = outcome.stars < 3
+
   return (
     <motion.div
       className="absolute inset-0 z-30 grid place-items-center bg-bg/80 p-4 backdrop-blur-sm"
@@ -94,6 +98,12 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, nextLabe
             goal <b className="text-ink">{par}</b>
           </span>
         </div>
+
+        {canImprove && (
+          <p className="mt-3 text-xs text-ink-dim">
+            solve in <b className="text-term">{par}</b> keystrokes or fewer to earn <span className="text-amber">★★★</span>
+          </p>
+        )}
 
         <div className="mt-4 flex items-center justify-center gap-6">
           {outcome.xpGained > 0 && (
@@ -147,9 +157,13 @@ export function ResultScreen({ outcome, keystrokes, par, boss, hasNext, nextLabe
         <div className="mt-7 flex justify-center gap-3">
           <button
             onClick={onReplay}
-            className="rounded border border-border px-4 py-2 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
+            className={
+              canImprove
+                ? 'rounded border border-term/70 px-4 py-2 text-sm font-medium text-term transition-colors hover:bg-term/10'
+                : 'rounded border border-border px-4 py-2 text-sm text-ink-dim transition-colors hover:border-term hover:text-term'
+            }
           >
-            ↻ Replay
+            {canImprove ? '↻ Retry for 3 ★' : '↻ Replay'}
           </button>
           <button
             onClick={onMap}

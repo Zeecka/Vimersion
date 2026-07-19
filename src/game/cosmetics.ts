@@ -42,6 +42,10 @@ export const COSMETIC_BY_ID: Record<string, Cosmetic> = Object.fromEntries(COSME
 
 export const DEFAULTS = { theme: 'nightglass', background: 'crt' } as const
 
+/** Everything free — owned from the first launch (shows Equip/Equipped in the
+ *  Shop, never a "0" price button). */
+export const FREE_COSMETICS: string[] = COSMETICS.filter((c) => c.price === 0).map((c) => c.id)
+
 /** Backgrounds that were the default in earlier versions. Save migration moves
  *  anyone still on one of these onto the current DEFAULTS.background.
  *  'platform' (Pixel Kingdom) was removed in v7; 'synthwave' was the v8 default

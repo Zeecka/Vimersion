@@ -12,6 +12,12 @@ const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:3001'
 // VITE_USE_POLLING=true switches the watcher to polling so HMR still fires.
 const usePolling = process.env.VITE_USE_POLLING === 'true'
 
+// When the dev server sits behind a public HTTPS reverse proxy (docker-compose.dev.yml
+// on a real domain), Vite blocks unknown Host headers and its HMR client would try
+// ws://<host>:<devPort>, which the proxy doesn't expose. VITE_PUBLIC_HOST opts that
+// host in and points HMR at wss://<host>:443. Leave unset for normal localhost dev.
+const publicHost = process.env.VITE_PUBLIC_HOST
+
 export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss()],
   // Relative base only helps the static build (subpath / file:// hosting).
@@ -20,6 +26,7 @@ export default defineConfig(({ command }) => ({
   server: {
     proxy: { '/api': apiTarget },
     ...(usePolling ? { watch: { usePolling: true } } : {}),
+    ...(publicHost ? { allowedHosts: [publicHost], hmr: { host: publicHost, protocol: 'wss', clientPort: 443 } } : {}),
   },
   preview: {
     proxy: { '/api': apiTarget },

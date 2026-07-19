@@ -33,7 +33,7 @@ export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => 
         { label: 'SOLVED', value: `${score.solved}/${CHALLENGES.length}`, color: 'text-cyan' },
         { label: 'MASTERED', value: score.mastered, color: 'text-magenta' },
         { label: 'COINS', value: score.coins, color: 'text-amber' },
-        { label: 'ARCADE', value: score.arcadeBest, color: 'text-term' },
+        { label: 'RUSH', value: score.arcadeBest, color: 'text-term' },
       ]
     : []
 

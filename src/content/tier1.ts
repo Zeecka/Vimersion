@@ -44,7 +44,7 @@ export const tier1: Challenge[] = [
     id: 't1-insert',
     tier: 1,
     title: 'Mind the Gap',
-    brief: 'Insert a space so it reads "hello world". Use `i`, type a space, then leave with `Esc`.',
+    brief: 'Insert a space so it reads "hello world". Use `i`, type `Space`, then leave with `Esc`.',
     taughtCommands: ['i', 'esc'],
     startText: 'helloworld',
     startCursor: { line: 1, ch: 5 }, // on the "w"
@@ -55,7 +55,7 @@ export const tier1: Challenge[] = [
       describe: 'Buffer reads "hello world" — and you are back in normal mode',
     },
     par: 3,
-    hint: 'Cursor on the w → press `i`, type a space, then press `Esc` to leave insert mode.',
+    hint: 'Cursor on the w → press `i`, type `Space`, then press `Esc` to leave insert mode.',
   },
   {
     id: 't1-append',

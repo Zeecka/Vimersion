@@ -52,6 +52,7 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
                     const prev = i === 0 ? null : chs[i - 1]
                     const unlocked = i === 0 || !!completed[prev!.id]
                     const res = completed[c.id]
+                    const isBoss = c.kind === 'boss'
                     return (
                       <button
                         key={c.id}
@@ -64,7 +65,7 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
                           unlocked
                             ? 'border-border hover:-translate-y-0.5 hover:border-term hover:bg-panel-2'
                             : 'cursor-not-allowed border-border/40 opacity-40'
-                        }`}
+                        } ${isBoss ? 'ring-1 ring-magenta/40' : ''}`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs tabular-nums text-ink-dim">
@@ -72,7 +73,10 @@ export function WorldMap({ onPlay }: { onPlay: (id: string) => void }) {
                           </span>
                           {unlocked ? <StarRow value={res?.stars ?? 0} size={12} /> : <Emoji name="lock" size={13} />}
                         </div>
-                        <p className="mt-1.5 text-sm font-medium text-ink">{c.title}</p>
+                        <p className={`mt-1.5 text-sm font-medium ${isBoss ? 'text-magenta' : 'text-ink'}`}>
+                          {isBoss && <span className="mr-1">☠</span>}
+                          {c.title}
+                        </p>
                       </button>
                     )
                   })}

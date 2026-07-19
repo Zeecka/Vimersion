@@ -113,7 +113,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
     { icon: 'star', label: 'perfect solves', n: perfects },
     { icon: 'gem', label: 'commands mastered', n: mastered },
     { icon: 'crown', label: 'levels solved', n: solved },
-    { icon: 'bolt', label: 'arcade best', n: arcadeBest },
+    { icon: 'bolt', label: 'rush best', n: arcadeBest },
   ]
 
   return (

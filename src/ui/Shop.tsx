@@ -158,12 +158,18 @@ function CharacterStudio() {
         style={{ background: 'radial-gradient(ellipse at 50% 15%, color-mix(in srgb, var(--color-term) 12%, #0b0f18), #080b11 78%)' }}
       >
         {tier === 'webgl' ? (
-          <Suspense fallback={<div className="grid h-full place-items-center"><HeroMark look={look} size={120} /></div>}>
+          <Suspense
+            fallback={
+              <div className="grid h-full place-items-center">
+                <HeroMark look={look} accessory={hero.accessory} visorStyle={hero.visorStyle} size={120} />
+              </div>
+            }
+          >
             <Hero3D reaction="idle" hero={hero} />
           </Suspense>
         ) : (
           <div className="grid h-full place-items-center">
-            <HeroMark look={look} size={120} />
+            <HeroMark look={look} accessory={hero.accessory} visorStyle={hero.visorStyle} size={120} />
           </div>
         )}
       </div>

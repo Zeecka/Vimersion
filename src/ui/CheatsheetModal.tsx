@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { cheatsheetSections, downloadCheatsheet, printCheatsheet } from '../game/cheatsheet'
+import { filterCheatsheetSections, downloadCheatsheet, printCheatsheet } from '../game/cheatsheet'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { COMMANDS } from '../game/commands'
 import { Emoji } from './Emoji'
@@ -17,7 +17,8 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
   const mastery = useGame((s) => s.mastery)
   const panelRef = useRef<HTMLDivElement>(null)
   const [flash, setFlash] = useState<string | null>(null)
-  const sections = cheatsheetSections()
+  const [q, setQ] = useState('')
+  const sections = useMemo(() => filterCheatsheetSections(q), [q])
   const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
 
   useEffect(() => {
@@ -81,7 +82,35 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
+        {/* Filter */}
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3">
+          <div className="relative flex-1 sm:max-w-xs">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Filter commands..."
+              aria-label="Filter commands"
+              className="w-full rounded-lg border border-border bg-panel-2/60 px-3 py-1.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-dim/60 focus:border-term"
+            />
+            {q && (
+              <button
+                onClick={() => setQ('')}
+                aria-label="Clear filter"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-dim hover:text-term"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs text-ink-dim">
+            <span className="inline-block h-2 w-2 rounded-full bg-term" /> mastered
+          </span>
+        </div>
+
         {/* Scrollable command list */}
+        {sections.length === 0 ? (
+          <p className="px-5 py-10 text-center text-ink-dim">Nothing matches &ldquo;{q}&rdquo;.</p>
+        ) : (
         <div className="grid gap-4 overflow-y-auto px-5 py-4 sm:grid-cols-2">
           {sections.map((s) => (
             <section
@@ -129,6 +158,7 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
             </section>
           ))}
         </div>
+        )}
 
         {/* Download actions */}
         <div className="flex flex-wrap items-center gap-2.5 border-t border-border px-5 py-3.5">
