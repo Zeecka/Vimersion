@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=black)](package.json)
 [![CodeMirror](https://img.shields.io/badge/CodeMirror-6%20%2B%20real%20vim-d30707?logo=codemirror&logoColor=white)](src/editor)
 [![three.js](https://img.shields.io/badge/three.js-r170-000000?logo=threedotjs&logoColor=white)](src/three)
-[![Tests](https://img.shields.io/badge/tests-84%20passing-3ddc84)](tests)
+[![Tests](https://img.shields.io/badge/tests-105%20passing-3ddc84)](tests)
 [![Offline](https://img.shields.io/badge/works-100%25%20offline-ffc24b)](#-quick-start)
 
 <img src="docs/media/home.png" width="85%" alt="Vimersion home — Nightglass UI over a cel-shaded 3D world">
@@ -39,6 +39,7 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 | 📄 **Downloadable cheatsheet** | every command the game teaches, grouped by world — export as **Markdown** or a **printable HTML** page (→ Save as PDF), or open it in-play to look a key up |
 | 🎛️ **Play, unstuck** | look up **Commands**, **Restart** a fumbled attempt, or **Quit** to the map — right from the play screen, without losing Vim focus |
 | 🕹️ **Motion Rush** | whack-a-mole arcade drilling `hjkl` speed with combos |
+| 📱 **Quiz mode** | a touch-first, tap-to-answer trainer covering the whole curriculum — the mobile way to drill when the real editor isn't practical, no keyboard needed |
 | 💾 **Zero backend** | progress in localStorage with versioned migrations; fonts & models self-hosted — **fully offline** |
 
 <div align="center">
@@ -51,13 +52,13 @@ genuine Vim keybindings** — the skills transfer 1:1 to actual Vim/Neovim.
 | | World | You learn | Boss | Status |
 |--|-------|-----------|------|:------:|
 | 🟢 | **1 · Survive** | modes `i a o Esc` · motion `hjkl` · first edits `x dd u` | 🚪 The Gatekeeper | ✅ |
-| 🔵 | **2 · Comfortable** | words `w b e` · line ends `0 $` · jumps `gg G` · `f` · `cw` | — | ✅ |
+| 🔵 | **2 · Comfortable** | words `w b e` · line ends `0 $` · jumps `gg G` · `f` · `cw` | 🖋️ The Proofreader | ✅ |
 | 🟠 | **3 · Faster** | operators × motions × **text objects** (`ciw ci( ci" daw cit`) · visual `v V Ctrl-v` | ⚔️ The Refactor Gauntlet | ✅ |
 | 🟣 | **4 · Seeker** | search `/ ? n *` · find `f t ;` · `%` · substitute `:s :%s//g :s///gc` · marks | 🔎 Grep & Gut | ✅ |
 | 🩷 | **5 · Superpowers** | registers `"a "0 "_ "A` · macros `q @ @@` · the dot `.` · `gn` · `Ctrl-a` | 🏭 The Automaton | ✅ |
 | 🟡 | **6 · Legend** | `:g :v` · `:sort` · `:normal` · case ops `gU g~` · `J gJ` · block-insert `I $A` · `gqip` | 🐉 The Archivist | ✅ |
 
-**All six worlds shipped — 76 levels (71 challenges + 5 bosses)** — every par machine-proven
+**All six worlds shipped — 77 levels (71 challenges + 6 bosses)** — every par machine-proven
 solvable, and each new level re-verified solving at ⭐⭐⭐ in a real browser.
 
 <div align="center">
@@ -134,7 +135,7 @@ simply hides all account UI. Set `GOOGLE_CLIENT_ID/SECRET` and/or
 ## 🧪 Testing — pars are proven, not guessed
 
 ```bash
-npm run test       # 89 vitest tests
+npm run test       # 105 vitest tests
 npm run qa         # browser checks (needs `npm run preview` running)
 npm run typecheck
 cd server && npm test   # backend tests (validator + live HTTP round-trips)
@@ -145,6 +146,7 @@ cd server && npm test   # backend tests (validator + live HTTP round-trips)
 | `tests/content.test.ts` | ids unique · taught commands resolve · cursors in bounds · boss budgets sane |
 | `tests/par.test.ts` | **every challenge's par is solved by a reference solution driven through the real vim keymap** — including search/ex/confirm *dialogs*, macros, `Ctrl-a`, `:g`/`:sort`/`:normal` and visual-block edits |
 | `tests/cheatsheet.test.ts` | the downloadable cheatsheet covers **every** catalog command; the HTML export is self-contained and HTML-escaped |
+| `tests/hero.test.ts` · `account.test.ts` | the Hero model resolves & normalizes and old saves migrate; the account / share-link layer round-trips |
 | `scripts/qa/` | real-Chromium suites: tier isolation (lite fetches **zero** 3D bytes), boss flow, save migration, offline reload |
 
 > [!IMPORTANT]
@@ -160,7 +162,7 @@ flowchart LR
         ED[VimEditor<br>CM6 + real vim]:::core
         CT[content/tier1-6<br>challenges as data]:::data
         VF[verify.ts<br>vim-state checkers]:::data
-        ST[(zustand store<br>saves v10)]:::data
+        ST[(zustand store<br>saves v15)]:::data
         CT --> ED
         VF --> ED
         APP --> ED
