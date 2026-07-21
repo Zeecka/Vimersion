@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zeecka.github.io/VimLegends/sitemap.xml
+Sitemap: https://vimlegends.com/sitemap.xml
