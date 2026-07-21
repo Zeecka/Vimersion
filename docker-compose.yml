@@ -1,8 +1,8 @@
 services:
-  vimersion:
+  vimlegends:
     build: .
-    image: vimersion:latest
-    container_name: vimersion
+    image: vimlegends:latest
+    container_name: vimlegends
     ports:
       - "8971:80"
     restart: unless-stopped
@@ -11,13 +11,13 @@ services:
 
   api:
     build: ./server
-    image: vimersion-api:latest
-    container_name: vimersion-api
+    image: vimlegends-api:latest
+    container_name: vimlegends-api
     restart: unless-stopped
     volumes:
       - vimersion-data:/data
     environment:
-      # No host port: nginx in the vimersion service proxies /api/ here.
+      # No host port: nginx in the vimlegends service proxies /api/ here.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8971}
       SESSION_SECRET: ${SESSION_SECRET:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

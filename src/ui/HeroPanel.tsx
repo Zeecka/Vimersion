@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { levelProgress } from '../game/xp'
 import { COMMANDS } from '../game/commands'
-import { AURA_STYLES } from '../game/heroParts'
 import { WORLDS, challengesForTier } from '../content/tiers'
 import { effectiveQuality } from '../game/quality'
 import { useStage, type HeroReaction } from '../three/stageState'
@@ -19,16 +18,6 @@ const Hero3D = lazy(() => import('../three/Hero3D'))
 /** Playful rank title derived from level (purely cosmetic flavor). */
 const RANKS = ['Rookie', 'Operator', 'Coder', 'Hacker', 'Wizard', 'Legend']
 const rankFor = (level: number) => RANKS[Math.min(RANKS.length - 1, Math.floor((level - 1) / 3))]
-
-// Deterministic particle spread (no Math.random — keeps things stable across renders).
-const PARTICLES = [
-  { left: '12%', delay: '0s', dur: '3.4s' },
-  { left: '30%', delay: '0.8s', dur: '4.1s' },
-  { left: '50%', delay: '1.6s', dur: '3.0s' },
-  { left: '68%', delay: '0.4s', dur: '3.8s' },
-  { left: '84%', delay: '1.2s', dur: '4.4s' },
-  { left: '42%', delay: '2.2s', dur: '3.3s' },
-]
 
 /** The classic SVG avatar with spinning aura — lite tier + 3D loading fallback. */
 function ClassicPortrait({ reaction, bobClass }: { reaction: Reaction; bobClass: string }) {
@@ -65,11 +54,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const arcadeBest = useGame((s) => s.arcadeBest)
 
   const [emote, setEmote] = useState<string | null>(null)
-  // The aura is a persisted customization, bought & equipped in Shop → Characters.
-  // Here it's display-only: the equipped style feeds the floating aura particles.
   const heroCustom = useGame((s) => s.hero)
-  const auraStyle = heroCustom.aura.style
-  const auraEmoji = AURA_STYLES.find((a) => a.id === auraStyle)?.emoji ?? 'sparkles'
   const clearTimer = useRef<number | undefined>(undefined)
 
   const quality = useGame((s) => s.quality)
@@ -122,19 +107,6 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
 
       {/* portrait stage */}
       <div className="relative h-40 select-none">
-        {/* rising particle effects */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 top-8">
-          {PARTICLES.map((p, i) => (
-            <span
-              key={i}
-              className="absolute bottom-0"
-              style={{ left: p.left, animation: `vm-float ${p.dur} ease-in-out ${p.delay} infinite` }}
-            >
-              <Emoji name={auraEmoji} size={14} />
-            </span>
-          ))}
-        </div>
-
         {/* emote speech bubble */}
         <AnimatePresence>
           {emote && (

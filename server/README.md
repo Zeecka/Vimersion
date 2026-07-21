@@ -1,4 +1,4 @@
-# Vimersion API server
+# VimLegends API server
 
 A small self-hosted backend for **optional** player accounts (Google / GitHub
 sign-in) and tamper-resistant score sharing. The game is fully playable
@@ -24,7 +24,7 @@ The Docker image uses `node:24-alpine`, so no flag juggling there.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PORT` | `3001` | HTTP listen port. |
-| `DB_PATH` | `./vimersion.db` | SQLite file. Docker sets `/data/vimersion.db` (named volume). |
+| `DB_PATH` | `./vimlegends.db` | SQLite file. Docker sets `/data/vimlegends.db` (named volume). |
 | `PUBLIC_ORIGIN` | `http://localhost:8971` | Origin players use in the browser. Builds the OAuth redirect URIs; an `https` origin turns on `Secure` cookies. |
 | `SESSION_SECRET` | *(generated)* | HMAC key for session tokens. **Required in production** — if unset, a random one is generated at boot (with a warning) and all sessions die on restart. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | — | Google OAuth app. Google sign-in appears only when **both** are set. |
@@ -34,7 +34,7 @@ See [`.env.example`](./.env.example) for a documented template.
 
 ## Creating the OAuth apps
 
-The redirect URIs below assume `PUBLIC_ORIGIN=https://vimersion.example.com`;
+The redirect URIs below assume `PUBLIC_ORIGIN=https://vimlegends.example.com`;
 substitute your own origin (for local docker use `http://localhost:8971`).
 
 ### Google
@@ -47,7 +47,7 @@ substitute your own origin (for local docker use `http://localhost:8971`).
    as a test user, or publish it.
 3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application**
-   - Authorized redirect URI: `https://vimersion.example.com/api/auth/google/callback`
+   - Authorized redirect URI: `https://vimlegends.example.com/api/auth/google/callback`
    - (Authorized JavaScript origins are not needed — this is a server-side flow.)
 4. Copy the **Client ID** and **Client secret** into `GOOGLE_CLIENT_ID` /
    `GOOGLE_CLIENT_SECRET`.
@@ -57,8 +57,8 @@ substitute your own origin (for local docker use `http://localhost:8971`).
 1. Go to <https://github.com/settings/developers> → **OAuth Apps** → **New
    OAuth App** (use an organization's settings page for an org-owned app).
 2. Fill in:
-   - Homepage URL: `https://vimersion.example.com`
-   - Authorization callback URL: `https://vimersion.example.com/api/auth/github/callback`
+   - Homepage URL: `https://vimlegends.example.com`
+   - Authorization callback URL: `https://vimlegends.example.com/api/auth/github/callback`
 3. Register, then **Generate a new client secret**. Copy both values into
    `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`.
 
@@ -94,12 +94,12 @@ docker compose up -d --build
 Standalone:
 
 ```sh
-docker build -t vimersion-api ./server
-docker run -d --name vimersion-api \
-  -v vimersion-data:/data \
+docker build -t vimlegends-api ./server
+docker run -d --name vimlegends-api \
+  -v vimlegends-data:/data \
   -e SESSION_SECRET=change-me \
   -e PUBLIC_ORIGIN=http://localhost:8971 \
-  -p 3001:3001 vimersion-api
+  -p 3001:3001 vimlegends-api
 ```
 
 ## API

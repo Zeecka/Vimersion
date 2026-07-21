@@ -3,17 +3,12 @@ import * as THREE from 'three'
 import type { HeroReaction } from './stageState'
 
 /**
- * Animation state machine for the hero (RobotExpressive clip names).
- * Loops idle/typing; plays one-shots (win/levelup/fail) once with
- * clampWhenFinished, then falls back to the current base state.
+ * Animation state machine for the hero. Each character supplies its own
+ * reaction→clip map (clip names differ per model). Loops idle/typing; plays
+ * one-shots (win/levelup/fail) once with clampWhenFinished, then falls back to
+ * the current base state. A reaction whose clip is missing on this model falls
+ * back to the idle clip, so a character that lacks e.g. a jump degrades cleanly.
  */
-const CLIP: Record<HeroReaction, string> = {
-  idle: 'Idle',
-  typing: 'Punch', // the hero fights the bug while you type
-  win: 'ThumbsUp',
-  levelup: 'Jump',
-  fail: 'No',
-}
 const ONE_SHOTS: HeroReaction[] = ['win', 'levelup', 'fail']
 const FADE = 0.25
 
@@ -21,6 +16,7 @@ export function useHeroRig(
   actions: Record<string, THREE.AnimationAction | null>,
   mixer: THREE.AnimationMixer,
   reaction: HeroReaction,
+  clipMap: Record<HeroReaction, string>,
 ) {
   const current = useRef<THREE.AnimationAction | null>(null)
   // The loop to return to after a one-shot finishes (idle or typing).
@@ -28,7 +24,7 @@ export function useHeroRig(
 
   useEffect(() => {
     const play = (name: HeroReaction, once: boolean) => {
-      const next = actions[CLIP[name]]
+      const next = actions[clipMap[name]] ?? actions[clipMap.idle]
       if (!next || next === current.current) return
       next.reset()
       if (once) {
@@ -54,5 +50,5 @@ export function useHeroRig(
 
     base.current = reaction
     play(reaction, false)
-  }, [reaction, actions, mixer])
+  }, [reaction, actions, mixer, clipMap])
 }

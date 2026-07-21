@@ -80,7 +80,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="How to play Vimersion"
+        aria-label="How to play VimLegends"
         className="panel flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden outline-none"
         initial={{ scale: 0.94, y: 14, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -103,7 +103,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
 
         <div className="space-y-3 overflow-y-auto px-5 py-4">
           <p className="text-sm text-ink-dim">
-            Vimersion teaches Vim in a <b className="text-ink">real editor</b> — the skills transfer straight to your
+            VimLegends teaches Vim in a <b className="text-ink">real editor</b> — the skills transfer straight to your
             terminal. Sixty seconds and you’re playing:
           </p>
           {steps.map((s, i) => (

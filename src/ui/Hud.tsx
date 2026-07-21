@@ -79,7 +79,7 @@ export function Hud({
       >
         <PlayerAvatar size={22} />
         <span className="hidden font-terminal text-xl font-bold tracking-tight text-term glow-term transition-opacity hover:opacity-80 sm:inline">
-          :Vimersion
+          :VimLegends
         </span>
       </button>
 

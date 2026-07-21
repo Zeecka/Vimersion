@@ -12,7 +12,7 @@ function snap(over: Partial<Snapshot> = {}): Snapshot {
     arcadeBest: 0,
     owned: ['nightglass', 'crt'],
     equipped: { theme: 'nightglass', background: 'crt' },
-    hero: { body: null, trim: null, visor: null, accessory: 'none', visorStyle: 'bar', aura: { color: null, style: 'sparkles', intensity: 0.6 } },
+    hero: { body: null, trim: null, visor: null, accessory: 'none', visorStyle: 'bar', finish: 'matte', aura: { color: null, style: 'sparkles', intensity: 0.6 }, character: 'robot' },
     ...over,
   }
 }
@@ -58,7 +58,7 @@ describe('account snapshot merge (login reconciliation)', () => {
     const server = snap({
       xp: 900,
       equipped: { theme: 'gold', background: 'matrix' },
-      hero: { body: '#112233', trim: null, visor: null, accessory: 'tophat', visorStyle: 'bar', aura: { color: null, style: 'fire', intensity: 0.6 } },
+      hero: { body: '#112233', trim: null, visor: null, accessory: 'tophat', visorStyle: 'bar', finish: 'matte', aura: { color: null, style: 'fire', intensity: 0.6 }, character: 'robot' },
     })
     const m = mergeSnapshots(local, server)
     expect(m.equipped.theme).toBe('gold')

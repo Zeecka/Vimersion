@@ -7,14 +7,22 @@ import { COSMETIC_BY_ID, DEFAULTS, FREE_COSMETICS, LEGACY_DEFAULT_BACKGROUNDS, L
 import {
   AURA_STYLES,
   DEFAULT_OWNED_AURAS,
+  DEFAULT_OWNED_FINISHES,
+  DEFAULT_OWNED_PALETTES,
+  FINISHES,
   INITIAL_HERO,
   LEGACY_AVATAR_IDS,
+  PALETTE_BY_ID,
   auraSku,
+  finishSku,
   normalizeHero,
+  paletteSku,
   type AuraStyle,
   type HeroAura,
   type HeroCustom,
+  type HeroFinish,
 } from './heroParts'
+import { CHARACTER_BY_ID, DEFAULT_OWNED_CHARACTERS, characterSku, type CharacterId } from './characters'
 
 /** Reps of a command before it counts as "mastered" (fills the command belt). */
 export const MASTERY_THRESHOLD = 3
@@ -65,6 +73,12 @@ interface GameStore extends Persisted {
   equipItem: (id: string) => void
   /** Buy an aura style (coins → `owned`). Returns false if unaffordable/owned. */
   buyAura: (id: AuraStyle) => boolean
+  /** Buy a character (coins → `owned`). Returns false if unaffordable/owned. */
+  buyCharacter: (id: CharacterId) => boolean
+  /** Buy a body finish (coins → `owned`). Returns false if unaffordable/owned. */
+  buyFinish: (id: HeroFinish) => boolean
+  /** Buy a color palette (coins → `owned`). Returns false if unaffordable/owned. */
+  buyPalette: (id: string) => boolean
   setHero: (partial: Partial<Omit<HeroCustom, 'aura'>> & { aura?: Partial<HeroAura> }) => void
   bumpStreak: () => void
   toggleSound: () => void
@@ -94,7 +108,13 @@ const initial: Persisted = {
   soundOn: true,
   arcadeBest: 0,
   quizBest: 0,
-  owned: [...FREE_COSMETICS, ...DEFAULT_OWNED_AURAS],
+  owned: [
+    ...FREE_COSMETICS,
+    ...DEFAULT_OWNED_AURAS,
+    ...DEFAULT_OWNED_CHARACTERS,
+    ...DEFAULT_OWNED_FINISHES,
+    ...DEFAULT_OWNED_PALETTES,
+  ],
   equipped: { ...DEFAULTS },
   hero: INITIAL_HERO,
   quality: 'auto',
@@ -192,6 +212,33 @@ export const useGame = create<GameStore>()(
         return true
       },
 
+      buyCharacter: (id) => {
+        const cfg = CHARACTER_BY_ID[id]
+        const sku = characterSku(id)
+        const s = get()
+        if (!cfg || s.owned.includes(sku) || s.coins < cfg.price) return false
+        set({ coins: s.coins - cfg.price, owned: [...s.owned, sku] })
+        return true
+      },
+
+      buyFinish: (id) => {
+        const finish = FINISHES.find((f) => f.id === id)
+        const sku = finishSku(id)
+        const s = get()
+        if (!finish || s.owned.includes(sku) || s.coins < finish.price) return false
+        set({ coins: s.coins - finish.price, owned: [...s.owned, sku] })
+        return true
+      },
+
+      buyPalette: (id) => {
+        const palette = PALETTE_BY_ID[id]
+        const sku = paletteSku(id)
+        const s = get()
+        if (!palette || s.owned.includes(sku) || s.coins < palette.price) return false
+        set({ coins: s.coins - palette.price, owned: [...s.owned, sku] })
+        return true
+      },
+
       setHero: (partial) =>
         set((s) => ({ hero: { ...s.hero, ...partial, aura: { ...s.hero.aura, ...(partial.aura ?? {}) } } })),
 
@@ -214,8 +261,10 @@ export const useGame = create<GameStore>()(
       resetProgress: () => set({ ...initial, owned: [...initial.owned], equipped: { ...initial.equipped } }),
     }),
     {
+      // Legacy localStorage key, kept verbatim across the VimLegends rebrand so
+      // existing players' saves survive (renaming it would silently wipe progress).
       name: 'vimersion-save',
-      version: 12,
+      version: 15,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Record<string, any>
         const pe = (p.equipped ?? {}) as Record<string, unknown>
@@ -223,7 +272,8 @@ export const useGame = create<GameStore>()(
           ...initial,
           ...p,
           // `...initial.owned` backfills the free default aura (and theme/bg) into
-          // every legacy save (v11: auras became Shop purchases).
+          // every legacy save (v11: auras became Shop purchases; v13: also the free
+          // robot character sku; v14: the free finish + palette skus).
           owned: Array.from(new Set([...((p.owned as string[]) ?? []), ...initial.owned])),
           // v10: `equipped.avatar` was removed — keep only theme + background.
           equipped: {
@@ -274,6 +324,17 @@ export const useGame = create<GameStore>()(
         // seen for every migrating save. Only brand-new saves (which never run
         // migrate) keep seenPrimer=false and get the auto-open.
         if (version < 12) merged.seenPrimer = true
+        // v13: selectable 3D characters. The `...initial.owned` backfill above grants
+        // the free robot sku; normalizeHero(p.hero) defaults hero.character to 'robot'.
+        // Paid characters still cost coins — nothing else to grant.
+        // v14: body finishes + color palettes. normalizeHero backfills finish:'matte';
+        // the `...initial.owned` union grants the free finish + palette skus. Paid
+        // finishes/palettes still cost coins. No id renames → save-safe.
+        // v15: the character roster was replaced with the Quaternius operative squad
+        // (astronaut/swat/agent/soldier/engineer) and the procedural accessory/aura +
+        // per-zone recolor were removed. normalizeHero coerces any old hero.character
+        // (robot/brute/…) to the free 'astronaut'; the `...initial.owned` union grants
+        // char:astronaut. Old char:/palette skus linger harmlessly in `owned`.
         return merged
       },
       partialize: (s): Persisted => ({

@@ -115,7 +115,7 @@ function checkAura(v) {
   }
 }
 
-/** Hero customization (v10): three color zones + accessory/visor + aura. */
+/** Hero customization: three color zones + accessory/visor/finish + aura + character. */
 function checkHero(v) {
   if (!isPlainObject(v)) fail('hero: expected an object')
   return {
@@ -124,7 +124,11 @@ function checkHero(v) {
     visor: checkHeroColor(v.visor, 'hero.visor'),
     accessory: v.accessory === undefined ? 'none' : checkString(v.accessory, 24, 'hero.accessory'),
     visorStyle: v.visorStyle === undefined ? 'bar' : checkString(v.visorStyle, 24, 'hero.visorStyle'),
+    finish: v.finish === undefined ? 'matte' : checkString(v.finish, 16, 'hero.finish'),
     aura: checkAura(v.aura),
+    // v13: the selected base model. Must be whitelisted here or account sync
+    // silently reverts a signed-in player to the default robot on a merge.
+    character: v.character === undefined ? 'robot' : checkString(v.character, 24, 'hero.character'),
   }
 }
 

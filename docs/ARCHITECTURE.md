@@ -1,6 +1,6 @@
 # 🏗️ Architecture
 
-How Vimersion stays a **fast, offline, static web game** while running a real Vim editor
+How VimLegends stays a **fast, offline, static web game** while running a real Vim editor
 under a real-time 3D world.
 
 ## 🥇 The one sacred rule
@@ -105,7 +105,7 @@ so challenges can verify **vim state**, not just text.
 
 ## 💾 Save versions
 
-localStorage key `vimersion-save`, zustand `persist` with versioned `migrate()`:
+localStorage key `vimersion-save` (legacy key — kept so pre-rebrand saves survive), zustand `persist` with versioned `migrate()`:
 
 | v | Change | Migration behavior |
 |---|--------|--------------------|

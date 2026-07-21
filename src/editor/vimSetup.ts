@@ -11,7 +11,7 @@ import { history } from '@codemirror/commands'
 import { vim } from '@replit/codemirror-vim'
 
 /** Retro-terminal CodeMirror theme matching the app's phosphor-green palette. */
-export const vimersionTheme = EditorView.theme(
+export const vimlegendsTheme = EditorView.theme(
   {
     '&': { color: '#c7d0d9', backgroundColor: 'transparent', height: '100%' },
     '.cm-scroller': {
@@ -55,7 +55,7 @@ export function makeExtensions(onUpdate: (v: ViewUpdate) => void, extra: Extensi
     drawSelection(),
     history(),
     EditorView.lineWrapping,
-    vimersionTheme,
+    vimlegendsTheme,
     // MUST be true: visual-block mode (Ctrl-v, block I/A) dispatches
     // multi-range selections — with this facet false, CM6 collapses them
     // to one range and block editing silently breaks.

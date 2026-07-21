@@ -10,7 +10,7 @@ try {
   ;({ DatabaseSync } = await import('node:sqlite'))
 } catch {
   console.error(
-    '[vimersion-server] node:sqlite is unavailable.\n' +
+    '[vimlegends-server] node:sqlite is unavailable.\n' +
       '  On Node 22, run with:  node --experimental-sqlite index.mjs\n' +
       '  Or use Node >= 23.4, where node:sqlite is available by default.',
   )

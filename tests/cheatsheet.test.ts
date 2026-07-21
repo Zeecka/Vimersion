@@ -24,7 +24,7 @@ describe('cheatsheet generation', () => {
 
   it('markdown lists every command key + label', () => {
     const md = cheatsheetMarkdown()
-    expect(md).toMatch(/^# Vimersion/)
+    expect(md).toMatch(/^# VimLegends/)
     for (const c of COMMANDS) {
       expect(md, `missing keys ${c.keys}`).toContain(`\`${c.keys}\``)
       expect(md, `missing label ${c.label}`).toContain(c.label)

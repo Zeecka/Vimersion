@@ -34,6 +34,17 @@ function shuffle<T>(input: T[]): T[] {
   return a
 }
 
+type ChoiceState = 'idle' | 'correct' | 'wrong' | 'dim'
+
+/** Glassy background per choice state — dark-anchored so text stays legible over
+ * the animated 3D scene, with a light accent wash for the answered states. */
+function choiceBg(state: ChoiceState): string {
+  const glass = 'rgba(18, 22, 32, 0.9)' // matches the .panel smoked glass, a touch more opaque
+  if (state === 'correct') return `color-mix(in srgb, var(--color-term) 22%, ${glass})`
+  if (state === 'wrong') return `color-mix(in srgb, var(--color-danger) 22%, ${glass})`
+  return glass // idle & dim
+}
+
 function buildRound(questions: QuizQuestion[], size: number): RoundItem[] {
   return shuffle(questions)
     .slice(0, size)
@@ -207,14 +218,17 @@ export function QuizMode() {
               key={i}
               onClick={() => choose(i)}
               disabled={answered}
-              className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left text-base transition-colors ${
+              // Smoked-glass base so the choice text stays readable over the animated
+              // 3D scene — accent-tinted for correct/wrong, plain dark for idle/dim.
+              style={{ background: choiceBg(state) }}
+              className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left text-base backdrop-blur-md transition-colors ${
                 state === 'correct'
-                  ? 'border-term bg-term/15 text-ink'
+                  ? 'border-term text-ink'
                   : state === 'wrong'
-                    ? 'border-danger bg-danger/15 text-ink'
+                    ? 'border-danger text-ink'
                     : state === 'dim'
                       ? 'border-border text-ink-dim opacity-60'
-                      : 'border-border text-ink hover:border-term hover:bg-term/5 active:scale-[0.99]'
+                      : 'border-border text-ink hover:border-term active:scale-[0.99]'
               }`}
             >
               <span

@@ -4,12 +4,18 @@
  * — per-zone colors, a procedural accessory, a visor style, and a custom aura.
  *
  * Zone → model material (public/models/hero.glb): body=`Main`, trim=`Grey`,
- * visor=`Black`. The 2D <HeroMark/> mirrors the same three zones.
+ * visor=`Black`. The 2D <HeroMark/> mirrors the same three zones. The player can
+ * also pick which base model to wear (see characters.ts) — `hero.character`.
  */
+
+import { CHARACTER_IDS, DEFAULT_CHARACTER, type CharacterId } from './characters'
 
 export type AccessoryId = 'none' | 'antenna' | 'halo' | 'tophat' | 'headphones' | 'cape'
 export type VisorStyle = 'bar' | 'goggles' | 'single' | 'grille'
 export type AuraStyle = 'sparkles' | 'fire' | 'bolt' | 'orbit' | 'rings'
+/** Body-surface material finish. matte = flat toon (default); glow/holo are
+ *  emissive toon (they bloom); metallic is real PBR (metalness + reflections). */
+export type HeroFinish = 'matte' | 'glow' | 'holo' | 'metallic'
 
 export interface HeroAura {
   /** Custom aura tint; null = the equipped theme accent. */
@@ -26,7 +32,11 @@ export interface HeroCustom {
   visor: string | null
   accessory: AccessoryId
   visorStyle: VisorStyle
+  /** Body material finish (matte/glow/holo/metallic). */
+  finish: HeroFinish
   aura: HeroAura
+  /** Which base model the player is wearing (see characters.ts). */
+  character: CharacterId
 }
 
 /** Resolved (non-null) colors, ready to paint the 3D materials / 2D mark. */
@@ -44,7 +54,9 @@ export const INITIAL_HERO: HeroCustom = {
   visor: null,
   accessory: 'none',
   visorStyle: 'bar',
+  finish: 'matte',
   aura: { color: null, style: 'sparkles', intensity: 0.6 },
+  character: DEFAULT_CHARACTER,
 }
 
 /** Catalogs — labels + the `emoji` used for the lite-tier 2D aura particles. */
@@ -85,9 +97,43 @@ export const auraSku = (id: AuraStyle): string => `aura:${id}`
 /** The aura skus a fresh save owns for free (just the default). */
 export const DEFAULT_OWNED_AURAS: string[] = AURA_STYLES.filter((a) => a.price === 0).map((a) => auraSku(a.id))
 
+/**
+ * Body finishes — a Shop purchase axis like auras. matte is the free default;
+ * glow/holo/metallic cost coins. Owned via `finishSku()` in the shared `owned` set.
+ */
+export const FINISHES: { id: HeroFinish; name: string; price: number }[] = [
+  { id: 'matte', name: 'Matte', price: 0 },
+  { id: 'glow', name: 'Glow', price: 40 },
+  { id: 'metallic', name: 'Metallic', price: 60 },
+  { id: 'holo', name: 'Holo', price: 80 },
+]
+export const finishSku = (id: HeroFinish): string => `finish:${id}`
+export const DEFAULT_OWNED_FINISHES: string[] = FINISHES.filter((f) => f.price === 0).map((f) => finishSku(f.id))
+
+/** A curated one-click color preset (sets body+trim+visor together). */
+export interface Palette {
+  id: string
+  name: string
+  body: string
+  trim: string
+  visor: string
+  price: number
+}
+export const PALETTES: Palette[] = [
+  { id: 'ember', name: 'Ember', body: '#ff6a3d', trim: '#ffb454', visor: '#2a0e08', price: 0 },
+  { id: 'void', name: 'Void', body: '#2b2f45', trim: '#7c6bff', visor: '#05060a', price: 0 },
+  { id: 'toxic', name: 'Toxic', body: '#3ddc84', trim: '#c9ff4c', visor: '#06180f', price: 0 },
+  { id: 'mono', name: 'Mono', body: '#cfd6e4', trim: '#8a93a8', visor: '#0e1119', price: 0 },
+  { id: 'chrome', name: 'Chrome', body: '#dfe7f2', trim: '#9fb0c8', visor: '#101722', price: 40 },
+]
+export const PALETTE_BY_ID: Record<string, Palette> = Object.fromEntries(PALETTES.map((p) => [p.id, p]))
+export const paletteSku = (id: string): string => `palette:${id}`
+export const DEFAULT_OWNED_PALETTES: string[] = PALETTES.filter((p) => p.price === 0).map((p) => paletteSku(p.id))
+
 const ACCESSORY_IDS = ACCESSORIES.map((a) => a.id) as string[]
 const VISOR_IDS = VISOR_STYLES.map((v) => v.id) as string[]
 const AURA_IDS = AURA_STYLES.map((a) => a.id) as string[]
+const FINISH_IDS = FINISHES.map((f) => f.id) as string[]
 
 /** Old avatar cosmetic ids (removed in v10) — stripped from `owned` on migrate. */
 export const LEGACY_AVATAR_IDS = [
@@ -96,7 +142,9 @@ export const LEGACY_AVATAR_IDS = [
 
 const isHex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)
 
-/** Resolve a HeroCustom to concrete colors (custom picks win, else the default). */
+/** Resolve a HeroCustom to concrete colors (custom picks win, else the default).
+ *  Retained for the 2D HeroMark / save compatibility; the current roster does not
+ *  expose per-zone recolor. */
 export function heroLookFrom(hero: HeroCustom): HeroLook {
   return {
     body: hero.body ?? DEFAULT_HERO_LOOK.body,
@@ -124,10 +172,12 @@ export function normalizeHero(raw: unknown): HeroCustom {
     visor: isHex(h.visor) ? h.visor : null,
     accessory: ACCESSORY_IDS.includes(h.accessory as string) ? (h.accessory as AccessoryId) : 'none',
     visorStyle: VISOR_IDS.includes(h.visorStyle as string) ? (h.visorStyle as VisorStyle) : 'bar',
+    finish: FINISH_IDS.includes(h.finish as string) ? (h.finish as HeroFinish) : 'matte',
     aura: {
       color: isHex(aura.color) ? aura.color : null,
       style,
       intensity: typeof aura.intensity === 'number' ? Math.min(1, Math.max(0, aura.intensity)) : 0.6,
     },
+    character: CHARACTER_IDS.includes(h.character as CharacterId) ? (h.character as CharacterId) : DEFAULT_CHARACTER,
   }
 }

@@ -238,7 +238,7 @@ function Home({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          :Vimersion
+          :VimLegends
         </motion.h1>
         <p className="mt-3 text-lg text-ink-dim">
           Learn Vim by playing. Real editor, real keystrokes, real muscle memory.

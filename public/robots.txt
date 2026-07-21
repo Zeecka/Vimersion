@@ -1,5 +1,5 @@
-# Vimersion — a free, static web game. Everything is public and crawlable.
+# VimLegends — a free, static web game. Everything is public and crawlable.
 User-agent: *
 Allow: /
 
-Sitemap: https://zeecka.github.io/Vimersion/sitemap.xml
+Sitemap: https://zeecka.github.io/VimLegends/sitemap.xml

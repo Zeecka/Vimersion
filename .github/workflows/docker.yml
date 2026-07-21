@@ -28,11 +28,11 @@ jobs:
       matrix:
         include:
           # Frontend: the standalone Vite app served by nginx (root Dockerfile).
-          - name: vimersion
+          - name: vimlegends
             context: .
             dockerfile: ./Dockerfile
           # Optional accounts / score-sharing API.
-          - name: vimersion-api
+          - name: vimlegends-api
             context: ./server
             dockerfile: ./server/Dockerfile
 

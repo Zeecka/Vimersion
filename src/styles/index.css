@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* ---- Vimersion "Nightglass" design tokens (Tailwind v4 @theme) ----
+/* ---- VimLegends "Nightglass" design tokens (Tailwind v4 @theme) ----
    Dark smoked-glass chrome over a colorful world. Each token becomes a
    utility, e.g. --color-term -> bg-term / text-term / border-term.
    --color-term is the PRIMARY accent and is overridden at runtime by the

@@ -72,7 +72,9 @@ test('hero is validated and kept when present', () => {
     visor: null,
     accessory: 'antenna',
     visorStyle: 'goggles',
+    finish: 'metallic',
     aura: { color: '#112233', style: 'fire', intensity: 0.8 },
+    character: 'alien',
   }
   const out = validateSnapshot({ ...goodSnapshot(), hero })
   assert.deepEqual(out.hero, hero)
@@ -86,7 +88,9 @@ test('hero defaults fill in for a minimal/absent-field hero', () => {
     visor: null,
     accessory: 'none',
     visorStyle: 'bar',
+    finish: 'matte',
     aura: { color: null, style: 'sparkles', intensity: 0.6 },
+    character: 'robot',
   })
 })
 

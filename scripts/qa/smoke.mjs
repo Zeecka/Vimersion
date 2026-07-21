@@ -1,4 +1,4 @@
-// Vimersion runtime smoke test: lite tier by default, forced webgl tier,
+// VimLegends runtime smoke test: lite tier by default, forced webgl tier,
 // console-error capture, network isolation check, screenshots.
 import { chromium } from 'playwright'
 import { prepPage } from './harness.mjs'
@@ -32,7 +32,7 @@ const browser = await chromium.launch({
   await page.waitForTimeout(1200)
 
   const title = await page.textContent('h1')
-  report('lite: home renders', (title ?? '').includes('Vimersion'), `h1="${title}"`)
+  report('lite: home renders', (title ?? '').includes('VimLegends'), `h1="${title}"`)
   report('lite: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '))
   const fetched3d = requests.filter((u) => /Stage3D|three|chunk/i.test(u) && /Stage3D/i.test(u))
   report('lite: no 3D chunk fetched', fetched3d.length === 0, fetched3d.join(','))

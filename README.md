@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/media/logo.png" width="72" alt="Vimersion logo">
+<img src="docs/media/logo.png" width="72" alt="VimLegends logo">
 
-# :Vimersion
+# :VimLegends
 
 **Learn Vim by playing.** Real editor · real keystrokes · real muscle memory.
 
@@ -13,7 +13,7 @@
 [![Tests](https://img.shields.io/badge/tests-105%20passing-3ddc84)](tests)
 [![Offline](https://img.shields.io/badge/works-100%25%20offline-ffc24b)](#-quick-start)
 
-<img src="docs/media/home.png" width="85%" alt="Vimersion home — Nightglass UI over a cel-shaded 3D world">
+<img src="docs/media/home.png" width="85%" alt="VimLegends home — Nightglass UI over a cel-shaded 3D world">
 
 </div>
 

@@ -1,13 +1,13 @@
 import { Suspense, lazy, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
-import { THEMES, BACKGROUNDS, COSMETIC_BY_ID, type Cosmetic } from '../game/cosmetics'
-import { heroLookFrom, auraSku, ACCESSORIES, VISOR_STYLES, AURA_STYLES, type AccessoryId, type VisorStyle } from '../game/heroParts'
+import { THEMES, BACKGROUNDS, type Cosmetic } from '../game/cosmetics'
+import { finishSku, FINISHES } from '../game/heroParts'
+import { CHARACTERS, characterSku } from '../game/characters'
 import { effectiveQuality } from '../game/quality'
 import { useStage } from '../three/stageState'
 import { sfx } from '../game/sound'
-import { HeroMark } from './HeroMark'
-import { Emoji } from './Emoji'
+import { CharacterMark } from './Avatar'
 
 // Local Suspense boundary — the 3D hero preview never blocks the rest of the Shop.
 const Hero3D = lazy(() => import('../three/Hero3D'))
@@ -73,195 +73,148 @@ function bgPreviewStyle(bg?: string): CSSProperties {
   }
 }
 
-function ColorField({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
-  return (
-    <label className="flex cursor-pointer flex-col items-center gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-12 cursor-pointer rounded border border-border bg-panel-2"
-        aria-label={hint ?? `${label} color`}
-      />
-      {label}
-    </label>
-  )
-}
-
-function PickRow<T extends string>({
-  label,
-  items,
-  active,
-  onPick,
-}: {
-  label: string
-  items: { id: T; name: string }[]
-  active: T
-  onPick: (id: T) => void
-}) {
-  return (
-    <div className="mt-4">
-      <div className="text-[10px] uppercase tracking-widest text-ink-dim">{label}</div>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {items.map((it) => (
-          <button
-            key={it.id}
-            onClick={() => {
-              onPick(it.id)
-              sfx.ui()
-            }}
-            className={`rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-              active === it.id ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
-            }`}
-          >
-            {it.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /**
  * The Hero customizer — replaces the old fixed-avatar roster. A live 3D preview
- * of the equipped Hero (2D <HeroMark/> in the lite tier) plus controls for
- * per-zone colors, visor style, accessory and a custom aura.
+ * of the equipped Hero (2D <HeroMark/> in the lite tier) plus a finish picker (matte/glow/holo/metallic).
  */
 function CharacterStudio() {
   const hero = useGame((s) => s.hero)
   const setHero = useGame((s) => s.setHero)
-  const equipped = useGame((s) => s.equipped)
   const owned = useGame((s) => s.owned)
   const coins = useGame((s) => s.coins)
-  const buyAura = useGame((s) => s.buyAura)
+  const buyCharacter = useGame((s) => s.buyCharacter)
+  const buyFinish = useGame((s) => s.buyFinish)
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
 
-  const look = heroLookFrom(hero)
-  const accent = COSMETIC_BY_ID[equipped.theme]?.accent ?? '#7c6bff'
-  const auraColor = hero.aura.color ?? accent
-  const customized =
-    !!(hero.body || hero.trim || hero.visor || hero.aura.color) ||
-    hero.accessory !== 'none' ||
-    hero.visorStyle !== 'bar' ||
-    hero.aura.style !== 'sparkles' ||
-    hero.aura.intensity !== 0.6
-
   return (
     <div className="panel mt-5 p-4 sm:p-5">
-      <p className="text-sm text-ink-dim">Your one Hero — style it, and it appears everywhere you play.</p>
+      {/* character roster — pick which base model to wear */}
+      <div className="text-[10px] uppercase tracking-widest text-ink-dim">Character</div>
+      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {CHARACTERS.map((c) => {
+          const isEquipped = hero.character === c.id
+          const isOwned = owned.includes(characterSku(c.id))
+          const canAfford = coins >= c.price
+          const locked = !isOwned && !canAfford
+          return (
+            <button
+              key={c.id}
+              onClick={() => {
+                if (isEquipped) return
+                if (isOwned) {
+                  setHero({ character: c.id })
+                  sfx.ui()
+                } else if (buyCharacter(c.id)) {
+                  setHero({ character: c.id }) // auto-equip on purchase
+                  sfx.levelUp()
+                } else {
+                  sfx.error()
+                }
+              }}
+              title={isOwned ? `Equip ${c.name}` : `Buy ${c.name} for ${c.price} coins`}
+              className={`flex flex-col items-center gap-1 rounded-xl border p-2 text-center transition-colors ${
+                isEquipped
+                  ? 'border-term text-term'
+                  : locked
+                    ? 'cursor-not-allowed border-border text-ink-dim opacity-60'
+                    : 'border-border text-ink-dim hover:text-ink'
+              }`}
+            >
+              <div className="grid h-16 w-full place-items-center overflow-hidden rounded-lg bg-panel-2">
+                <img src={c.thumb.url} alt="" className="h-14 w-14 object-contain" />
+              </div>
+              <span className="text-xs font-medium text-ink">{c.name}</span>
+              {isEquipped ? (
+                <span className="text-[11px] font-bold text-term">✓ Equipped</span>
+              ) : isOwned ? (
+                <span className="text-[11px]">Equip</span>
+              ) : (
+                <span className="inline-flex items-center gap-0.5 text-[11px] tabular-nums">
+                  <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {c.price}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
-      {/* live preview */}
+      <p className="mt-4 text-sm text-ink-dim">Pick your character, then a finish — it appears everywhere you play.</p>
+
+      {/* live preview — interactive: drag to rotate, idle turntable, pedestal + shadow */}
       <div
-        className="relative mx-auto mt-3 h-56 w-full max-w-xs overflow-hidden rounded-xl border border-border"
+        className="relative mx-auto mt-3 h-72 w-full max-w-xs overflow-hidden rounded-xl border border-border"
         style={{ background: 'radial-gradient(ellipse at 50% 15%, color-mix(in srgb, var(--color-term) 12%, #0b0f18), #080b11 78%)' }}
       >
         {tier === 'webgl' ? (
           <Suspense
             fallback={
               <div className="grid h-full place-items-center">
-                <HeroMark look={look} accessory={hero.accessory} visorStyle={hero.visorStyle} size={120} />
+                <CharacterMark hero={hero} size={140} />
               </div>
             }
           >
-            <Hero3D reaction="idle" hero={hero} />
+            <Hero3D reaction="idle" hero={hero} interactive />
           </Suspense>
         ) : (
           <div className="grid h-full place-items-center">
-            <HeroMark look={look} accessory={hero.accessory} visorStyle={hero.visorStyle} size={120} />
+            <CharacterMark hero={hero} size={140} />
           </div>
+        )}
+        {tier === 'webgl' && (
+          <span className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center text-[10px] text-ink-dim/70">
+            drag to rotate
+          </span>
         )}
       </div>
 
-      {/* colors */}
+      {/* body finish — matte is free; glow/holo/metallic are coin purchases */}
       <div className="mt-4">
-        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Colors</div>
-        <div className="mt-2 flex gap-4">
-          <ColorField label="Body" value={look.body} onChange={(v) => setHero({ body: v })} />
-          <ColorField label="Trim" value={look.trim} onChange={(v) => setHero({ trim: v })} />
-          <ColorField label="Visor" value={look.visor} onChange={(v) => setHero({ visor: v })} />
+        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Finish</div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {FINISHES.map((f) => {
+            const isOwned = owned.includes(finishSku(f.id))
+            const isActive = hero.finish === f.id
+            const canAfford = coins >= f.price
+            return (
+              <button
+                key={f.id}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  if (isOwned) {
+                    setHero({ finish: f.id })
+                    sfx.ui()
+                  } else if (buyFinish(f.id)) {
+                    setHero({ finish: f.id }) // auto-equip on purchase
+                    sfx.levelUp()
+                  } else {
+                    sfx.error()
+                  }
+                }}
+                title={isOwned ? `Equip ${f.name}` : `Buy ${f.name} for ${f.price} coins`}
+                className={`rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                  isActive
+                    ? 'border-term text-term'
+                    : isOwned
+                      ? 'border-border text-ink-dim hover:text-ink'
+                      : canAfford
+                        ? 'border-amber/50 text-amber hover:bg-amber/10'
+                        : 'cursor-not-allowed border-border text-ink-dim opacity-60'
+                }`}
+              >
+                {f.name}
+                {!isOwned && (
+                  <span className="ml-1 inline-flex items-center gap-0.5 tabular-nums">
+                    <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {f.price}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <PickRow<VisorStyle> label="Visor Style" items={VISOR_STYLES} active={hero.visorStyle} onPick={(id) => setHero({ visorStyle: id })} />
-      <PickRow<AccessoryId> label="Accessory" items={ACCESSORIES} active={hero.accessory} onPick={(id) => setHero({ accessory: id })} />
-
-      {/* aura — each style is a coin purchase; color & intensity are free once owned */}
-      <div className="mt-4">
-        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Aura</div>
-        <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-3">
-          <ColorField label="Color" hint="Aura color" value={auraColor} onChange={(v) => setHero({ aura: { color: v } })} />
-          <div className="flex flex-wrap gap-1.5">
-            {AURA_STYLES.map((a) => {
-              const isOwned = owned.includes(auraSku(a.id))
-              const isActive = hero.aura.style === a.id
-              const canAfford = coins >= a.price
-              return (
-                <button
-                  key={a.id}
-                  onClick={() => {
-                    if (isOwned) {
-                      setHero({ aura: { style: a.id } })
-                      sfx.ui()
-                    } else if (buyAura(a.id)) {
-                      setHero({ aura: { style: a.id } }) // auto-equip on purchase
-                      sfx.levelUp()
-                    } else {
-                      sfx.error()
-                    }
-                  }}
-                  title={isOwned ? `Equip ${a.name}` : `Buy ${a.name} for ${a.price} coins`}
-                  className={`flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                    isActive
-                      ? 'border-term text-term'
-                      : isOwned
-                        ? 'border-border text-ink-dim hover:text-ink'
-                        : canAfford
-                          ? 'border-amber/50 text-amber hover:bg-amber/10'
-                          : 'cursor-not-allowed border-border text-ink-dim opacity-60'
-                  }`}
-                >
-                  <Emoji name={a.emoji} size={14} /> {a.name}
-                  {!isOwned && (
-                    <span className="ml-0.5 inline-flex items-center gap-0.5 tabular-nums">
-                      <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {a.price}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-          <label className="flex min-w-[130px] flex-1 flex-col gap-1 text-[10px] uppercase tracking-widest text-ink-dim">
-            Intensity
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.05}
-              value={hero.aura.intensity}
-              onChange={(e) => setHero({ aura: { intensity: Number(e.target.value) } })}
-              style={{ accentColor: 'var(--color-term)' }}
-              aria-label="Aura intensity"
-            />
-          </label>
-        </div>
-      </div>
-
-      <div className="mt-5 flex justify-end">
-        <button
-          disabled={!customized}
-          onClick={() => {
-            sfx.ui()
-            setHero({ body: null, trim: null, visor: null, accessory: 'none', visorStyle: 'bar', aura: { color: null, style: 'sparkles', intensity: 0.6 } })
-          }}
-          className={`rounded border border-border px-3 py-1.5 text-xs transition-colors ${
-            customized ? 'text-ink-dim hover:border-term hover:text-term' : 'cursor-not-allowed opacity-40'
-          }`}
-        >
-          reset hero
-        </button>
-      </div>
     </div>
   )
 }

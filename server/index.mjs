@@ -1,5 +1,5 @@
 /**
- * Vimersion API server — optional player accounts (Google/GitHub OAuth) and
+ * VimLegends API server — optional player accounts (Google/GitHub OAuth) and
  * tamper-resistant score sharing. Zero npm dependencies: node:http,
  * node:sqlite, node:crypto and global fetch only.
  *
@@ -37,14 +37,14 @@ export function loadConfig(env = process.env) {
   if (!sessionSecret) {
     sessionSecret = randomBytes(32).toString('hex')
     console.warn(
-      '[vimersion-server] SESSION_SECRET is not set — using a random one-off secret. ' +
+      '[vimlegends-server] SESSION_SECRET is not set — using a random one-off secret. ' +
         'Sessions will NOT survive a restart. Set SESSION_SECRET in production.',
     )
   }
 
   return {
     port: Number(env.PORT) || 3001,
-    dbPath: env.DB_PATH || './vimersion.db',
+    dbPath: env.DB_PATH || './vimlegends.db',
     publicOrigin,
     secureCookies: publicOrigin.startsWith('https:'),
     sessionSecret,
@@ -107,7 +107,7 @@ export function createApp(config) {
       db.createSession(hashToken(token), user.id, Date.now() + SESSION_TTL_S * 1000)
       redirect(res, '/', { 'Set-Cookie': [clearState, sessionCookie(token, SESSION_TTL_S)] })
     } catch (err) {
-      console.error(`[vimersion-server] ${provider} oauth callback failed:`, err?.message ?? err)
+      console.error(`[vimlegends-server] ${provider} oauth callback failed:`, err?.message ?? err)
       if (!res.headersSent) failRedirect()
     }
   }
@@ -243,7 +243,7 @@ export function createApp(config) {
 
   const server = createServer((req, res) => {
     handle(req, res).catch((err) => {
-      console.error('[vimersion-server] unhandled error:', err)
+      console.error('[vimlegends-server] unhandled error:', err)
       if (!res.headersSent) sendJson(res, 500, { error: 'internal server error' })
       else res.end()
     })
@@ -268,7 +268,7 @@ if (isMain) {
   const app = createApp(config)
   app.server.listen(config.port, () => {
     console.log(
-      `[vimersion-server] listening on :${config.port}` +
+      `[vimlegends-server] listening on :${config.port}` +
         ` (db: ${config.dbPath}, origin: ${config.publicOrigin},` +
         ` providers: ${Object.keys(config.providers).join(', ') || 'none configured'})`,
     )
