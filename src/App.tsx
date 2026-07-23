@@ -5,10 +5,10 @@ import { CommandBelt } from './ui/CommandBelt'
 import { WorldMap } from './ui/WorldMap'
 import { Shop } from './ui/Shop'
 import { Background } from './ui/Background'
-import { PlayerAvatar } from './ui/Avatar'
 import { Emoji } from './ui/Emoji'
 import { Profile } from './ui/Profile'
 import { GitHubButton } from './ui/GitHubButton'
+import { SisterAppButton } from './ui/SisterAppButton'
 import { CampaignMode } from './modes/CampaignMode'
 import { ArcadeMode } from './modes/ArcadeMode'
 import { CHALLENGES } from './content/tiers'
@@ -163,7 +163,6 @@ export default function App() {
                 onMap={() => go({ name: 'map' })}
                 onArcade={() => go({ name: 'arcade' })}
                 onQuiz={() => go({ name: 'quiz' })}
-                onShop={() => go({ name: 'shop' })}
               />
             )}
             {screen.name === 'map' && <WorldMap onPlay={play} />}
@@ -193,13 +192,11 @@ function Home({
   onMap,
   onArcade,
   onQuiz,
-  onShop,
 }: {
   onPlay: (id: string) => void
   onMap: () => void
   onArcade: () => void
   onQuiz: () => void
-  onShop: () => void
 }) {
   const xp = useGame((s) => s.xp)
   const coins = useGame((s) => s.coins)
@@ -222,26 +219,6 @@ function Home({
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <div className="text-center">
-        <button
-          onClick={() => {
-            sfx.ui()
-            onShop()
-          }}
-          title={t('home.customizeTitle')}
-          className="group mx-auto mb-4 block"
-        >
-          <span
-            className="mx-auto block w-fit rounded-full p-[2.5px] transition-transform group-hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, var(--color-term), var(--color-cyan), var(--color-magenta))' }}
-          >
-            <span className="grid h-24 w-24 place-items-center rounded-full bg-bg">
-              <PlayerAvatar size={56} />
-            </span>
-          </span>
-          <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber underline decoration-dotted underline-offset-4 group-hover:opacity-80">
-            <Emoji name="palette" size={13} /> {t('home.customize')}
-          </span>
-        </button>
         <motion.h1
           className="title-gradient font-terminal text-6xl font-bold tracking-tight sm:text-7xl"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -358,8 +335,8 @@ function Home({
       )}
 
       <p className="mt-8 flex flex-wrap items-center justify-center gap-3 text-center text-xs text-ink-dim">
-        {t('home.freeOss')}
         <GitHubButton />
+        <SisterAppButton />
         <a
           href={DONATE_URL}
           target="_blank"

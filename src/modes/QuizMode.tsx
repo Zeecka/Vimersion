@@ -37,13 +37,16 @@ function shuffle<T>(input: T[]): T[] {
 
 type ChoiceState = 'idle' | 'correct' | 'wrong' | 'dim'
 
-/** Glassy background per choice state — dark-anchored so text stays legible over
- * the animated 3D scene, with a light accent wash for the answered states. */
+/** Opaque smoked-glass fill — dark-anchored so text stays legible over the
+ * animated 3D scene. Shared by the quiz answer buttons and the picker cards so
+ * both read as solid panels rather than see-through tints. */
+const PLAIN_BG = 'rgba(18, 22, 32, 0.9)' // matches the .panel smoked glass, a touch more opaque
+
+/** Per-choice background: the plain fill, with a light accent wash once answered. */
 function choiceBg(state: ChoiceState): string {
-  const glass = 'rgba(18, 22, 32, 0.9)' // matches the .panel smoked glass, a touch more opaque
-  if (state === 'correct') return `color-mix(in srgb, var(--color-term) 22%, ${glass})`
-  if (state === 'wrong') return `color-mix(in srgb, var(--color-danger) 22%, ${glass})`
-  return glass // idle & dim
+  if (state === 'correct') return `color-mix(in srgb, var(--color-term) 22%, ${PLAIN_BG})`
+  if (state === 'wrong') return `color-mix(in srgb, var(--color-danger) 22%, ${PLAIN_BG})`
+  return PLAIN_BG // idle & dim
 }
 
 function buildRound(questions: QuizQuestion[], size: number): RoundItem[] {
@@ -295,7 +298,8 @@ function QuizPicker({
       {/* Mixed round — the quick, everything-goes option */}
       <button
         onClick={() => onStart(QUIZ, MIXED_SIZE)}
-        className="mt-6 flex w-full items-center gap-3 rounded-xl border border-term/50 bg-term/10 px-5 py-4 text-left transition-colors hover:bg-term/15"
+        style={{ background: PLAIN_BG }}
+        className="mt-6 flex w-full items-center gap-3 rounded-xl border border-term/50 px-5 py-4 text-left backdrop-blur-md transition-colors hover:border-term"
       >
         <Emoji name="rocket" size={22} />
         <span className="flex-1">
@@ -311,8 +315,8 @@ function QuizPicker({
           <button
             key={w.tier}
             onClick={() => onStart(quizForTier(w.tier), quizForTier(w.tier).length)}
-            className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-left transition-colors hover:border-term"
-            style={{ borderLeft: `3px solid ${w.accent}` }}
+            className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-left backdrop-blur-md transition-colors hover:border-term"
+            style={{ background: PLAIN_BG, borderLeft: `3px solid ${w.accent}` }}
           >
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full font-terminal text-sm font-bold" style={{ background: `color-mix(in srgb, ${w.accent} 20%, transparent)`, color: w.accent }}>
               {w.tier}

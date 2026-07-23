@@ -35,6 +35,8 @@ export const en: Record<string, string> = {
   'home.resetConfirm': 'Reset everything',
   'home.freeOss': 'free & open source',
   'home.donate': 'donate',
+  'home.sisterApp': 'try {name}',
+  'home.sisterTitle': 'Learn tmux too — try our companion game TmuxLegends',
   'stats.level': 'LEVEL',
   'stats.coins': 'COINS',
   'stats.solved': 'SOLVED',
@@ -206,6 +208,8 @@ export const en: Record<string, string> = {
   'cheatsheet.printPdf': 'Print / PDF',
   'cheatsheet.downloadedMd': 'Downloaded Markdown ✓',
   'cheatsheet.downloadedHtml': 'Downloaded HTML ✓',
+  'cheatsheet.downloadedPdf': 'Downloaded PDF ✓',
+  'cheatsheet.downloadPdfTitle': 'Download the full cheatsheet as a PDF',
 
   // ── Account ─────────────────────────────────────────────────────────
   'account.dialogLabel': 'Sign in',

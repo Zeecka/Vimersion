@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { filterCheatsheetSections, downloadCheatsheet, printCheatsheet } from '../game/cheatsheet'
+import { filterCheatsheetSections, downloadCheatsheet } from '../game/cheatsheet'
+import { downloadCheatsheetPdf } from '../game/pdf'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { COMMANDS } from '../game/commands'
 import { Emoji } from './Emoji'
@@ -190,11 +191,13 @@ export default function CheatsheetModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => {
               sfx.ui()
-              printCheatsheet()
+              downloadCheatsheetPdf()
+              toast(t('cheatsheet.downloadedPdf'))
             }}
+            title={t('cheatsheet.downloadPdfTitle')}
             className="btn-primary rounded-lg px-3.5 py-1.5 text-sm font-bold"
           >
-            🖶 {t('cheatsheet.printPdf')}
+            ↓ {t('cheatsheet.printPdf')}
           </button>
         </div>
 

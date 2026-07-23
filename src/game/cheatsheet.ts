@@ -176,20 +176,3 @@ export function downloadCheatsheet(format: CheatFormat): void {
     downloadTextFile('vimlegends-cheatsheet.html', 'text/html;charset=utf-8', cheatsheetHtml())
   }
 }
-
-/** Open the printable HTML in a new tab and invoke the print dialog. */
-export function printCheatsheet(): void {
-  if (typeof window === 'undefined') return
-  const w = window.open('', '_blank', 'noopener,noreferrer')
-  if (!w) {
-    // Popup blocked — fall back to a straight HTML download the user can print.
-    downloadCheatsheet('html')
-    return
-  }
-  w.document.open()
-  w.document.write(cheatsheetHtml())
-  w.document.close()
-  w.focus()
-  // Give the new document a tick to lay out before printing.
-  window.setTimeout(() => w.print(), 350)
-}
