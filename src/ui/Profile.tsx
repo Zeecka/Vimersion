@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { fetchScore, type PublicScore } from '../game/account'
 import { CHALLENGES } from '../content/tiers'
 import { Emoji } from './Emoji'
+import { useT, useLang } from '../game/i18n'
 
 /**
  * Public score page for a shared link (?u=<publicId>). The numbers come from
@@ -11,7 +12,9 @@ import { Emoji } from './Emoji'
  */
 export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => void }) {
   const [score, setScore] = useState<PublicScore | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [errorKey, setErrorKey] = useState<string | null>(null)
+  const t = useT()
+  const lang = useLang()
 
   useEffect(() => {
     let cancelled = false
@@ -20,7 +23,9 @@ export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => 
         if (!cancelled) setScore(s)
       })
       .catch((e: Error & { status?: number }) => {
-        if (!cancelled) setError(e.status === 404 ? 'This score link does not exist (or was deleted).' : 'Could not load this score right now.')
+        // Store a stable key (not the resolved string) so it re-translates on
+        // language switch.
+        if (!cancelled) setErrorKey(e.status === 404 ? 'profile.notExist' : 'profile.loadError')
       })
     return () => {
       cancelled = true
@@ -29,21 +34,21 @@ export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => 
 
   const stats = score
     ? [
-        { label: 'LEVEL', value: score.level, color: 'text-term' },
-        { label: 'SOLVED', value: `${score.solved}/${CHALLENGES.length}`, color: 'text-cyan' },
-        { label: 'MASTERED', value: score.mastered, color: 'text-magenta' },
-        { label: 'COINS', value: score.coins, color: 'text-amber' },
-        { label: 'RUSH', value: score.arcadeBest, color: 'text-term' },
+        { label: t('stats.level'), value: score.level, color: 'text-term' },
+        { label: t('stats.solved'), value: `${score.solved}/${CHALLENGES.length}`, color: 'text-cyan' },
+        { label: t('stats.mastered'), value: score.mastered, color: 'text-magenta' },
+        { label: t('stats.coins'), value: score.coins, color: 'text-amber' },
+        { label: t('stats.rush'), value: score.arcadeBest, color: 'text-term' },
       ]
     : []
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="panel p-8 text-center">
-        {error ? (
-          <p className="text-ink-dim">{error}</p>
+        {errorKey ? (
+          <p className="text-ink-dim">{t(errorKey)}</p>
         ) : !score ? (
-          <p className="animate-pulse text-ink-dim">Loading verified score…</p>
+          <p className="animate-pulse text-ink-dim">{t('profile.loading')}</p>
         ) : (
           <>
             {score.avatarUrl ? (
@@ -55,7 +60,7 @@ export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => 
             )}
             <h1 className="mt-3 font-terminal text-3xl font-bold text-ink">{score.name}</h1>
             <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-term">
-              <Emoji name="gem" size={13} /> verified score · stored server-side
+              <Emoji name="gem" size={13} /> {t('profile.verified')}
             </p>
 
             <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-5">
@@ -69,17 +74,19 @@ export function Profile({ publicId, onPlay }: { publicId: string; onPlay: () => 
 
             {score.streak > 1 && (
               <p className="mt-4 inline-flex items-center gap-1.5 text-sm text-amber">
-                <Emoji name="fire" size={14} /> {score.streak}-day streak
+                <Emoji name="fire" size={14} /> {t('profile.streak', { n: score.streak })}
               </p>
             )}
-            <p className="mt-2 text-[11px] text-ink-dim">last played {new Date(score.updatedAt).toLocaleDateString()}</p>
+            <p className="mt-2 text-[11px] text-ink-dim">
+              {t('profile.lastPlayed', { date: new Date(score.updatedAt).toLocaleDateString(lang) })}
+            </p>
           </>
         )}
 
         <button onClick={onPlay} className="btn-primary mt-8 w-full rounded-xl px-6 py-3.5 text-lg font-bold">
-          ▶ Think you can beat it? Play VimLegends
+          ▶ {t('profile.cta')}
         </button>
-        <p className="mt-3 text-xs text-ink-dim">Learn Vim by playing — real editor, real keystrokes. Free, no account needed.</p>
+        <p className="mt-3 text-xs text-ink-dim">{t('profile.ctaSub')}</p>
       </motion.div>
     </div>
   )

@@ -7,6 +7,7 @@ import { CheatsheetButton } from '../ui/Cheatsheet'
 import { HeroPanel, type Reaction } from '../ui/HeroPanel'
 import { WorldArt } from '../ui/WorldArt'
 import { useGame, type CompleteOutcome } from '../game/store'
+import { useT } from '../game/i18n'
 import { CHALLENGES, challengesForTier, worldMeta } from '../content/tiers'
 import { setStage } from '../three/stageState'
 import { stagesOf, type Challenge, type Tier } from '../game/types'
@@ -24,6 +25,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
   const complete = useGame((s) => s.completeChallenge)
   const seenPrimer = useGame((s) => s.seenPrimer)
   const markPrimerSeen = useGame((s) => s.markPrimerSeen)
+  const t = useT()
   const [keystrokes, setKeystrokes] = useState(0)
   const [finalKs, setFinalKs] = useState(0)
   const [mode, setMode] = useState('normal')
@@ -39,7 +41,18 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
 
   const stages = stagesOf(challenge)
   const isBoss = challenge.kind === 'boss'
-  const activeStage = stages[Math.min(stageIdx, stages.length - 1)]
+  const clampedStage = Math.min(stageIdx, stages.length - 1)
+  const activeStage = stages[clampedStage]
+
+  // Content strings are authored (in English) in the content files; translations
+  // live in the locale bundles under `content.<id>.*`, falling back to source.
+  const cid = challenge.id
+  const title = t(`content.${cid}.title`, undefined, challenge.title)
+  const briefKey = clampedStage === 0 ? `content.${cid}.brief` : `content.${cid}.stage.${clampedStage}.brief`
+  const goalKey = clampedStage === 0 ? `content.${cid}.goal` : `content.${cid}.stage.${clampedStage}.goal`
+  const briefText = t(briefKey, undefined, activeStage.brief ?? challenge.brief)
+  const goalText = t(goalKey, undefined, activeStage.goal.describe)
+  const hintText = t(`content.${cid}.hint`, undefined, challenge.hint)
 
   const world = worldMeta(challenge.tier)
   const siblings = challengesForTier(challenge.tier)
@@ -170,19 +183,17 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
               {isBoss ? (
                 <p className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em]">
                   <span className="inline-flex items-center gap-1 rounded-full border border-magenta/50 bg-magenta/15 px-2.5 py-0.5 text-magenta shadow-[0_0_16px_-6px_var(--color-magenta)]">
-                    <span aria-hidden>☠</span> Boss Fight
+                    <span aria-hidden>☠</span> {t('campaign.bossFight')}
                   </span>
-                  <span className="text-magenta/70">
-                    World {challenge.tier} · {challenge.title}
-                  </span>
+                  <span className="text-magenta/70">{t('campaign.worldLabel', { n: challenge.tier, title })}</span>
                 </p>
               ) : (
                 <p className="text-xs uppercase tracking-widest" style={{ color: world.accent }}>
-                  World {challenge.tier} · {challenge.title}
+                  {t('campaign.worldLabel', { n: challenge.tier, title })}
                 </p>
               )}
               <h2 className="mt-1 text-lg text-ink">
-                <KeyedText text={activeStage.brief ?? challenge.brief} />
+                <KeyedText text={briefText} />
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -206,9 +217,9 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
             <span className={`inline-flex items-center gap-1.5 tabular-nums ${overPar ? 'text-amber' : 'text-term'}`}>
               <Emoji name="keyboard" size={15} /> {keystrokes}
             </span>
-            <span className="text-ink-dim">goal {challenge.par}</span>
+            <span className="text-ink-dim">{t('campaign.goalPar', { par: challenge.par })}</span>
             <span className="inline-flex items-center gap-1.5 rounded border border-border bg-panel-2/60 px-2 py-0.5 text-ink-dim sm:ml-auto">
-              <Emoji name="target" size={15} /> {activeStage.goal.describe}
+              <Emoji name="target" size={15} /> {goalText}
             </span>
           </div>
 
@@ -259,7 +270,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-amber hover:text-amber"
                 >
                   <Emoji name="bulb" size={14} />
-                  Need a hint?
+                  {t('campaign.needHint')}
                 </button>
               )}
               <button
@@ -268,11 +279,11 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
               >
                 <Emoji name="wave" size={14} />
-                How to play
+                {t('campaign.howToPlay')}
               </button>
               <div className="ml-auto flex items-center gap-2">
                 <CheatsheetButton
-                  label="Cheatsheet"
+                  label={t('campaign.cheatsheet')}
                   keepEditorFocus
                   onClosed={() => editorRef.current?.focus()}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-magenta hover:text-magenta"
@@ -280,17 +291,17 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                 <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={restart}
-                  title="Restart this level from the beginning"
+                  title={t('campaign.restartTitle')}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-term hover:text-term"
                 >
-                  <span aria-hidden>⟳</span> Restart
+                  <span aria-hidden>⟳</span> {t('campaign.restart')}
                 </button>
                 <button
                   onClick={onMap}
-                  title="Leave this level and return to the world map"
+                  title={t('campaign.quitTitle')}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel-2/50 px-3.5 py-1.5 text-xs font-medium text-ink-dim transition-colors hover:border-danger hover:text-danger"
                 >
-                  <span aria-hidden>⊞</span> Quit
+                  <span aria-hidden>⊞</span> {t('campaign.quit')}
                 </button>
               </div>
             </div>
@@ -300,8 +311,10 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
                   <Emoji name="bulb" size={16} />
                 </span>
                 <span>
-                  <span className="mr-1.5 text-[11px] font-bold uppercase tracking-widest text-amber">Hint</span>
-                  <KeyedText text={challenge.hint} />
+                  <span className="mr-1.5 text-[11px] font-bold uppercase tracking-widest text-amber">
+                    {t('campaign.hintLabel')}
+                  </span>
+                  <KeyedText text={hintText} />
                 </span>
               </div>
             )}
@@ -316,7 +329,7 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
           par={challenge.par}
           boss={isBoss}
           hasNext={!!nextTarget}
-          nextLabel={crossesWorld ? 'Next world →' : 'Next →'}
+          nextLabel={`${crossesWorld ? t('result.nextWorld') : t('result.next')} →`}
           onNext={() => nextTarget && onPlay(nextTarget.id)}
           onReplay={replay}
           onMap={onMap}
@@ -327,20 +340,24 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
       {failed && !outcome && (
         <div className="absolute inset-0 z-30 grid place-items-center rounded-xl bg-bg/70 backdrop-blur-sm">
           <div className="panel w-full max-w-md p-6 text-center">
-            <p className="font-terminal text-3xl font-bold text-danger">REPELLED!</p>
+            <p className="font-terminal text-3xl font-bold text-danger">{t('campaign.repelled')}</p>
             <p className="mt-2 text-sm text-ink-dim">
-              {challenge.title} shrugged off your {finalKs} keystrokes — the budget was {challenge.keystrokeBudget}. Reload and
-              clear it in <b className="text-term">{challenge.par}</b> keystrokes or fewer to earn <span className="text-amber">★★★</span>.
+              {t('campaign.repelledBody', {
+                title,
+                n: finalKs,
+                budget: challenge.keystrokeBudget ?? 0,
+                par: challenge.par,
+              })}
             </p>
             <div className="mt-5 flex justify-center gap-3">
               <button onClick={replay} className="btn-primary rounded-xl px-5 py-2.5 font-bold">
-                ⟳ Retry for 3 ★
+                ⟳ {t('campaign.retryFor3')}
               </button>
               <button
                 onClick={onMap}
                 className="rounded-xl border border-border px-5 py-2.5 text-ink-dim transition-colors hover:border-term hover:text-term"
               >
-                Back to map
+                {t('campaign.backToMap')}
               </button>
             </div>
           </div>
@@ -363,14 +380,15 @@ export function CampaignMode({ challenge, onPlay, onMap }: Props) {
 
 /** Depleting keystroke-budget bar (boss levels). */
 function BossBar({ spent, budget }: { spent: number; budget: number }) {
+  const t = useT()
   const remaining = Math.max(0, budget - spent)
   const pct = (remaining / budget) * 100
   const color = pct > 50 ? 'var(--color-term)' : pct > 25 ? 'var(--color-amber)' : 'var(--color-danger)'
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-ink-dim">
-        <span>Boss integrity</span>
-        <span className="tabular-nums">{remaining} keystrokes left</span>
+        <span>{t('campaign.bossIntegrity')}</span>
+        <span className="tabular-nums">{t('campaign.keystrokesLeft', { n: remaining })}</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-panel-2">
         <div

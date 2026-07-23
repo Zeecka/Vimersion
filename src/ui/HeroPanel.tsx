@@ -8,6 +8,7 @@ import { effectiveQuality } from '../game/quality'
 import { useStage, type HeroReaction } from '../three/stageState'
 import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
+import { useT } from '../game/i18n'
 
 /** How the hero should feel right now, driven by the play screen. */
 export type Reaction = HeroReaction
@@ -15,9 +16,10 @@ export type Reaction = HeroReaction
 // Local Suspense boundary — only the portrait ever suspends, never the editor.
 const Hero3D = lazy(() => import('../three/Hero3D'))
 
-/** Playful rank title derived from level (purely cosmetic flavor). */
+/** Playful rank title derived from level (purely cosmetic flavor). English source
+ *  — translated at render via the `rank.<i>` keys. */
 const RANKS = ['Rookie', 'Operator', 'Coder', 'Hacker', 'Wizard', 'Legend']
-const rankFor = (level: number) => RANKS[Math.min(RANKS.length - 1, Math.floor((level - 1) / 3))]
+const rankIndexFor = (level: number) => Math.min(RANKS.length - 1, Math.floor((level - 1) / 3))
 
 /** The classic SVG avatar with spinning aura — lite tier + 3D loading fallback. */
 function ClassicPortrait({ reaction, bobClass }: { reaction: Reaction; bobClass: string }) {
@@ -60,9 +62,11 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
+  const t = useT()
 
   const { level, into, span, pct } = levelProgress(xp)
-  const name = rankFor(level)
+  const rankIdx = rankIndexFor(level)
+  const name = t(`rank.${rankIdx}`, undefined, RANKS[rankIdx])
 
   const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
   const perfects = Object.values(completed).filter((r) => r.stars >= 3).length
@@ -94,16 +98,16 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
       : 'animate-[vm-hero-idle_4s_ease-in-out_infinite]'
 
   const trophies = [
-    { icon: 'trophy', label: 'worlds cleared', n: worldsCleared },
-    { icon: 'star', label: 'perfect solves', n: perfects },
-    { icon: 'gem', label: 'commands mastered', n: mastered },
-    { icon: 'crown', label: 'levels solved', n: solved },
-    { icon: 'bolt', label: 'rush best', n: arcadeBest },
+    { icon: 'trophy', label: t('hero.trophy.worlds'), n: worldsCleared },
+    { icon: 'star', label: t('hero.trophy.perfects'), n: perfects },
+    { icon: 'gem', label: t('hero.trophy.mastered'), n: mastered },
+    { icon: 'crown', label: t('hero.trophy.solved'), n: solved },
+    { icon: 'bolt', label: t('hero.trophy.rush'), n: arcadeBest },
   ]
 
   return (
     <aside className="panel relative flex flex-col gap-4 overflow-hidden p-4">
-      <div className="text-center text-[10px] uppercase tracking-[0.2em] text-ink-dim">Your Hero</div>
+      <div className="text-center text-[10px] uppercase tracking-[0.2em] text-ink-dim">{t('hero.yourHero')}</div>
 
       {/* portrait stage */}
       <div className="relative h-40 select-none">
@@ -142,7 +146,7 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
       {/* name + level + xp bar */}
       <div className="text-center">
         <div className="font-terminal text-2xl font-semibold text-ink">{name}</div>
-        <div className="text-xs text-term">Level {level}</div>
+        <div className="text-xs text-term">{t('hero.level', { n: level })}</div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className="h-full rounded-full transition-[width] duration-500"
@@ -154,22 +158,24 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
 
       {/* loadout / trophies */}
       <div>
-        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">Loadout</div>
+        <div className="mb-1.5 text-[10px] uppercase tracking-widest text-ink-dim">{t('hero.loadout')}</div>
         <div className="grid grid-cols-5 gap-1.5">
-          {trophies.map((t) => (
+          {trophies.map((tr) => (
             <div
-              key={t.icon}
-              title={`${t.n} ${t.label}`}
-              className={`flex flex-col items-center gap-0.5 rounded-md border border-border bg-panel-2 py-1.5 ${t.n > 0 ? '' : 'opacity-40'}`}
+              key={tr.icon}
+              title={`${tr.n} ${tr.label}`}
+              className={`flex flex-col items-center gap-0.5 rounded-md border border-border bg-panel-2 py-1.5 ${tr.n > 0 ? '' : 'opacity-40'}`}
             >
-              <Emoji name={t.icon} size={16} />
-              <span className="text-[11px] font-bold tabular-nums text-ink">{t.n}</span>
+              <Emoji name={tr.icon} size={16} />
+              <span className="text-[11px] font-bold tabular-nums text-ink">{tr.n}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <p className="text-center text-[10px] text-ink-dim">Coins <span className="tabular-nums text-amber">{coins}</span> · earn more to unlock gear in the Shop</p>
+      <p className="text-center text-[10px] text-ink-dim">
+        {t('hero.coins')} <span className="tabular-nums text-amber">{coins}</span> {t('hero.earnMore')}
+      </p>
     </aside>
   )
 }

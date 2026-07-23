@@ -5,6 +5,8 @@ import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
 import { AccountButton, AccountModal } from './Account'
 import { CheatsheetButton } from './Cheatsheet'
+import { LangSwitcher } from './LangSwitcher'
+import { useT } from '../game/i18n'
 import { useGame, MASTERY_THRESHOLD } from '../game/store'
 import { useAccount, flushSync, verifiedShareUrl } from '../game/account'
 import { levelFromXp } from '../game/xp'
@@ -35,6 +37,7 @@ export function Hud({
   const toggleSound = useGame((s) => s.toggleSound)
   const coins = useGame((s) => s.coins)
   const accountStatus = useAccount((s) => s.status)
+  const t = useT()
 
   const [shareMsg, setShareMsg] = useState<string | null>(null)
   const [sharePrompt, setSharePrompt] = useState(false)
@@ -50,7 +53,7 @@ export function Hud({
     }
     const res = await shareScore(stats, verified)
     setShareMsg(
-      res === 'shared' ? 'Shared! 🎉' : res === 'copied' ? 'Score copied to clipboard!' : 'Could not share — try again',
+      res === 'shared' ? t('hud.shared') : res === 'copied' ? t('hud.scoreCopied') : t('hud.shareFailed'),
     )
     window.setTimeout(() => setShareMsg(null), 2600)
   }
@@ -91,11 +94,11 @@ export function Hud({
               sfx.ui()
               onShop()
             }}
-            title="Customize your character"
-            aria-label="Customize your character"
+            title={t('home.customizeTitle')}
+            aria-label={t('home.customizeTitle')}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-amber hover:text-amber"
           >
-            <Emoji name="palette" size={14} /> <span className="hidden md:inline">customize</span>
+            <Emoji name="palette" size={14} /> <span className="hidden md:inline">{t('hud.customize')}</span>
           </button>
           <button
             onMouseDown={(e) => e.preventDefault()}
@@ -103,11 +106,11 @@ export function Hud({
               sfx.ui()
               onMap()
             }}
-            title="World map"
-            aria-label="World map"
+            title={t('hud.mapsTitle')}
+            aria-label={t('hud.mapsTitle')}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
           >
-            <Emoji name="target" size={14} /> <span className="hidden md:inline">maps</span>
+            <Emoji name="target" size={14} /> <span className="hidden md:inline">{t('hud.maps')}</span>
           </button>
           <button
             onMouseDown={(e) => e.preventDefault()}
@@ -115,34 +118,34 @@ export function Hud({
               sfx.ui()
               onQuiz()
             }}
-            title="Quiz mode — tap-to-answer trainer"
-            aria-label="Quiz mode"
+            title={t('hud.quizTitle')}
+            aria-label={t('hud.quiz')}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
           >
-            <Emoji name="star" size={14} /> <span className="hidden md:inline">quiz</span>
+            <Emoji name="star" size={14} /> <span className="hidden md:inline">{t('hud.quiz')}</span>
           </button>
           <CheatsheetButton
-            label="cheatsheet"
+            label={t('hud.cheatsheet')}
             responsive
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-magenta hover:text-magenta"
           />
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => void onShare()}
-            title="Share my score"
-            aria-label="Share my score"
+            title={t('hud.shareTitle')}
+            aria-label={t('hud.shareTitle')}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-cyan hover:text-cyan"
           >
-            <Emoji name="rocket" size={14} /> <span className="hidden md:inline">share my score</span>
+            <Emoji name="rocket" size={14} /> <span className="hidden md:inline">{t('hud.share')}</span>
           </button>
           <span
-            title={streak > 0 ? `${streak}-day streak — play daily to keep it alive` : 'Play daily to build a streak'}
+            title={streak > 0 ? t('hud.streakActive', { n: streak }) : t('hud.streakInactive')}
             className={`flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm ${
               streak > 0 ? 'text-amber' : 'text-ink-dim opacity-70'
             }`}
           >
             <Emoji name="fire" size={14} /> <span className="tabular-nums">{streak}</span>
-            <span className="hidden lg:inline">day streak</span>
+            <span className="hidden lg:inline">{t('hud.dayStreak')}</span>
           </span>
         </nav>
 
@@ -152,8 +155,8 @@ export function Hud({
             sfx.ui()
             onShop()
           }}
-          title="Shop"
-          aria-label={`Shop — ${coins} coins`}
+          title={t('hud.shopTitle')}
+          aria-label={t('hud.shopAria', { n: coins })}
           className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-amber transition-colors hover:border-amber"
         >
           <span className="coin" /> <span className="tabular-nums">{coins}</span>
@@ -165,11 +168,12 @@ export function Hud({
             sfx.ui()
           }}
           className="opacity-80 transition-opacity hover:opacity-100"
-          title={soundOn ? 'Mute sound' : 'Unmute sound'}
-          aria-label="Toggle sound"
+          title={soundOn ? t('hud.mute') : t('hud.unmute')}
+          aria-label={soundOn ? t('hud.mute') : t('hud.unmute')}
         >
           <Emoji name={soundOn ? 'sound-on' : 'mute'} size={18} />
         </button>
+        <LangSwitcher />
         <AccountButton />
       </div>
 
@@ -182,7 +186,7 @@ export function Hud({
         {sharePrompt && (
           <AccountModal
             onClose={() => setSharePrompt(false)}
-            note="Sign in first and your share link shows a verified, server-stored score."
+            note={t('hud.signInNote')}
             onShareAnyway={() => {
               setSharePrompt(false)
               void doShare(null)

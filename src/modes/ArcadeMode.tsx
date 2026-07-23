@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
+import { useT } from '../game/i18n'
 import { sfx } from '../game/sound'
-import { KeyCap } from '../ui/atoms'
+import { KeyedText } from '../ui/atoms'
 import { PlayerAvatar } from '../ui/Avatar'
 
 const ROWS = 5
@@ -46,6 +47,7 @@ type Phase = 'ready' | 'playing' | 'over'
 export function ArcadeMode() {
   const recordArcade = useGame((s) => s.recordArcade)
   const best = useGame((s) => s.arcadeBest)
+  const t = useT()
 
   const [phase, setPhase] = useState<Phase>('ready')
   const [timeLeft, setTimeLeft] = useState(GAME_SECONDS)
@@ -123,14 +125,13 @@ export function ArcadeMode() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="font-terminal text-4xl text-amber glow-amber">Motion Rush</h2>
+          <h2 className="font-terminal text-4xl text-amber glow-amber">{t('arcade.title')}</h2>
           <p className="mt-1 text-ink-dim">
-            Whack the <span className="text-amber">@</span> using{' '}
-            <KeyCap>h</KeyCap> <KeyCap>j</KeyCap> <KeyCap>k</KeyCap> <KeyCap>l</KeyCap>. Chain fast for combos.
+            <KeyedText text={t('arcade.tagline')} />
           </p>
         </div>
         <div className="text-right text-sm">
-          <div className="text-ink-dim">best</div>
+          <div className="text-ink-dim">{t('arcade.best')}</div>
           <div className="font-terminal text-2xl text-term tabular-nums">{best}</div>
         </div>
       </div>
@@ -139,16 +140,16 @@ export function ArcadeMode() {
       {phase === 'playing' && (
         <div className="mt-6 flex items-center gap-6">
         <div>
-          <div className="text-xs text-ink-dim">SCORE</div>
+          <div className="text-xs text-ink-dim">{t('arcade.score')}</div>
           <div className="font-terminal text-3xl text-term tabular-nums">{st.score}</div>
         </div>
         <div>
-          <div className="text-xs text-ink-dim">COMBO</div>
+          <div className="text-xs text-ink-dim">{t('arcade.combo')}</div>
           <div className="font-terminal text-3xl text-magenta tabular-nums">×{st.combo}</div>
         </div>
         <div className="ml-auto w-40">
           <div className="mb-1 flex justify-between text-xs text-ink-dim">
-            <span>TIME</span>
+            <span>{t('arcade.time')}</span>
             <span className="tabular-nums">{timeLeft}s</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full border border-border bg-panel-2">
@@ -206,10 +207,10 @@ export function ArcadeMode() {
             <div className="text-center">
               {phase === 'over' && (
                 <>
-                  <p className="font-terminal text-3xl text-term glow-term">TIME!</p>
+                  <p className="font-terminal text-3xl text-term glow-term">{t('arcade.timeUp')}</p>
                   <p className="mt-2 text-ink-dim">
-                    Score <b className="text-ink">{st.score}</b>
-                    {isNewBest && <span className="ml-2 text-amber">★ new best!</span>}
+                    {t('arcade.scoreLabel')} <b className="text-ink">{st.score}</b>
+                    {isNewBest && <span className="ml-2 text-amber">★ {t('arcade.newBest')}</span>}
                   </p>
                   {coinsEarned > 0 && (
                     <p className="mt-1 flex items-center justify-center gap-1.5 text-amber">
@@ -218,16 +219,12 @@ export function ArcadeMode() {
                   )}
                 </>
               )}
-              {phase === 'ready' && (
-                <p className="max-w-xs text-ink-dim">
-                  Move the cursor onto the mole before it moves. Speed builds your combo.
-                </p>
-              )}
+              {phase === 'ready' && <p className="max-w-xs text-ink-dim">{t('arcade.readyHint')}</p>}
               <button
                 onClick={start}
                 className="mt-5 rounded bg-term px-6 py-2.5 font-bold text-bg transition-transform hover:scale-105"
               >
-                {phase === 'over' ? '↻ Play Again' : '▶ Start'}
+                {phase === 'over' ? `↻ ${t('arcade.playAgain')}` : `▶ ${t('arcade.start')}`}
               </button>
             </div>
           </div>

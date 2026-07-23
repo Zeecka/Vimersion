@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
 import { useGame } from '../game/store'
 import { levelProgress } from '../game/xp'
+import { useT } from '../game/i18n'
 
 export function XPBar({ showNumbers = true }: { showNumbers?: boolean }) {
   const xp = useGame((s) => s.xp)
   const { level, into, span, pct } = levelProgress(xp)
+  const t = useT()
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-baseline gap-1.5">
-        <span className="text-xs text-ink-dim">LVL</span>
+        <span className="text-xs text-ink-dim">{t('xp.lvl')}</span>
         <span className="font-terminal text-2xl leading-none text-term glow-term">{level}</span>
       </div>
       <div className="relative h-2.5 w-36 overflow-hidden rounded-full border border-border bg-panel-2 sm:w-44">

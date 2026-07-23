@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { GITHUB_REPO, GITHUB_URL } from '../game/links'
 import { sfx } from '../game/sound'
+import { useT } from '../game/i18n'
 
 /**
  * "Star on GitHub" button with a live star count. The game is offline-first, so
@@ -53,6 +54,7 @@ function GitHubMark({ size = 15 }: { size?: number }) {
 }
 
 export function GitHubButton() {
+  const t = useT()
   const [stars, setStars] = useState<number | null>(() => readCache()?.n ?? null)
 
   useEffect(() => {
@@ -82,10 +84,10 @@ export function GitHubButton() {
       target="_blank"
       rel="noreferrer"
       onClick={() => sfx.ui()}
-      title="Star this project on GitHub"
+      title={t('github.title')}
       className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 font-bold text-ink transition-colors hover:border-term hover:text-term"
     >
-      <GitHubMark /> Star
+      <GitHubMark /> {t('github.star')}
       {stars !== null && (
         <span className="inline-flex items-center gap-0.5 tabular-nums text-amber">★ {formatStars(stars)}</span>
       )}

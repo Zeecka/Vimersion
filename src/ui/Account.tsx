@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { login, logout, useAccount } from '../game/account'
 import { sfx } from '../game/sound'
+import { useT } from '../game/i18n'
 
 const PROVIDER_LABEL: Record<string, string> = { google: 'Google', github: 'GitHub' }
 
@@ -27,6 +28,7 @@ export function AccountModal({
   onShareAnyway?: () => void
 }) {
   const providers = useAccount((s) => s.providers)
+  const t = useT()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -45,13 +47,10 @@ export function AccountModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="Sign in"
+        aria-label={t('account.dialogLabel')}
       >
-        <h3 className="font-terminal text-2xl font-bold text-term">Save your progress</h3>
-        <p className="mt-2 text-sm text-ink-dim">
-          No account is needed to play. Sign in to keep your XP, coins and gear across devices — and to share a{' '}
-          <span className="text-ink">verified score</span> backed by the server, not just text anyone could edit.
-        </p>
+        <h3 className="font-terminal text-2xl font-bold text-term">{t('account.title')}</h3>
+        <p className="mt-2 text-sm text-ink-dim">{t('account.body')}</p>
         {note && <p className="mt-3 rounded-lg border border-amber/40 bg-amber/10 px-3 py-2 text-xs text-amber">{note}</p>}
 
         <div className="mt-5 flex flex-col gap-2">
@@ -64,7 +63,7 @@ export function AccountModal({
               }}
               className="btn-primary rounded-xl px-4 py-2.5 font-bold"
             >
-              Continue with {PROVIDER_LABEL[p] ?? p}
+              {t('account.continueWith', { provider: PROVIDER_LABEL[p] ?? p })}
             </button>
           ))}
         </div>
@@ -75,13 +74,13 @@ export function AccountModal({
               onClick={onShareAnyway}
               className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-ink"
             >
-              share without an account
+              {t('account.shareWithout')}
             </button>
           ) : (
-            <span className="text-ink-dim">Your local progress is merged when you sign in.</span>
+            <span className="text-ink-dim">{t('account.mergedNote')}</span>
           )}
           <button onClick={onClose} className="text-ink-dim underline decoration-dotted underline-offset-4 hover:text-ink">
-            close
+            {t('account.close')}
           </button>
         </div>
       </motion.div>
@@ -99,6 +98,7 @@ export function AccountButton() {
   const [modal, setModal] = useState(false)
   const [menu, setMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const t = useT()
 
   useEffect(() => {
     if (!menu) return
@@ -121,7 +121,7 @@ export function AccountButton() {
           }}
           className="rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
         >
-          Sign in
+          {t('account.signIn')}
         </button>
         <AnimatePresence>{modal && <AccountModal onClose={() => setModal(false)} />}</AnimatePresence>
       </>
@@ -147,15 +147,16 @@ export function AccountButton() {
         )}
         <span
           className={`h-1.5 w-1.5 rounded-full ${syncPending ? 'animate-pulse bg-amber' : syncedAt ? 'bg-term' : 'bg-border'}`}
-          title={syncPending ? 'Saving…' : syncedAt ? 'Progress saved to your account' : 'Not saved yet'}
+          title={syncPending ? t('account.saving') : syncedAt ? t('account.saved') : t('account.notSaved')}
         />
       </button>
       {menu && (
         <div className="panel absolute right-0 top-full z-30 mt-2 w-52 p-3 text-sm">
           <p className="truncate font-medium text-ink">{user?.name}</p>
           <p className="mt-0.5 text-xs text-ink-dim">
-            via {PROVIDER_LABEL[user?.provider ?? ''] ?? user?.provider} ·{' '}
-            {syncedAt ? 'progress saved' : 'not saved yet'}
+            {syncedAt
+              ? t('account.viaSaved', { provider: PROVIDER_LABEL[user?.provider ?? ''] ?? user?.provider ?? '' })
+              : t('account.viaNotSaved', { provider: PROVIDER_LABEL[user?.provider ?? ''] ?? user?.provider ?? '' })}
           </p>
           <button
             onClick={() => {
@@ -165,7 +166,7 @@ export function AccountButton() {
             }}
             className="mt-3 w-full rounded border border-border py-1.5 text-xs text-ink-dim transition-colors hover:border-danger hover:text-danger"
           >
-            Sign out
+            {t('account.signOut')}
           </button>
         </div>
       )}

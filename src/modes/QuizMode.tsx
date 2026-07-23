@@ -5,6 +5,7 @@ import { sfx } from '../game/sound'
 import { Emoji } from '../ui/Emoji'
 import { WORLDS } from '../content/tiers'
 import { QUIZ, quizForTier, type QuizQuestion } from '../content/quiz'
+import { useT } from '../game/i18n'
 
 /**
  * Quiz mode — a touch-first, multiple-choice trainer. It's the mobile way to
@@ -61,6 +62,7 @@ function buildRound(questions: QuizQuestion[], size: number): RoundItem[] {
 export function QuizMode() {
   const recordQuiz = useGame((s) => s.recordQuiz)
   const best = useGame((s) => s.quizBest)
+  const t = useT()
 
   const [phase, setPhase] = useState<Phase>('pick')
   const [round, setRound] = useState<RoundItem[]>([])
@@ -139,7 +141,7 @@ export function QuizMode() {
     return (
       <div className="mx-auto max-w-md px-4 py-10 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="panel p-6">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-ink-dim">Quiz complete</div>
+          <div className="text-[11px] uppercase tracking-[0.25em] text-ink-dim">{t('quiz.complete')}</div>
           <div className="mt-3 font-terminal text-6xl tabular-nums text-term glow-term">
             {correct}<span className="text-2xl text-ink-dim">/{total}</span>
           </div>
@@ -148,7 +150,8 @@ export function QuizMode() {
             <span className="text-ink-dim">{'★★★'.slice(stars)}</span>
           </div>
           <p className="mt-2 text-sm text-ink-dim">
-            {pct}% correct{reward.isNewBest && <span className="ml-2 text-amber">★ new best!</span>}
+            {t('quiz.pctCorrect', { pct })}
+            {reward.isNewBest && <span className="ml-2 text-amber">★ {t('quiz.newBest')}</span>}
           </p>
           {reward.coins > 0 && (
             <p className="mt-1 flex items-center justify-center gap-1.5 text-amber">
@@ -160,7 +163,7 @@ export function QuizMode() {
               onClick={() => start(round.map((r) => r.q), round.length)}
               className="btn-primary flex-1 rounded-xl px-5 py-3 font-bold"
             >
-              ↻ Retry
+              ↻ {t('quiz.retry')}
             </button>
             <button
               onClick={() => {
@@ -169,7 +172,7 @@ export function QuizMode() {
               }}
               className="flex-1 rounded-xl border border-border px-5 py-3 text-ink-dim transition-colors hover:border-term hover:text-term"
             >
-              Choose topic
+              {t('quiz.chooseTopic')}
             </button>
           </div>
         </motion.div>
@@ -185,9 +188,7 @@ export function QuizMode() {
     <div className="mx-auto max-w-lg px-4 py-6">
       {/* progress + score */}
       <div className="flex items-center justify-between text-xs text-ink-dim">
-        <span className="tabular-nums">
-          Question {idx + 1} / {round.length}
-        </span>
+        <span className="tabular-nums">{t('quiz.question', { n: idx + 1, total: round.length })}</span>
         <span className="inline-flex items-center gap-1.5 tabular-nums text-term">
           <Emoji name="star" size={14} /> {correct}
         </span>
@@ -198,7 +199,7 @@ export function QuizMode() {
 
       {/* prompt */}
       <div className="panel mt-4 p-5">
-        <p className="text-lg font-medium text-ink">{item.q.prompt}</p>
+        <p className="text-lg font-medium text-ink">{t(`quiz.${item.q.id}.prompt`, undefined, item.q.prompt)}</p>
       </div>
 
       {/* choices — large, tappable */}
@@ -256,11 +257,11 @@ export function QuizMode() {
               <span className="mt-0.5 shrink-0">
                 <Emoji name="bulb" size={15} />
               </span>
-              <span>{item.q.explain}</span>
+              <span>{t(`quiz.${item.q.id}.explain`, undefined, item.q.explain)}</span>
             </div>
           )}
           <button onClick={advance} className="btn-primary mt-3 w-full rounded-xl px-5 py-3.5 font-bold">
-            {idx + 1 >= round.length ? 'See results →' : 'Next question →'}
+            {idx + 1 >= round.length ? t('quiz.seeResults') : t('quiz.nextQuestion')} →
           </button>
         </motion.div>
       )}
@@ -276,16 +277,17 @@ function QuizPicker({
   onStart: (questions: QuizQuestion[], size: number) => void
 }) {
   const worlds = useMemo(() => WORLDS.map((w) => ({ ...w, count: quizForTier(w.tier).length })), [])
+  const t = useT()
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="font-terminal text-4xl text-term glow-term">Quiz</h2>
-          <p className="mt-1 text-ink-dim">Tap the right answer — no keyboard needed. Perfect on the go.</p>
+          <h2 className="font-terminal text-4xl text-term glow-term">{t('quiz.title')}</h2>
+          <p className="mt-1 text-ink-dim">{t('quiz.subtitle')}</p>
         </div>
         <div className="text-right text-sm">
-          <div className="text-ink-dim">best</div>
+          <div className="text-ink-dim">{t('quiz.best')}</div>
           <div className="font-terminal text-2xl tabular-nums text-term">{best}</div>
         </div>
       </div>
@@ -297,13 +299,13 @@ function QuizPicker({
       >
         <Emoji name="rocket" size={22} />
         <span className="flex-1">
-          <span className="block font-bold text-ink">Mixed round</span>
-          <span className="text-sm text-ink-dim">{MIXED_SIZE} questions from every world</span>
+          <span className="block font-bold text-ink">{t('quiz.mixedRound')}</span>
+          <span className="text-sm text-ink-dim">{t('quiz.mixedDesc', { n: MIXED_SIZE })}</span>
         </span>
         <span aria-hidden className="text-term">▶</span>
       </button>
 
-      <div className="mt-6 text-[11px] uppercase tracking-widest text-ink-dim">Or drill one world</div>
+      <div className="mt-6 text-[11px] uppercase tracking-widest text-ink-dim">{t('quiz.orDrill')}</div>
       <div className="mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {worlds.map((w) => (
           <button
@@ -316,8 +318,12 @@ function QuizPicker({
               {w.tier}
             </span>
             <span className="flex-1">
-              <span className="block text-sm font-medium text-ink">{w.name}</span>
-              <span className="text-xs text-ink-dim">{w.subtitle}</span>
+              <span className="block text-sm font-medium text-ink">
+                {t(`content.world.${w.tier}.name`, undefined, w.name)}
+              </span>
+              <span className="text-xs text-ink-dim">
+                {t(`content.world.${w.tier}.subtitle`, undefined, w.subtitle)}
+              </span>
             </span>
             <span className="text-xs tabular-nums text-ink-dim">{w.count}</span>
           </button>

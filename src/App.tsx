@@ -13,6 +13,7 @@ import { CampaignMode } from './modes/CampaignMode'
 import { ArcadeMode } from './modes/ArcadeMode'
 import { CHALLENGES } from './content/tiers'
 import { useGame, MASTERY_THRESHOLD } from './game/store'
+import { useT, useLang } from './game/i18n'
 import { levelFromXp } from './game/xp'
 import { COMMANDS } from './game/commands'
 import { initAccount } from './game/account'
@@ -66,6 +67,7 @@ export default function App() {
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const stageReady = useStage((s) => s.ready)
+  const lang = useLang()
 
   const theme = COSMETIC_BY_ID[equipped.theme]
   const accent = theme?.accent ?? '#7c6bff'
@@ -84,6 +86,12 @@ export default function App() {
   useEffect(() => {
     setSoundMuted(!soundOn)
   }, [soundOn])
+
+  // Reflect the active language on <html lang> for a11y / SEO (covers the initial
+  // auto-detected value; explicit switches also set this via the store).
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
 
   useEffect(() => {
     const root = document.documentElement
@@ -198,6 +206,7 @@ function Home({
   const completed = useGame((s) => s.completed)
   const arcadeBest = useGame((s) => s.arcadeBest)
   const reset = useGame((s) => s.resetProgress)
+  const t = useT()
   const [confirmReset, setConfirmReset] = useState(false)
 
   const solved = Object.keys(completed).length
@@ -218,7 +227,7 @@ function Home({
             sfx.ui()
             onShop()
           }}
-          title="Customize your character"
+          title={t('home.customizeTitle')}
           className="group mx-auto mb-4 block"
         >
           <span
@@ -230,7 +239,7 @@ function Home({
             </span>
           </span>
           <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber underline decoration-dotted underline-offset-4 group-hover:opacity-80">
-            <Emoji name="palette" size={13} /> customize your character
+            <Emoji name="palette" size={13} /> {t('home.customize')}
           </span>
         </button>
         <motion.h1
@@ -240,9 +249,7 @@ function Home({
         >
           :VimLegends
         </motion.h1>
-        <p className="mt-3 text-lg text-ink-dim">
-          Learn Vim by playing. Real editor, real keystrokes, real muscle memory.
-        </p>
+        <p className="mt-3 text-lg text-ink-dim">{t('home.tagline')}</p>
       </div>
 
       <HomeStats />
@@ -251,7 +258,7 @@ function Home({
         onClick={startCampaign}
         className="btn-primary mt-8 w-full rounded-xl px-6 py-4 text-lg font-bold"
       >
-        {hasProgress ? '▶ Continue Campaign' : '▶ Start Campaign'}
+        ▶ {hasProgress ? t('home.continueCampaign') : t('home.startCampaign')}
       </button>
 
       <div className="mt-3 flex flex-col gap-3 sm:flex-row">
@@ -263,7 +270,7 @@ function Home({
           className="btn-accent flex-1 rounded-xl px-6 py-4 text-lg font-bold"
         >
           <span className="inline-flex items-center justify-center gap-2">
-            <Emoji name="target" size={22} /> Motion Rush
+            <Emoji name="target" size={22} /> {t('home.motionRush')}
           </span>
         </button>
         <button
@@ -274,7 +281,7 @@ function Home({
           className="btn-accent flex-1 rounded-xl px-6 py-4 text-lg font-bold"
         >
           <span className="inline-flex items-center justify-center gap-2">
-            <Emoji name="star" size={22} /> Quiz Mode
+            <Emoji name="star" size={22} /> {t('home.quizMode')}
           </span>
         </button>
       </div>
@@ -292,7 +299,7 @@ function Home({
             }}
             className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs text-ink-dim transition-colors hover:border-danger hover:text-danger"
           >
-            <span aria-hidden>⟲</span> reset progress
+            <span aria-hidden>⟲</span> {t('home.resetProgress')}
           </button>
         )}
       </div>
@@ -322,11 +329,8 @@ function Home({
             >
               ⚠
             </div>
-            <h3 className="mt-3 font-terminal text-2xl font-bold text-danger">Reset everything?</h3>
-            <p className="mt-2 text-sm text-ink-dim">
-              This erases <b className="text-ink">all</b> progress — levels, XP, coins, streak and
-              cosmetics — and can’t be undone.
-            </p>
+            <h3 className="mt-3 font-terminal text-2xl font-bold text-danger">{t('home.resetTitle')}</h3>
+            <p className="mt-2 text-sm text-ink-dim">{t('home.resetBody')}</p>
             <div className="mt-6 flex justify-center gap-3">
               <button
                 onClick={() => {
@@ -335,7 +339,7 @@ function Home({
                 }}
                 className="rounded-xl border border-border px-5 py-2.5 text-sm text-ink-dim transition-colors hover:border-term hover:text-term"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -346,7 +350,7 @@ function Home({
                 className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
                 style={{ background: 'var(--color-danger)' }}
               >
-                Reset everything
+                {t('home.resetConfirm')}
               </button>
             </div>
           </motion.div>
@@ -354,7 +358,7 @@ function Home({
       )}
 
       <p className="mt-8 flex flex-wrap items-center justify-center gap-3 text-center text-xs text-ink-dim">
-        free &amp; open source
+        {t('home.freeOss')}
         <GitHubButton />
         <a
           href={DONATE_URL}
@@ -363,7 +367,7 @@ function Home({
           onClick={() => sfx.ui()}
           className="inline-flex items-center gap-1.5 rounded-full border border-magenta/50 px-3 py-1 font-bold text-magenta transition-colors hover:bg-magenta/10"
         >
-          ♥ donate
+          ♥ {t('home.donate')}
         </a>
       </p>
     </div>
@@ -376,17 +380,18 @@ function HomeStats() {
   const completed = useGame((s) => s.completed)
   const mastery = useGame((s) => s.mastery)
   const arcadeBest = useGame((s) => s.arcadeBest)
+  const t = useT()
 
   const level = levelFromXp(xp)
   const solved = Object.keys(completed).length
   const mastered = COMMANDS.filter((c) => (mastery[c.id] ?? 0) >= MASTERY_THRESHOLD).length
 
   const stats = [
-    { label: 'LEVEL', value: level, color: 'text-term', bar: 'var(--color-term)' },
-    { label: 'COINS', value: coins, color: 'text-amber', bar: 'var(--color-amber)' },
-    { label: 'SOLVED', value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: 'var(--color-cyan)' },
-    { label: 'MASTERED', value: mastered, color: 'text-magenta', bar: 'var(--color-magenta)' },
-    { label: 'RUSH', value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
+    { label: t('stats.level'), value: level, color: 'text-term', bar: 'var(--color-term)' },
+    { label: t('stats.coins'), value: coins, color: 'text-amber', bar: 'var(--color-amber)' },
+    { label: t('stats.solved'), value: `${solved}/${CHALLENGES.length}`, color: 'text-cyan', bar: 'var(--color-cyan)' },
+    { label: t('stats.mastered'), value: mastered, color: 'text-magenta', bar: 'var(--color-magenta)' },
+    { label: t('stats.rush'), value: arcadeBest, color: 'text-term', bar: 'var(--color-term)' },
   ]
 
   return (
@@ -406,10 +411,11 @@ function HomeStats() {
 }
 
 function Fallback({ onHome }: { onHome: () => void }) {
+  const t = useT()
   return (
     <div className="grid min-h-[60vh] place-items-center">
       <button onClick={onHome} className="text-term underline">
-        ← back home
+        ← {t('common.backHome')}
       </button>
     </div>
   )

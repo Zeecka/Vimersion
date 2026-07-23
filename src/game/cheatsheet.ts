@@ -25,7 +25,8 @@ export interface CheatSection {
   name: string
   subtitle: string
   accent: string
-  groups: Array<{ label: string; commands: VimCommand[] }>
+  /** `key` is the raw category id (for i18n lookup); `label` is the English label. */
+  groups: Array<{ key: string; label: string; commands: VimCommand[] }>
 }
 
 /** Commands grouped by world (tier), then by category — the cheatsheet spine. */
@@ -33,6 +34,7 @@ export function cheatsheetSections(): CheatSection[] {
   return WORLDS.map((w) => {
     const inWorld = COMMANDS.filter((c) => c.tier === w.tier)
     const groups = CATEGORY_ORDER.map((key) => ({
+      key,
       label: CATEGORY_LABEL[key] ?? key,
       commands: inWorld.filter((c) => c.category === key),
     })).filter((g) => g.commands.length > 0)

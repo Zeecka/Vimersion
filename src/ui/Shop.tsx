@@ -8,16 +8,13 @@ import { effectiveQuality } from '../game/quality'
 import { useStage } from '../three/stageState'
 import { sfx } from '../game/sound'
 import { CharacterMark } from './Avatar'
+import { useT } from '../game/i18n'
 
 // Local Suspense boundary — the 3D hero preview never blocks the rest of the Shop.
 const Hero3D = lazy(() => import('../three/Hero3D'))
 
 type TabKey = 'characters' | 'theme' | 'background'
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'characters', label: 'Characters' },
-  { key: 'theme', label: 'Themes' },
-  { key: 'background', label: 'Backgrounds' },
-]
+const TABS: { key: TabKey }[] = [{ key: 'characters' }, { key: 'theme' }, { key: 'background' }]
 
 /**
  * Static thumbnail for each background — a faithful, cheap snapshot of what the
@@ -87,17 +84,19 @@ function CharacterStudio() {
   const quality = useGame((s) => s.quality)
   const contextLost = useStage((s) => s.contextLost)
   const tier = contextLost ? 'lite' : effectiveQuality(quality)
+  const t = useT()
 
   return (
     <div className="panel mt-5 p-4 sm:p-5">
       {/* character roster — pick which base model to wear */}
-      <div className="text-[10px] uppercase tracking-widest text-ink-dim">Character</div>
+      <div className="text-[10px] uppercase tracking-widest text-ink-dim">{t('shop.character')}</div>
       <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
         {CHARACTERS.map((c) => {
           const isEquipped = hero.character === c.id
           const isOwned = owned.includes(characterSku(c.id))
           const canAfford = coins >= c.price
           const locked = !isOwned && !canAfford
+          const cname = t(`character.${c.id}.name`, undefined, c.name)
           return (
             <button
               key={c.id}
@@ -113,7 +112,7 @@ function CharacterStudio() {
                   sfx.error()
                 }
               }}
-              title={isOwned ? `Equip ${c.name}` : `Buy ${c.name} for ${c.price} coins`}
+              title={isOwned ? t('shop.equipName', { name: cname }) : t('shop.buyName', { name: cname, price: c.price })}
               className={`flex flex-col items-center gap-1 rounded-xl border p-2 text-center transition-colors ${
                 isEquipped
                   ? 'border-term text-term'
@@ -125,11 +124,11 @@ function CharacterStudio() {
               <div className="grid h-16 w-full place-items-center overflow-hidden rounded-lg bg-panel-2">
                 <img src={c.thumb.url} alt="" className="h-14 w-14 object-contain" />
               </div>
-              <span className="text-xs font-medium text-ink">{c.name}</span>
+              <span className="text-xs font-medium text-ink">{cname}</span>
               {isEquipped ? (
-                <span className="text-[11px] font-bold text-term">✓ Equipped</span>
+                <span className="text-[11px] font-bold text-term">✓ {t('shop.equipped')}</span>
               ) : isOwned ? (
-                <span className="text-[11px]">Equip</span>
+                <span className="text-[11px]">{t('shop.equip')}</span>
               ) : (
                 <span className="inline-flex items-center gap-0.5 text-[11px] tabular-nums">
                   <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {c.price}
@@ -140,7 +139,7 @@ function CharacterStudio() {
         })}
       </div>
 
-      <p className="mt-4 text-sm text-ink-dim">Pick your character, then a finish — it appears everywhere you play.</p>
+      <p className="mt-4 text-sm text-ink-dim">{t('shop.pickHint')}</p>
 
       {/* live preview — interactive: drag to rotate, idle turntable, pedestal + shadow */}
       <div
@@ -164,19 +163,20 @@ function CharacterStudio() {
         )}
         {tier === 'webgl' && (
           <span className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center text-[10px] text-ink-dim/70">
-            drag to rotate
+            {t('shop.dragRotate')}
           </span>
         )}
       </div>
 
       {/* body finish — matte is free; glow/holo/metallic are coin purchases */}
       <div className="mt-4">
-        <div className="text-[10px] uppercase tracking-widest text-ink-dim">Finish</div>
+        <div className="text-[10px] uppercase tracking-widest text-ink-dim">{t('shop.finish')}</div>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {FINISHES.map((f) => {
             const isOwned = owned.includes(finishSku(f.id))
             const isActive = hero.finish === f.id
             const canAfford = coins >= f.price
+            const fname = t(`finish.${f.id}.name`, undefined, f.name)
             return (
               <button
                 key={f.id}
@@ -192,7 +192,7 @@ function CharacterStudio() {
                     sfx.error()
                   }
                 }}
-                title={isOwned ? `Equip ${f.name}` : `Buy ${f.name} for ${f.price} coins`}
+                title={isOwned ? t('shop.equipName', { name: fname }) : t('shop.buyName', { name: fname, price: f.price })}
                 className={`rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
                   isActive
                     ? 'border-term text-term'
@@ -203,7 +203,7 @@ function CharacterStudio() {
                         : 'cursor-not-allowed border-border text-ink-dim opacity-60'
                 }`}
               >
-                {f.name}
+                {fname}
                 {!isOwned && (
                   <span className="ml-1 inline-flex items-center gap-0.5 tabular-nums">
                     <span className="coin" style={{ width: '0.85em', height: '0.85em' }} /> {f.price}
@@ -232,6 +232,7 @@ export function Shop() {
   const equipped = useGame((s) => s.equipped)
   const buy = useGame((s) => s.buyItem)
   const equip = useGame((s) => s.equipItem)
+  const t = useT()
   const [tab, setTab] = useState<TabKey>('characters')
   const items = tab === 'theme' ? THEMES : tab === 'background' ? BACKGROUNDS : []
 
@@ -246,8 +247,8 @@ export function Shop() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-terminal text-4xl text-term glow-term">Shop</h2>
-          <p className="mt-1 text-ink-dim">Earn coins by playing. Spend them on your look.</p>
+          <h2 className="font-terminal text-4xl text-term glow-term">{t('shop.title')}</h2>
+          <p className="mt-1 text-ink-dim">{t('shop.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="coin" style={{ width: '1.4em', height: '1.4em' }} />
@@ -256,18 +257,18 @@ export function Shop() {
       </div>
 
       <div className="mt-6 flex gap-2">
-        {TABS.map((t) => (
+        {TABS.map((tb) => (
           <button
-            key={t.key}
+            key={tb.key}
             onClick={() => {
-              setTab(t.key)
+              setTab(tb.key)
               sfx.ui()
             }}
             className={`rounded border px-4 py-1.5 text-sm transition-colors ${
-              tab === t.key ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
+              tab === tb.key ? 'border-term text-term' : 'border-border text-ink-dim hover:text-ink'
             }`}
           >
-            {t.label}
+            {t(`shop.tab.${tb.key}`)}
           </button>
         ))}
       </div>
@@ -284,13 +285,17 @@ export function Shop() {
               <motion.div key={c.id} layout className="panel flex flex-col p-3">
                 <ItemPreview c={c} />
                 <div className="mt-2 flex-1">
-                  <p className="text-sm font-medium text-ink">{c.name}</p>
-                  {c.blurb && <p className="text-[11px] leading-snug text-ink-dim">{c.blurb}</p>}
+                  <p className="text-sm font-medium text-ink">{t(`cosmetic.${c.id}.name`, undefined, c.name)}</p>
+                  {c.blurb && (
+                    <p className="text-[11px] leading-snug text-ink-dim">
+                      {t(`cosmetic.${c.id}.blurb`, undefined, c.blurb)}
+                    </p>
+                  )}
                 </div>
                 <div className="mt-3">
                   {isEquipped ? (
                     <div className="rounded py-1.5 text-center text-xs font-bold text-term" style={{ background: 'color-mix(in srgb, var(--color-term) 15%, transparent)' }}>
-                      ✓ Equipped
+                      ✓ {t('shop.equipped')}
                     </div>
                   ) : isOwned ? (
                     <button
@@ -300,7 +305,7 @@ export function Shop() {
                       }}
                       className="w-full rounded border border-term py-1.5 text-xs font-bold text-term transition-colors hover:bg-term/10"
                     >
-                      Equip
+                      {t('shop.equip')}
                     </button>
                   ) : (
                     <button
