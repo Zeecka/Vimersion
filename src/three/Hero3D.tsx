@@ -90,7 +90,7 @@ function HeroModel({
       }
       mesh.material = Array.isArray(mesh.material) ? mesh.material.map(convert) : convert(mesh.material)
     })
-  }, [scene, cfg, hero.finish])
+  }, [scene, hero.finish])
 
   // 'holo' finish: cycle the emissive hue of the outfit materials.
   useFrame((state) => {

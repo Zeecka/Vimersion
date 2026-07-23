@@ -5,6 +5,7 @@ import { CommandBelt } from './ui/CommandBelt'
 import { WorldMap } from './ui/WorldMap'
 import { Shop } from './ui/Shop'
 import { Background } from './ui/Background'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 import { Emoji } from './ui/Emoji'
 import { Profile } from './ui/Profile'
 import { GitHubButton } from './ui/GitHubButton'
@@ -131,9 +132,14 @@ export default function App() {
           (and forever in the lite tier) — never a blank flash. */}
       {(tier === 'lite' || !stageReady) && <Background bg={bgId} accent={accent} />}
       {tier === 'webgl' && (
-        <Suspense fallback={null}>
-          <Stage3D />
-        </Suspense>
+        <ErrorBoundary
+          fallback={<Background bg={bgId} accent={accent} />}
+          onError={() => setStage({ contextLost: true })}
+        >
+          <Suspense fallback={null}>
+            <Stage3D />
+          </Suspense>
+        </ErrorBoundary>
       )}
       {/* A per-context colour wash so each screen reads distinctly at a glance:
           Quiz (cyan) ≠ Motion Rush (amber), and any boss fight floods magenta so

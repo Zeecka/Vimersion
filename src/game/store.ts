@@ -266,7 +266,7 @@ export const useGame = create<GameStore>()(
       name: 'vimersion-save',
       version: 15,
       migrate: (persisted, version) => {
-        const p = (persisted ?? {}) as Record<string, any>
+        const p = (persisted ?? {}) as Record<string, unknown>
         const pe = (p.equipped ?? {}) as Record<string, unknown>
         const merged = {
           ...initial,

@@ -127,6 +127,7 @@ export function Hud({
           <CheatsheetButton
             label={t('hud.cheatsheet')}
             responsive
+            keepEditorFocus
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-ink-dim transition-colors hover:border-magenta hover:text-magenta"
           />
           <button

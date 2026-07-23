@@ -8,6 +8,7 @@ import { effectiveQuality } from '../game/quality'
 import { useStage, type HeroReaction } from '../three/stageState'
 import { PlayerAvatar } from './Avatar'
 import { Emoji } from './Emoji'
+import { ErrorBoundary } from './ErrorBoundary'
 import { useT } from '../game/i18n'
 
 /** How the hero should feel right now, driven by the play screen. */
@@ -89,7 +90,6 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
     else if (reaction === 'typing') setEmote('thinking')
     else setEmote(null)
     return () => window.clearTimeout(clearTimer.current)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reaction])
 
   const bobClass =
@@ -134,9 +134,11 @@ export function HeroPanel({ reaction }: { reaction: Reaction }) {
             (and as the Suspense fallback while the 3D chunk/model loads). */}
         {tier === 'webgl' ? (
           <div className="absolute inset-x-0 bottom-0 top-2">
-            <Suspense fallback={<ClassicPortrait reaction={reaction} bobClass={bobClass} />}>
-              <Hero3D reaction={reaction} hero={heroCustom} />
-            </Suspense>
+            <ErrorBoundary fallback={<ClassicPortrait reaction={reaction} bobClass={bobClass} />}>
+              <Suspense fallback={<ClassicPortrait reaction={reaction} bobClass={bobClass} />}>
+                <Hero3D reaction={reaction} hero={heroCustom} />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         ) : (
           <ClassicPortrait reaction={reaction} bobClass={bobClass} />
