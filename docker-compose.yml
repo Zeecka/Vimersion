@@ -15,7 +15,7 @@ services:
     container_name: vimlegends-api
     restart: unless-stopped
     volumes:
-      - vimersion-data:/data
+      - vimlegends-data:/data
     environment:
       # No host port: nginx in the vimlegends service proxies /api/ here.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8971}
@@ -26,4 +26,4 @@ services:
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
 
 volumes:
-  vimersion-data:
+  vimlegends-data:

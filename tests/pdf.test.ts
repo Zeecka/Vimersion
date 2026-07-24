@@ -7,8 +7,8 @@ import { buildCheatsheetPdf } from '../src/game/pdf'
  * generated file back and prove every xref offset actually lands on its object -
  * i.e. the PDF is structurally valid, not just "starts with %PDF".
  *
- * Ported from Tmuxpert; here `buildCheatsheetPdf()` is called with no args so it
- * uses Vimersion's default `cheatsheetSections()` (its `pdf.ts` has no exported
+ * Ported from TmuxLegends; here `buildCheatsheetPdf()` is called with no args so it
+ * uses VimLegends's default `cheatsheetSections()` (its `pdf.ts` has no exported
  * CHEATSHEET constant).
  */
 async function pdfString(): Promise<string> {

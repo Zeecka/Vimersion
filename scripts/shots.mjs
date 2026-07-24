@@ -59,7 +59,7 @@ async function seeded() {
   const page = await ctx.newPage()
   page.setDefaultTimeout(60000)
   await page.goto(BASE)
-  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), SAVE)
+  await page.evaluate((s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)), SAVE)
   await page.reload({ waitUntil: 'networkidle' })
   await page.waitForTimeout(2400) // let the 3D chunk compile + paint a frame
   return { ctx, page }

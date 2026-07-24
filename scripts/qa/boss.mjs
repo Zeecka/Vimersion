@@ -29,7 +29,7 @@ async function openBoss(browser) {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   page.on('pageerror', (e) => errors.push(String(e)))
   await page.goto(BASE)
-  await page.evaluate((seed) => localStorage.setItem('vimersion-save', JSON.stringify(seed)), SEED)
+  await page.evaluate((seed) => localStorage.setItem('vimlegends-save', JSON.stringify(seed)), SEED)
   await page.reload()
   await page.click('header button[title="World map"]')
   await page.waitForTimeout(400)

@@ -105,7 +105,7 @@ so challenges can verify **vim state**, not just text.
 
 ## 💾 Save versions
 
-localStorage key `vimersion-save` (legacy key — kept so pre-rebrand saves survive), zustand `persist` with versioned `migrate()`:
+localStorage key `vimlegends-save` (pre-rebrand saves under `vimersion-save` are copied forward on first load by `adoptLegacySave()`), zustand `persist` with versioned `migrate()`:
 
 | v | Change | Migration behavior |
 |---|--------|--------------------|

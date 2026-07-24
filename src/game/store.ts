@@ -121,6 +121,26 @@ const initial: Persisted = {
   seenPrimer: false,
 }
 
+// Forward-migrate the persisted save from the pre-rebrand key. VimLegends was
+// formerly "Vimersion"; copy any existing save to the new key so players keep
+// their progress across the rename, then drop the stale key. Runs once, before
+// persist() reads storage below; a no-op after the first load. If setItem throws
+// (quota/private mode) we bail before removing the old key, so nothing is lost.
+function adoptLegacySave() {
+  try {
+    const NEXT = 'vimlegends-save'
+    const PREV = 'vimersion-save'
+    if (localStorage.getItem(NEXT) == null) {
+      const legacy = localStorage.getItem(PREV)
+      if (legacy != null) localStorage.setItem(NEXT, legacy)
+    }
+    localStorage.removeItem(PREV)
+  } catch {
+    /* no storage — persist() will start fresh */
+  }
+}
+adoptLegacySave()
+
 export const useGame = create<GameStore>()(
   persist(
     (set, get) => ({
@@ -261,9 +281,10 @@ export const useGame = create<GameStore>()(
       resetProgress: () => set({ ...initial, owned: [...initial.owned], equipped: { ...initial.equipped } }),
     }),
     {
-      // Legacy localStorage key, kept verbatim across the VimLegends rebrand so
-      // existing players' saves survive (renaming it would silently wipe progress).
-      name: 'vimersion-save',
+      // The persisted save key. Pre-rebrand saves lived under 'vimersion-save';
+      // adoptLegacySave() above copies them to this key on first load so no
+      // progress is lost. See that helper for the one-time migration.
+      name: 'vimlegends-save',
       version: 15,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Record<string, unknown>

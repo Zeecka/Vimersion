@@ -75,11 +75,11 @@ const browser = await chromium.launch({
 
   await page.goto(BASE)
   await page.evaluate(() => {
-    const raw = localStorage.getItem('vimersion-save')
+    const raw = localStorage.getItem('vimlegends-save')
     const save = raw ? JSON.parse(raw) : { state: {}, version: 5 }
     save.state.quality = 'webgl'
     save.version = 5
-    localStorage.setItem('vimersion-save', JSON.stringify(save))
+    localStorage.setItem('vimlegends-save', JSON.stringify(save))
   })
   await page.reload({ waitUntil: 'networkidle' })
   await page.waitForTimeout(2500)

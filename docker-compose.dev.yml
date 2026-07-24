@@ -11,9 +11,9 @@
 # docker-compose.yml (nginx + static build); run only one at a time (both use
 # port 8971).
 services:
-  vimersion:
+  web:
     image: node:22-alpine
-    container_name: vimersion-dev
+    container_name: vimlegends-dev
     working_dir: /app
     # Install into the container-only node_modules volume (musl binaries), then
     # start Vite bound to all interfaces on the published port.
@@ -28,23 +28,23 @@ services:
       VITE_PUBLIC_HOST: vimlegends.com
     volumes:
       - .:/app
-      - vimersion-node-modules:/app/node_modules
+      - vimlegends-node-modules:/app/node_modules
     depends_on:
       - api
     restart: unless-stopped
 
   api:
     image: node:24-alpine
-    container_name: vimersion-api-dev
+    container_name: vimlegends-api-dev
     working_dir: /app
     # node --watch restarts the server on any change under server/.
     command: node --experimental-sqlite --watch index.mjs
     volumes:
       - ./server:/app
-      - vimersion-data:/data
+      - vimlegends-data:/data
     environment:
       PORT: "3001"
-      DB_PATH: /data/vimersion.db
+      DB_PATH: /data/vimlegends.db
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8971}
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -56,6 +56,6 @@ services:
 volumes:
   # Keeps the container's node_modules off the host bind-mount (avoids glibc vs
   # musl native-binary clashes) and persists it between runs.
-  vimersion-node-modules:
+  vimlegends-node-modules:
   # Shared with the production stack so the accounts DB survives either way.
-  vimersion-data:
+  vimlegends-data:

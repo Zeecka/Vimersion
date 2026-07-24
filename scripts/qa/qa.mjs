@@ -46,10 +46,10 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
     version: 4,
   }
   await page.goto(BASE)
-  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), V4_SAVE)
+  await page.evaluate((s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)), V4_SAVE)
   await page.reload({ waitUntil: 'networkidle' })
   await page.waitForTimeout(800)
-  const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem('vimersion-save')))
+  const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem('vimlegends-save')))
   report('migrate: version bumped to 10', migrated.version === 10)
   report('migrate: quality defaulted to auto', migrated.state.quality === 'auto')
   report('migrate: xp/coins preserved', migrated.state.xp === 480 && migrated.state.coins === 133, `xp=${migrated.state.xp} coins=${migrated.state.coins}`)
@@ -81,7 +81,7 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
   // Inside Job is 3rd in World 3 — the two challenges before it must be done.
   const seed = seededSave([...T1, ...T2, 'boss-gatekeeper', 't3-cut-word', 't3-shear'])
   await page.goto(BASE)
-  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), seed)
+  await page.evaluate((s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)), seed)
   await page.reload()
   await page.click('header button[title="World map"]')
   // Under SwiftShader the 3D compile can stall the main thread, freezing the
@@ -108,7 +108,7 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e)))
   await page.goto(BASE)
-  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), seededSave([...T1, ...T2, ...T3]))
+  await page.evaluate((s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)), seededSave([...T1, ...T2, ...T3]))
   await page.reload()
   await page.click('header button[title="World map"]')
   await page.waitForTimeout(1500)
@@ -133,7 +133,7 @@ const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] })
   page.on('pageerror', (e) => errors.push(String(e)))
   await page.goto(BASE)
   await page.evaluate(
-    (s) => localStorage.setItem('vimersion-save', JSON.stringify(s)),
+    (s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)),
     seededSave([...T1, ...T2, ...T3, ...T4_PRE]),
   )
   await page.reload()

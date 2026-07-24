@@ -19,7 +19,7 @@ export async function prepPage(page) {
   )
   await page.addInitScript(() => {
     try {
-      localStorage.setItem('vimersion-seen-intro', '1')
+      localStorage.setItem('vimlegends-seen-intro', '1')
     } catch {
       /* storage disabled — the primer will just show; individual suites cope */
     }

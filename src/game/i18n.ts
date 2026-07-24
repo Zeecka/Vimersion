@@ -29,8 +29,21 @@ export const LANG_META: Record<Lang, { label: string; flag: string; english: str
   zh: { label: '中文', flag: '🇨🇳', english: 'Chinese' },
 }
 
-// Kept distinct from the game save key ('vimersion-save') on purpose.
-const STORAGE_KEY = 'vimersion-lang'
+// Kept distinct from the game save key ('vimlegends-save') on purpose.
+const STORAGE_KEY = 'vimlegends-lang'
+
+// Forward-migrate the language preference from the pre-rebrand key ('vimersion-lang')
+// so a returning player's chosen locale survives. Runs once at import, before the
+// store below reads STORAGE_KEY; guarded for non-browser (node test) environments.
+try {
+  if (localStorage.getItem(STORAGE_KEY) == null) {
+    const legacy = localStorage.getItem('vimersion-lang')
+    if (legacy != null) localStorage.setItem(STORAGE_KEY, legacy)
+  }
+  localStorage.removeItem('vimersion-lang')
+} catch {
+  /* no storage — detectLang() falls back to browser/default */
+}
 
 function isLang(x: unknown): x is Lang {
   return typeof x === 'string' && (LANGS as readonly string[]).includes(x)

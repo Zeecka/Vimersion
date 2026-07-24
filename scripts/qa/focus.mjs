@@ -55,7 +55,7 @@ async function toLevel2() {
   page.setDefaultTimeout(60000)
   await prepPage(page)
   await page.goto(BASE)
-  await page.evaluate((s) => localStorage.setItem('vimersion-save', JSON.stringify(s)), SEED)
+  await page.evaluate((s) => localStorage.setItem('vimlegends-save', JSON.stringify(s)), SEED)
   await page.reload()
   await page.click('header button[title="World map"]')
   await page.waitForTimeout(600)
